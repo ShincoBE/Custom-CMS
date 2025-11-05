@@ -21,7 +21,6 @@ function App() {
   useEffect(() => {
     // --- Content is now loaded locally, no fetching needed ---
     setPageContent(pageContentData);
-    console.log("✅ Local content loaded successfully:", pageContentData);
 
     // After content is loaded, update the social media meta tags dynamically.
     if (pageContentData.ogImage?.url) {
