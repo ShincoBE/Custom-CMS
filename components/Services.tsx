@@ -5,11 +5,13 @@ import type { PageContent, Service } from '../types';
 import ErrorBoundary from './ErrorBoundary';
 import { Question } from 'phosphor-react';
 
+type Status = 'loading' | 'success' | 'error';
+
 const SkeletonLoader = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-pulse">
         {[...Array(4)].map((_, i) => (
             <div key={i} className="bg-zinc-800/80 p-6 rounded-lg text-center">
-                <div className="h-12 w-12 bg-zinc-700 rounded-full mb-4 mx-auto"></div>
+                <div className="h-20 w-20 bg-zinc-700 rounded-full mb-6 mx-auto"></div>
                 <div className="h-6 bg-zinc-700 rounded w-1/2 mb-3 mx-auto"></div>
                 <div className="h-4 bg-zinc-700 rounded w-full mb-2"></div>
                 <div className="h-4 bg-zinc-700 rounded w-5/6 mx-auto"></div>
@@ -50,14 +52,15 @@ const ServiceCard = ({ service, index }: { service: Service; index: number }) =>
 
 interface ServicesProps {
     content: PageContent | null;
+    status: Status;
 }
 
-function Services({ content }: ServicesProps) {
+function Services({ content, status }: ServicesProps) {
     const sectionRef = useRef<HTMLDivElement>(null);
     const isVisible = useOnScreen(sectionRef, { threshold: 0.1 });
 
     const services = content?.servicesList || [];
-    const isLoading = !content;
+    const isLoading = status === 'loading';
 
     return (
         <section id="diensten" className="py-20 bg-zinc-950 overflow-hidden">
@@ -66,8 +69,8 @@ function Services({ content }: ServicesProps) {
                 className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
             >
                 <SectionHeader
-                    title={content?.servicesTitle || "Onze Diensten"}
-                    subtitle={content?.servicesSubtitle || "Wij bieden een breed scala aan diensten om uw tuin in topconditie te houden."}
+                    title={content?.servicesTitle || (isLoading ? '' : "Onze Diensten")}
+                    subtitle={content?.servicesSubtitle || (isLoading ? '' : "Wij bieden een breed scala aan diensten om uw tuin in topconditie te houden.")}
                 />
                 <ErrorBoundary>
                     <div className="mt-12">
@@ -80,7 +83,7 @@ function Services({ content }: ServicesProps) {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center text-zinc-400">Geen diensten gevonden. Voeg diensten toe in content.ts.</div>
+                                <div className="text-center text-zinc-400">Geen diensten gevonden. Voeg diensten toe via het admin panel.</div>
                             )
                         )}
                     </div>

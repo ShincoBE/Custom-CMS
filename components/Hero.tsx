@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import type { PageContent } from '../types';
 
+type Status = 'loading' | 'success' | 'error';
+
 const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
   e.preventDefault();
   const href = e.currentTarget.getAttribute('href');
@@ -17,29 +19,45 @@ const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
 
 const SkeletonLoader = () => (
   <section id="home" className="relative h-screen flex items-center justify-center text-center text-white overflow-hidden bg-zinc-900">
-    <div className="relative z-10 p-4 w-full max-w-4xl animate-pulse">
-      <div className="h-10 sm:h-12 md:h-20 bg-zinc-800 rounded-md w-3/4 mx-auto mb-4"></div>
-      <div className="h-6 md:h-8 bg-zinc-800 rounded-md w-full max-w-2xl mx-auto mb-8"></div>
-      <div className="h-12 w-56 bg-zinc-800 rounded-full mx-auto"></div>
+    <div className="absolute top-0 left-0 w-full h-full bg-zinc-800 animate-pulse"></div>
+    <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60"></div>
+    <div className="relative z-10 p-4 w-full max-w-4xl">
+      <div className="h-10 sm:h-12 md:h-20 bg-zinc-700 rounded-md w-3/4 mx-auto mb-4"></div>
+      <div className="h-6 md:h-8 bg-zinc-700 rounded-md w-full max-w-2xl mx-auto mb-8"></div>
+      <div className="h-12 w-56 bg-zinc-700 rounded-full mx-auto"></div>
     </div>
   </section>
 );
 
 interface HeroProps {
   content: PageContent | null;
+  status: Status;
 }
 
-function Hero({ content }: HeroProps) {
+function Hero({ content, status }: HeroProps) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Animate in on component mount
-    const timer = setTimeout(() => setIsLoaded(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+    // Animate in when component has successfully loaded data
+    if (status === 'success') {
+      const timer = setTimeout(() => setIsLoaded(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [status]);
 
-  if (!content) {
+  if (status === 'loading') {
     return <SkeletonLoader />;
+  }
+  
+  if (status === 'error' || !content) {
+     return (
+      <section id="home" className="relative h-screen flex items-center justify-center text-center text-white overflow-hidden bg-zinc-900">
+          <div className="relative z-10 p-4 bg-zinc-800 border border-red-500/30 rounded-lg">
+            <h1 className="text-2xl font-bold text-zinc-200">Kon content niet laden</h1>
+            <p className="text-zinc-400 mt-2">Er is een fout opgetreden. Probeer de pagina te vernieuwen.</p>
+          </div>
+      </section>
+     )
   }
     
   const heroImage = content.heroImage;

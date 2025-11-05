@@ -3,6 +3,8 @@ import SectionHeader from './SectionHeader';
 import { useOnScreen } from '../hooks/useOnScreen';
 import type { PageContent } from '../types';
 
+type Status = 'loading' | 'success' | 'error';
+
 const SkeletonLoader = () => (
     <div className="relative w-full max-w-4xl mx-auto aspect-[1024/683]">
         <div className="w-full h-full bg-zinc-800 rounded-lg shadow-2xl animate-pulse"></div>
@@ -11,9 +13,10 @@ const SkeletonLoader = () => (
 
 interface BeforeAfterProps {
   content: PageContent | null;
+  status: Status;
 }
 
-const BeforeAfter = ({ content }: BeforeAfterProps) => {
+const BeforeAfter = ({ content, status }: BeforeAfterProps) => {
   const [sliderPosition, setSliderPosition] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
@@ -24,7 +27,7 @@ const BeforeAfter = ({ content }: BeforeAfterProps) => {
   const beforeImage = content?.beforeImage;
   const afterImage = content?.afterImage;
 
-  const isLoading = !content;
+  const isLoading = status === 'loading';
   const hasImages = beforeImage?.url && afterImage?.url;
 
   const handleMove = useCallback((clientX: number) => {
@@ -46,8 +49,8 @@ const BeforeAfter = ({ content }: BeforeAfterProps) => {
         className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
       >
         <SectionHeader
-          title={content?.beforeAfterTitle || "Voor & Na"}
-          subtitle={content?.beforeAfterSubtitle || "Zie het verschil dat professioneel onderhoud maakt."}
+          title={content?.beforeAfterTitle || (isLoading ? '' : "Voor & Na")}
+          subtitle={content?.beforeAfterSubtitle || (isLoading ? '' : "Zie het verschil dat professioneel onderhoud maakt.")}
         />
         <div className="relative w-full max-w-4xl mx-auto aspect-[1024/683]">
           {isLoading && <SkeletonLoader />}
@@ -57,7 +60,7 @@ const BeforeAfter = ({ content }: BeforeAfterProps) => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <p className="text-zinc-300">Afbeeldingen konden niet geladen worden.</p>
-              <p className="text-xs text-zinc-400 mt-1">Controleer of de Voor & Na afbeeldingen zijn toegevoegd in content.ts.</p>
+              <p className="text-xs text-zinc-400 mt-1">Controleer of de Voor & Na afbeeldingen zijn toegevoegd via het admin panel.</p>
             </div>
           )}
           {!isLoading && hasImages && (

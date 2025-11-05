@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import type { PageContent } from '../types';
 
+type Status = 'loading' | 'success' | 'error';
+
 const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
   e.preventDefault();
   const href = e.currentTarget.getAttribute('href');
@@ -24,9 +26,10 @@ const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
 interface HeaderProps {
   onOpenGallery: () => void;
   content: PageContent | null;
+  status: Status;
 }
 
-function Header({ onOpenGallery, content }: HeaderProps) {
+function Header({ onOpenGallery, content, status }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -95,7 +98,9 @@ function Header({ onOpenGallery, content }: HeaderProps) {
           <div className="flex items-center justify-between h-16">
             <div className="flex-shrink-0">
               <a href="#home" onClick={handleSmoothScroll} className="flex items-center text-xl font-bold tracking-tight text-white" aria-label="Home">
-                {logoUrl ? (
+                {status === 'loading' ? (
+                  <div className="h-10 w-10 rounded-full mr-3 bg-zinc-800 animate-pulse"></div>
+                ) : logoUrl ? (
                    <img 
                     className="h-10 w-10 rounded-full mr-3 object-contain" 
                     src={logoUrl}
@@ -106,12 +111,22 @@ function Header({ onOpenGallery, content }: HeaderProps) {
                 ) : (
                   <div className="h-10 w-10 rounded-full mr-3 bg-zinc-800"></div>
                 )}
-                <span dangerouslySetInnerHTML={{ __html: companyName.replace('Service+', '<span class="text-green-500">Service+</span>') }} />
+                 {status === 'loading' ? (
+                  <div className="h-6 w-40 bg-zinc-800 animate-pulse rounded-md"></div>
+                 ) : (
+                  <span dangerouslySetInnerHTML={{ __html: companyName.replace('Service+', '<span class="text-green-500">Service+</span>') }} />
+                 )}
               </a>
             </div>
             
             <div className="hidden md:flex items-center space-x-1">
-              {renderNavLinks(false)}
+              {status === 'loading' ? (
+                <div className="flex space-x-1">
+                  {[...Array(5)].map((_, i) => <div key={i} className="h-8 w-20 bg-zinc-800 animate-pulse rounded-md"></div>)}
+                </div>
+              ) : (
+                renderNavLinks(false)
+              )}
             </div>
             
             <div className="-mr-2 flex md:hidden">
