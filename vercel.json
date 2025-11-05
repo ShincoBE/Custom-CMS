@@ -1,1 +1,13 @@
-{}
+{
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/:path((?!api/|.*\\.).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
