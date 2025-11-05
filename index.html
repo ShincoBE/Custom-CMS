@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO Meta Tags -->
+    <title>Andries Service+ | Professioneel Tuinonderhoud & Klusjes</title>
+    <meta name="description" content="Andries Service+ biedt professioneel tuinonderhoud, tuinaanleg, schilderwerken en klusjesdiensten in de regio Lier. Vraag een vrijblijvende offerte aan voor een onberispelijke tuin en woning." />
+    <meta name="keywords" content="tuinonderhoud, tuinaanleg, hovenier, tuinman, schilderwerken, klusjesman, Lier, Andries Service+, tuinverzorging, professioneel onderhoud" />
+    <meta name="author" content="Andries Service+" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Andries Service+ | Professioneel Tuinonderhoud & Klusjes" />
+    <meta property="og:description" content="Andries Service+ biedt professioneel tuinonderhoud, tuinaanleg, schilderwerken en klusjesdiensten in de regio Lier." />
+    <!-- NOTE: The content of this tag is now dynamically replaced by the app after loading from the CMS -->
+    <meta property="og:image" content="https://i.postimg.cc/431ktwwb/Hero.jpg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="Andries Service+ | Professioneel Tuinonderhoud & Klusjes" />
+    <meta property="twitter:description" content="Andries Service+ biedt professioneel tuinonderhoud, tuinaanleg, schilderwerken en klusjesdiensten in de regio Lier." />
+    <!-- NOTE: The content of this tag is now dynamically replaced by the app after loading from the CMS -->
+    <meta property="twitter:image" content="https://i.postimg.cc/431ktwwb/Hero.jpg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        position: relative;
+        overflow-x: hidden;
+        background-color: #18181b; /* Tailwind zinc-900 */
+        /* Base carbon texture */
+        background-image: 
+          linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent),
+          linear-gradient(-45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+        background-size: 6px 6px;
+      }
+
+      /* 3D "woven" shapes in the background */
+      body::before,
+      body::after {
+        content: '';
+        position: fixed; /* Stays in place on scroll */
+        z-index: 0;
+        width: 120vw;
+        height: 120vh;
+        filter: blur(100px); /* Soft, atmospheric blur */
+        opacity: 0.8;
+        pointer-events: none; /* Make sure they don't interfere with clicks */
+      }
+
+      /* Top-right shape - subtle dark shadow */
+      body::before {
+        top: -50vh;
+        right: -60vw;
+        background: radial-gradient(circle, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0) 65%);
+        transform: rotate(-30deg);
+      }
+
+      /* Bottom-left shape - subtle dark shadow with a hint of green */
+      body::after {
+        bottom: -60vh;
+        left: -50vw;
+        background: radial-gradient(circle, rgba(10, 40, 20, 0.08) 0%, rgba(10, 20, 10, 0) 60%);
+        transform: rotate(10deg);
+      }
+      
+      /* Ensure React app content is layered on top */
+      #root {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Modal animations */
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.3s ease-out forwards;
+      }
+      .animate-slide-up {
+        animation: slideUp 0.4s ease-out forwards;
+      }
+
+      /* Autofill styles for dark mode */
+      input:-webkit-autofill,
+      input:-webkit-autofill:hover,
+      input:-webkit-autofill:focus,
+      input:-webkit-autofill:active {
+        -webkit-text-fill-color: #ffffff !important;
+        box-shadow: 0 0 0 1000px #18181b inset !important; /* bg-zinc-900 */
+        transition: background-color 5000s ease-in-out 0s;
+        caret-color: #ffffff;
+      }
+
+      /* Force floating label to float up on autofill */
+      input.peer:-webkit-autofill + label {
+        transform: translateY(-1.5rem) scale(0.75);
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@sanity/client": "https://aistudiocdn.com/@sanity/client@^6.21.1",
+    "@sanity/image-url": "https://aistudiocdn.com/@sanity/image-url@^1.0.2",
+    "@sanity/image-url/": "https://aistudiocdn.com/@sanity/image-url@^1.0.2/",
+    "sanity": "https://aistudiocdn.com/sanity@^4.10.2",
+    "phosphor-react": "https://aistudiocdn.com/phosphor-react@^1.4.1",
+    "phosphor-react/": "https://aistudiocdn.com/phosphor-react@^1.4.1/",
+    "vitest/": "https://aistudiocdn.com/vitest@^3.2.4/",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.4",
+    "@testing-library/jest-dom/": "https://aistudiocdn.com/@testing-library/jest-dom@^6.9.1/",
+    "@testing-library/react": "https://aistudiocdn.com/@testing-library/react@^16.3.0",
+    "@testing-library/dom": "https://aistudiocdn.com/@testing-library/dom@^10.4.1",
+    "vitest": "https://aistudiocdn.com/vitest@^3.2.4"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
