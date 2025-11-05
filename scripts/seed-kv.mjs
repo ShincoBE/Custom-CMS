@@ -6,6 +6,8 @@ import { createClient } from '@vercel/kv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+// FIX: Explicitly import the `process` module to resolve type errors with `process.exit`.
+import process from 'process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const contentFilePath = path.join(__dirname, '../content.ts');
