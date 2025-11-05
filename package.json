@@ -12,12 +12,17 @@
   "dependencies": {
     "@vercel/blob": "^0.23.4",
     "@vercel/kv": "^2.0.0",
+    "cookie": "^0.6.0",
+    "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.9.14",
     "phosphor-react": "^1.4.1",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^6.24.1"
   },
   "devDependencies": {
+    "@types/cookie": "^0.6.0",
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

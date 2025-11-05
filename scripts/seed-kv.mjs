@@ -2,8 +2,16 @@
 // Run this once with `pnpm seed` after setting up your .env.local file.
 import { createClient } from '@vercel/kv';
 // FIX: Node's ESM loader cannot handle TypeScript files by default.
-// The script should import the compiled JavaScript file instead.
-import { pageContentData, galleryImagesData } from '../content.js';
+// The script now reads content.ts as a JSON file to bypass the module system.
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const contentFilePath = path.join(__dirname, '../content.ts');
+const contentFile = fs.readFileSync(contentFilePath, 'utf-8');
+const { pageContentData, galleryImagesData } = JSON.parse(contentFile);
+
 
 // Load environment variables from .env.local
 // The --env-file flag in the package.json script handles this
