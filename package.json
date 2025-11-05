@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
     "nodemailer": "^6.9.14",
     "phosphor-react": "^1.4.1",
     "react": "^19.2.0",
