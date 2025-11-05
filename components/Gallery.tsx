@@ -1,53 +1,18 @@
-
-
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { client } from '../sanity/client';
-import { urlFor } from '../sanity/image';
+import React, { useState, useCallback, useEffect } from 'react';
 import type { GalleryImage, PageContent } from '../types';
 import SectionHeader from './SectionHeader';
-
-// Helper to generate a responsive srcset for Sanity images
-const generateSrcSet = (image: GalleryImage['image'], format: 'webp' = 'webp', sizes: number[] = [400, 800, 1200, 1600]) => {
-  if (!image) return '';
-  return sizes
-    .map(size => `${urlFor(image)?.width(size).format(format).quality(80).url()} ${size}w`)
-    .join(', ');
-};
 
 interface GalleryProps {
   onClose: () => void;
   content: PageContent | null;
+  images: GalleryImage[];
 }
 
-function Gallery({ onClose, content }: GalleryProps) {
-  const [images, setImages] = useState<GalleryImage[]>([]);
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+function Gallery({ onClose, content, images = [] }: GalleryProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   const isModalOpen = selectedImageIndex !== null;
-
-  useEffect(() => {
-    const fetchImages = async () => {
-      if (!client) {
-        setStatus('error');
-        return;
-      }
-      setStatus('loading');
-      try {
-        const query = `*[_type == "galleryImage"] | order(order asc) { 
-          _id, 
-          image{...}
-        }`;
-        const result: GalleryImage[] = await client.fetch(query);
-        setImages(result);
-        setStatus('success');
-      } catch (error) {
-        console.error('Failed to fetch gallery images:', error);
-        setStatus('error');
-      }
-    };
-    fetchImages();
-  }, []);
+  const status = images.length > 0 ? 'success' : 'error'; // Simplified status based on passed images
   
   const handleCloseModal = useCallback(() => {
     setSelectedImageIndex(null);
@@ -122,27 +87,19 @@ function Gallery({ onClose, content }: GalleryProps) {
             />
         </div>
         
-        {status === 'loading' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-pulse">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="aspect-square bg-zinc-800 rounded-lg"></div>
-            ))}
-          </div>
-        )}
         {status === 'error' && (
            <div className="bg-zinc-800 border border-red-500/30 rounded-lg p-6 text-center">
              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-red-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
              </svg>
             <p className="text-zinc-300">Galerij kon niet geladen worden.</p>
-            <p className="text-xs text-zinc-400 mt-1">Controleer of de afbeeldingen zijn gepubliceerd in de Sanity CMS.</p>
+            <p className="text-xs text-zinc-400 mt-1">Controleer of de afbeeldingen zijn toegevoegd in content.ts.</p>
           </div>
         )}
         {status === 'success' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {images.map((image, index) => {
-              const thumbUrl = urlFor(image.image)?.width(400).height(400).fit('crop').format('webp').quality(80).url();
-              const thumbSrcSet = `${urlFor(image.image)?.width(400).height(400).fit('crop').format('webp').quality(80).url()} 1x, ${urlFor(image.image)?.width(800).height(800).fit('crop').format('webp').quality(80).url()} 2x`;
+              const thumbUrl = image.image.url;
               return (
                 <div
                   key={image._id}
@@ -155,7 +112,6 @@ function Gallery({ onClose, content }: GalleryProps) {
                 >
                   <img
                     src={thumbUrl}
-                    srcSet={thumbSrcSet}
                     alt={image.image.alt || ''}
                     loading="lazy"
                     width="400"
@@ -187,18 +143,11 @@ function Gallery({ onClose, content }: GalleryProps) {
             className={`relative transition-all duration-300 ${isModalOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <picture>
-              <source
-                type="image/webp"
-                srcSet={generateSrcSet(images[selectedImageIndex].image, 'webp')}
-                sizes="90vw"
-              />
-              <img
-                src={urlFor(images[selectedImageIndex].image)?.url()}
-                alt={images[selectedImageIndex].image.alt || ''}
-                className="max-h-[80vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
-              />
-            </picture>
+            <img
+              src={images[selectedImageIndex].image.url}
+              alt={images[selectedImageIndex].image.alt || ''}
+              className="max-h-[80vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
+            />
             
             <button
                 onClick={handleCloseModal}

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { urlFor } from '../sanity/image';
 import type { PageContent } from '../types';
 
 const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -60,8 +59,7 @@ function Header({ onOpenGallery, content }: HeaderProps) {
   
   const logo = content?.logo;
   const companyName = content?.companyName || 'Andries Service+';
-  const logoUrl = logo ? urlFor(logo)?.height(80).format('webp').quality(90).url() : '';
-  const logoSrcSet = logo ? `${urlFor(logo)?.height(80).format('webp').quality(90).url()} 1x, ${urlFor(logo)?.height(160).format('webp').quality(90).url()} 2x` : '';
+  const logoUrl = logo?.url || '';
 
   const renderNavLinks = (isMobile: boolean) => navLinks.map((item) => (
     item.type === 'link' ? (
@@ -99,9 +97,8 @@ function Header({ onOpenGallery, content }: HeaderProps) {
               <a href="#home" onClick={handleSmoothScroll} className="flex items-center text-xl font-bold tracking-tight text-white" aria-label="Home">
                 {logoUrl ? (
                    <img 
-                    className="h-10 w-10 rounded-full mr-3" 
+                    className="h-10 w-10 rounded-full mr-3 object-contain" 
                     src={logoUrl}
-                    srcSet={logoSrcSet}
                     width="40"
                     height="40"
                     alt={logo?.alt || 'Andries Service+ Logo'}

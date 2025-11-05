@@ -1,14 +1,7 @@
-import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
-
-// Based on Sanity image asset structure
-// Fix: An interface cannot extend a union type. This interface defines a specific object
-// structure that is compatible with `SanityImageSource`, so the `extends` clause is removed.
-export interface SanityImage {
+// Simplified image type, no longer tied to Sanity's structure.
+export interface AppImage {
   alt?: string;
-  asset: {
-    _ref: string;
-    _type: 'reference';
-  };
+  url: string;
 }
 
 // The definitive, simplified interface for a Service
@@ -16,12 +9,11 @@ export interface Service {
   _key: string;
   title: string;
   description: string;
-  customIcon?: SanityImage; // The custom uploaded image (now optional)
+  customIcon?: AppImage; // The custom uploaded image (now optional)
 }
 
 export interface PageContent {
   _id: string;
-  _type: 'pageContent';
   
   // Navigation
   navHome?: string;
@@ -31,25 +23,25 @@ export interface PageContent {
   navContact?: string;
   
   // Header
-  logo?: SanityImage;
+  logo?: AppImage;
   companyName?: string;
   
   // Hero Section
   heroTitle?: string;
   heroTagline?: string;
   heroButtonText?: string;
-  heroImage?: SanityImage;
+  heroImage?: AppImage;
   
   // Services Section
   servicesTitle?: string;
   servicesSubtitle?: string;
-  servicesList?: Service[]; // Uses the new, simplified Service interface
+  servicesList?: Service[];
   
   // Before & After Section
   beforeAfterTitle?: string;
   beforeAfterSubtitle?: string;
-  beforeImage?: SanityImage;
-  afterImage?: SanityImage;
+  beforeImage?: AppImage;
+  afterImage?: AppImage;
   
   // CTA Gallery Section
   servicesCtaTitle?: string;
@@ -80,7 +72,7 @@ export interface PageContent {
   contactFormSuccessAgainButtonText?: string;
 
   // SEO & Social Media
-  ogImage?: SanityImage;
+  ogImage?: AppImage;
 
   // Footer
   facebookUrl?: string;
@@ -89,5 +81,5 @@ export interface PageContent {
 
 export interface GalleryImage {
   _id: string;
-  image: SanityImage;
+  image: AppImage;
 }

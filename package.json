@@ -8,19 +8,18 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "engines": {
-    "node": "20.x"
-  },
-  "packageManager": "pnpm@9.x",
   "dependencies": {
-    "@sanity/client": "^6.21.1",
-    "@sanity/image-url": "^1.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
     "nodemailer": "^6.9.14",
     "phosphor-react": "^1.4.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "typescript": "^5.4.5",
     "vite": "^5.3.1"

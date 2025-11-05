@@ -3,7 +3,6 @@ import SectionHeader from './SectionHeader';
 import { useOnScreen } from '../hooks/useOnScreen';
 import type { PageContent, Service } from '../types';
 import ErrorBoundary from './ErrorBoundary';
-import { urlFor } from '../sanity/image';
 import { Question } from 'phosphor-react';
 
 const SkeletonLoader = () => (
@@ -20,7 +19,7 @@ const SkeletonLoader = () => (
 );
 
 const ServiceCard = ({ service, index }: { service: Service; index: number }) => {
-    const iconUrl = service.customIcon ? urlFor(service.customIcon)?.width(96).height(96).fit('max').format('webp').quality(90).url() : null;
+    const iconUrl = service.customIcon?.url || null;
 
     return (
         <div
@@ -51,14 +50,14 @@ const ServiceCard = ({ service, index }: { service: Service; index: number }) =>
 
 interface ServicesProps {
     content: PageContent | null;
-    status: 'loading' | 'success' | 'error';
 }
 
-function Services({ content, status }: ServicesProps) {
+function Services({ content }: ServicesProps) {
     const sectionRef = useRef<HTMLDivElement>(null);
     const isVisible = useOnScreen(sectionRef, { threshold: 0.1 });
 
     const services = content?.servicesList || [];
+    const isLoading = !content;
 
     return (
         <section id="diensten" className="py-20 bg-zinc-950 overflow-hidden">
@@ -72,17 +71,8 @@ function Services({ content, status }: ServicesProps) {
                 />
                 <ErrorBoundary>
                     <div className="mt-12">
-                        {status === 'loading' && <SkeletonLoader />}
-                        {status === 'error' && (
-                             <div className="bg-zinc-800 border border-red-500/30 rounded-lg p-6 text-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-red-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <p className="text-zinc-300">Diensten konden niet geladen worden.</p>
-                                <p className="text-xs text-zinc-400 mt-1">Controleer of de content is gepubliceerd in de Sanity CMS.</p>
-                            </div>
-                        )}
-                        {status === 'success' && (
+                        {isLoading && <SkeletonLoader />}
+                        {!isLoading && (
                             services.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                                     {services.map((service, index) => (
@@ -90,7 +80,7 @@ function Services({ content, status }: ServicesProps) {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center text-zinc-400">Geen diensten gevonden. Voeg diensten toe in de Sanity CMS.</div>
+                                <div className="text-center text-zinc-400">Geen diensten gevonden. Voeg diensten toe in content.ts.</div>
                             )
                         )}
                     </div>
