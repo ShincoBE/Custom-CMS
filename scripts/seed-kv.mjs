@@ -10,7 +10,10 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const contentFilePath = path.join(__dirname, '../content.ts');
 const contentFile = fs.readFileSync(contentFilePath, 'utf-8');
-const { pageContentData, galleryImagesData } = JSON.parse(contentFile);
+// FIX: To make content.ts a valid TS module, it now has a default export.
+// We extract the JSON object from the file content before parsing.
+const jsonString = contentFile.substring(contentFile.indexOf('{'), contentFile.lastIndexOf('}') + 1);
+const { pageContentData, galleryImagesData } = JSON.parse(jsonString);
 
 
 // Load environment variables from .env.local

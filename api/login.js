@@ -6,6 +6,15 @@ const COOKIE_NAME = 'auth_token';
 const MAX_AGE = 60 * 60 * 8; // 8 hours in seconds
 
 export default async function handler(req, res) {
+  // --- START: Environment Variable Validation ---
+  // This check is crucial. If the server is missing these variables,
+  // we need to stop immediately and send a proper error response.
+  if (!ADMIN_USERNAME || !ADMIN_PASSWORD || !JWT_SECRET) {
+    console.error('Missing required environment variables for authentication.');
+    return res.status(500).json({ success: false, error: 'Server configuration error. Please contact the administrator.' });
+  }
+  // --- END: Environment Variable Validation ---
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).end(`Method ${req.method} Not Allowed`);

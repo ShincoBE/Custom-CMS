@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "vite",
-    "dev": "vercel dev",
+    "dev": "vite",
+    "dev:vercel": "vercel dev",
     "build": "vite build",
     "preview": "vite preview",
     "seed": "node --env-file=.env.local scripts/seed-kv.mjs"

@@ -1,4 +1,5 @@
-{
+// FIX: Wrapped content in a default export to make it a valid TypeScript module and resolve syntax errors.
+export default {
   "pageContentData": {
     "_id": "singleton-page",
     "navHome": "Home",
@@ -155,4 +156,4 @@
       }
     }
   ]
-}
+};
