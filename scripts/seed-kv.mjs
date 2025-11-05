@@ -20,9 +20,21 @@ const { pageContentData, galleryImagesData } = JSON.parse(jsonString);
 
 // Load environment variables from .env.local
 // The --env-file flag in the package.json script handles this
-if (!process.env.KV_URL) {
-  throw new Error('Missing required environment variables from .env.local. Please follow the setup guide.');
+if (!process.env.KV_URL || !process.env.KV_REST_API_TOKEN) {
+  console.error('❌ Fout: Vereiste omgevingsvariabelen KV_URL en/of KV_REST_API_TOKEN ontbreken in .env.local.');
+  console.error('Volg de installatiehandleiding en zorg ervoor dat u de REST API URL (beginnend met https://) gebruikt voor KV_URL.');
+  process.exit(1);
 }
+
+// --- VALIDATION: Check for incorrect URL format ---
+// This prevents the "UrlError" if the user accidentally uses the Redis connection string.
+if (process.env.KV_URL.startsWith('rediss:')) {
+    console.error('❌ Fout: Ongeldig KV_URL formaat gedetecteerd.');
+    console.error('Uw KV_URL in .env.local begint met "rediss://", maar het moet de REST API URL zijn die begint met "https://".');
+    console.error('Kopieer de juiste URL uit de instellingen van uw Vercel KV-database en probeer het opnieuw.');
+    process.exit(1);
+}
+
 
 const kv = createClient({
   url: process.env.KV_URL,
@@ -30,21 +42,21 @@ const kv = createClient({
 });
 
 async function seedDatabase() {
-  console.log('Seeding database...');
+  console.log('Database wordt geseed...');
 
   try {
     // Set page content under the key 'pageContent'
     await kv.set('pageContent', pageContentData);
-    console.log('✅ Page content seeded successfully.');
+    console.log('✅ Pagina-inhoud succesvol geplaatst.');
 
     // Set gallery images under the key 'galleryImages'
     await kv.set('galleryImages', galleryImagesData);
-    console.log('✅ Gallery images seeded successfully.');
+    console.log('✅ Galerij-afbeeldingen succesvol geplaatst.');
 
-    console.log('\nDatabase seeding complete! You can now run `pnpm dev`.');
+    console.log('\nDatabase seeding voltooid! U kunt nu `pnpm dev` uitvoeren.');
 
   } catch (error) {
-    console.error('Error seeding database:', error);
+    console.error('Fout bij het seeden van de database:', error);
     process.exit(1);
   }
 }
