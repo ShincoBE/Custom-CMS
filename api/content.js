@@ -11,10 +11,14 @@ export default async function handler(req, res) {
 
   // --- START: Environment Variable Validation ---
   // A 500 error here is often caused by missing environment variables on Vercel.
-  // This check ensures both required KV variables are present.
   if (!process.env.KV_URL || !process.env.KV_REST_API_TOKEN) {
     console.error('Missing KV environment variables on the server.');
     return res.status(500).json({ error: 'Server configuration error: KV store credentials are not set.' });
+  }
+  // This check prevents the "UrlError" if the Redis connection string is used by mistake.
+  if (process.env.KV_URL.startsWith('rediss:')) {
+    console.error('Incorrect KV_URL format detected on the server.');
+    return res.status(500).json({ error: 'Server configuration error: Incorrect KV_URL format. Please use the REST API URL (starting with https://) in your Vercel project environment variables.' });
   }
   // --- END: Environment Variable Validation ---
 
