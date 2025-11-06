@@ -1,10 +1,14 @@
+// Fix: Add a triple-slash directive to include Vite's client types.
+// This provides TypeScript with the necessary type definitions for `import.meta.env`.
+/// <reference types="vite/client" />
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { ClerkProvider } from '@clerk/clerk-react';
 import App from './App';
 
-const PUBLISHABLE_KEY = process.env.VITE_CLERK_PUBLISHABLE_KEY;
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
