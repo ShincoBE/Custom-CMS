@@ -78,11 +78,11 @@ function Hero({ content, status }: HeroProps) {
       <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60"></div>
       <div className="relative z-10 p-4">
         <h1 className={`text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-4 transition-all duration-700 ease-out ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-          dangerouslySetInnerHTML={{ __html: heroTitle.replace('Service+', '<span class="text-green-500">Service+</span>') }}
+          dangerouslySetInnerHTML={{ __html: heroTitle }}
         />
-        <p className={`text-lg md:text-2xl max-w-2xl mx-auto mb-8 text-gray-300 transition-all duration-700 ease-out delay-200 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          {heroTagline}
-        </p>
+        <p className={`text-lg md:text-2xl max-w-2xl mx-auto mb-8 text-gray-300 transition-all duration-700 ease-out delay-200 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+           dangerouslySetInnerHTML={{ __html: heroTagline }}
+        />
         <a 
           href="#contact" 
           onClick={handleSmoothScroll}

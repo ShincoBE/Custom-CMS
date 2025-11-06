@@ -36,7 +36,7 @@ function Footer({ content }: FooterProps) {
           )}
         </div>
         <p className="text-gray-500">
-          &copy; {new Date().getFullYear()} {copyrightText}
+          &copy; {new Date().getFullYear()} <span dangerouslySetInnerHTML={{ __html: copyrightText }} />
         </p>
       </div>
     </footer>

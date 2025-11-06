@@ -1,45 +1,106 @@
 // pages/AdminDashboard.tsx
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import type { PageContent, GalleryImage, Service } from '../types';
-import { Plus, Trash, UploadSimple, Spinner, CheckCircle, WarningCircle, Pencil, SignOut, Users } from 'phosphor-react';
+// Fix: Replaced incorrect icon 'TextB' with 'TextBolder' from phosphor-react.
+import { Plus, Trash, UploadSimple, Spinner, CheckCircle, WarningCircle, Pencil, SignOut, Users, TextBolder, TextItalic } from 'phosphor-react';
 
 // --- HELPER COMPONENTS (scoped to this file) ---
 
-const Input = ({ label, help, value, onChange, name, required = false, type = 'text', autoComplete = 'off' }: { label: string, help?: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, name: string, required?: boolean, type?: string, autoComplete?: string }) => (
-  <div className="mb-6">
-    <label htmlFor={name} className="block text-sm font-medium text-zinc-300 mb-1">
-      {label} {required && <span className="text-red-400">*</span>}
-    </label>
-    <input
-      type={type}
-      id={name}
-      name={name}
-      value={value || ''}
-      onChange={onChange}
-      autoComplete={autoComplete}
-      className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500"
-    />
-    {help && <p className="text-xs text-zinc-400 mt-1">{help}</p>}
-  </div>
-);
+// A simple toolbar for applying inline HTML styles to text in an input/textarea.
+const TextStyler = ({ inputRef, onStyleApply }: { inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement>, onStyleApply: (newValue: string) => void }) => {
+    
+    const applyStyle = (tag: 'b' | 'i' | 'span') => {
+        const input = inputRef.current;
+        if (!input) return;
 
-const Textarea = ({ label, help, value, onChange, name, required = false }: { label: string, help: string, value: string, onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void, name: string, required?: boolean }) => (
-  <div className="mb-6">
-    <label htmlFor={name} className="block text-sm font-medium text-zinc-300 mb-1">
-      {label} {required && <span className="text-red-400">*</span>}
-    </label>
-    <textarea
-      id={name}
-      name={name}
-      value={value || ''}
-      onChange={onChange}
-      rows={3}
-      className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500"
-    />
-    <p className="text-xs text-zinc-400 mt-1">{help}</p>
-  </div>
-);
+        const { selectionStart, selectionEnd, value } = input;
+        const selectedText = value.substring(selectionStart, selectionEnd);
+
+        if (!selectedText) {
+            // If no text is selected, do nothing.
+            input.focus();
+            return;
+        }
+
+        const before = value.substring(0, selectionStart);
+        const after = value.substring(selectionEnd);
+        
+        let styledText;
+        if (tag === 'span') {
+            styledText = `<span class="text-green-500">${selectedText}</span>`;
+        } else {
+            styledText = `<${tag}>${selectedText}</${tag}>`;
+        }
+
+        onStyleApply(before + styledText + after);
+    };
+
+    return (
+        <div className="flex items-center space-x-1 bg-zinc-700 p-1 rounded-md mb-1 w-min">
+            <button type="button" onClick={() => applyStyle('b')} title="Bold" className="p-1 rounded hover:bg-zinc-600 text-zinc-300"><TextBolder weight="bold" /></button>
+            <button type="button" onClick={() => applyStyle('i')} title="Italic" className="p-1 rounded hover:bg-zinc-600 text-zinc-300"><TextItalic weight="bold" /></button>
+            <button type="button" onClick={() => applyStyle('span')} title="Accent Color" className="p-1 rounded hover:bg-zinc-600 text-green-500 font-bold">A</button>
+        </div>
+    );
+};
+
+const Input = ({ label, help, value, onChange, name, required = false, type = 'text', autoComplete = 'off', showStyler = false }: { label: string, help?: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, name: string, required?: boolean, type?: string, autoComplete?: string, showStyler?: boolean }) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+    
+    const handleStyleApply = (newValue: string) => {
+        const event = { target: { name, value: newValue } } as React.ChangeEvent<HTMLInputElement>;
+        onChange(event);
+    };
+
+    return (
+        <div className="mb-6">
+            <label htmlFor={name} className="block text-sm font-medium text-zinc-300 mb-1">
+              {label} {required && <span className="text-red-400">*</span>}
+            </label>
+            {showStyler && <TextStyler inputRef={inputRef} onStyleApply={handleStyleApply} />}
+            <input
+              ref={inputRef}
+              type={type}
+              id={name}
+              name={name}
+              value={value || ''}
+              onChange={onChange}
+              autoComplete={autoComplete}
+              className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500"
+            />
+            {help && <p className="text-xs text-zinc-400 mt-1">{help}</p>}
+        </div>
+    );
+};
+
+const Textarea = ({ label, help, value, onChange, name, required = false, showStyler = false }: { label: string, help: string, value: string, onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void, name: string, required?: boolean, showStyler?: boolean }) => {
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    
+    const handleStyleApply = (newValue: string) => {
+        const event = { target: { name, value: newValue } } as React.ChangeEvent<HTMLTextAreaElement>;
+        onChange(event);
+    };
+
+    return (
+        <div className="mb-6">
+            <label htmlFor={name} className="block text-sm font-medium text-zinc-300 mb-1">
+                {label} {required && <span className="text-red-400">*</span>}
+            </label>
+            {showStyler && <TextStyler inputRef={textareaRef} onStyleApply={handleStyleApply} />}
+            <textarea
+              ref={textareaRef}
+              id={name}
+              name={name}
+              value={value || ''}
+              onChange={onChange}
+              rows={3}
+              className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500"
+            />
+            <p className="text-xs text-zinc-400 mt-1">{help}</p>
+        </div>
+    );
+};
 
 const ImageUpload = ({ label, help, currentUrl, alt, onAltChange, onImageChange, name, required = false }: { label: string, help: string, currentUrl?: string, alt?: string, onAltChange: (e: React.ChangeEvent<HTMLInputElement>) => void, onImageChange: (file: File) => Promise<void>, name: string, required?: boolean }) => {
     const [isUploading, setIsUploading] = useState(false);
@@ -453,10 +514,10 @@ function AdminDashboard() {
         return (
           <>
             <h2 className="text-2xl font-bold mb-4 text-zinc-100">Algemene Pagina-instellingen</h2>
-            <Input name="companyName" label="Bedrijfsnaam" help="De naam van het bedrijf, wordt weergegeven in de header." value={content.companyName!} onChange={e => handleContentChange('companyName', e.target.value)} required />
+            <Input name="companyName" label="Bedrijfsnaam" help="De naam van het bedrijf, wordt weergegeven in de header." value={content.companyName!} onChange={e => handleContentChange('companyName', e.target.value)} required showStyler />
             <ImageUpload name="logo" label="Logo" help="Het logo dat linksboven in de header staat. (Aanbevolen: 1:1 ratio, bv. 80x80px)" currentUrl={content.logo?.url} alt={content.logo?.alt} onAltChange={e => handleContentChange('logo.alt', e.target.value)} onImageChange={file => handleImageUpload(file, 'logo.url')} required />
             <Input name="facebookUrl" label="Facebook URL" help="Link naar de Facebook pagina. Laat leeg om het icoon te verbergen." value={content.facebookUrl!} onChange={e => handleContentChange('facebookUrl', e.target.value)} />
-            <Input name="footerCopyrightText" label="Footer Copyright Tekst" help="De tekst die na het jaartal in de footer komt." value={content.footerCopyrightText!} onChange={e => handleContentChange('footerCopyrightText', e.target.value)} required />
+            <Input name="footerCopyrightText" label="Footer Copyright Tekst" help="De tekst die na het jaartal in de footer komt." value={content.footerCopyrightText!} onChange={e => handleContentChange('footerCopyrightText', e.target.value)} required showStyler />
             <ImageUpload name="ogImage" label="Social Media Afbeelding (OG)" help="De afbeelding die wordt getoond bij het delen van de link op social media. (Aanbevolen: 1200x630px)" currentUrl={content.ogImage?.url} alt={content.ogImage?.alt} onAltChange={e => handleContentChange('ogImage.alt', e.target.value)} onImageChange={file => handleImageUpload(file, 'ogImage.url')} />
           </>
         );
@@ -477,8 +538,8 @@ function AdminDashboard() {
         return (
           <>
             <h2 className="text-2xl font-bold mb-4 text-zinc-100">Hero Sectie</h2>
-            <Input name="heroTitle" label="Hoofdtitel" help="De grote titel op de homepagina. Gebruik 'Service+' om het groene accent te krijgen." value={content.heroTitle!} onChange={e => handleContentChange('heroTitle', e.target.value)} required />
-            <Textarea name="heroTagline" label="Tagline" help="De subtitel onder de hoofdtitel." value={content.heroTagline!} onChange={e => handleContentChange('heroTagline', e.target.value)} required />
+            <Input name="heroTitle" label="Hoofdtitel" help="De grote titel op de homepagina." value={content.heroTitle!} onChange={e => handleContentChange('heroTitle', e.target.value)} required showStyler />
+            <Textarea name="heroTagline" label="Tagline" help="De subtitel onder de hoofdtitel." value={content.heroTagline!} onChange={e => handleContentChange('heroTagline', e.target.value)} required showStyler />
             <Input name="heroButtonText" label="Knop Tekst" help="De tekst op de knop in de hero sectie." value={content.heroButtonText!} onChange={e => handleContentChange('heroButtonText', e.target.value)} required />
             <ImageUpload name="heroImage" label="Achtergrondafbeelding" help="De grote afbeelding op de achtergrond van de hero sectie." currentUrl={content.heroImage?.url} alt={content.heroImage?.alt} onAltChange={e => handleContentChange('heroImage.alt', e.target.value)} onImageChange={file => handleImageUpload(file, 'heroImage.url')} required />
           </>
@@ -487,13 +548,13 @@ function AdminDashboard() {
         return (
           <>
             <h2 className="text-2xl font-bold mb-4 text-zinc-100">Diensten Sectie</h2>
-            <Input name="servicesTitle" label="Titel" help="Titel van de diensten sectie." value={content.servicesTitle!} onChange={e => handleContentChange('servicesTitle', e.target.value)} required />
-            <Textarea name="servicesSubtitle" label="Subtitel" help="Subtitel van de diensten sectie." value={content.servicesSubtitle!} onChange={e => handleContentChange('servicesSubtitle', e.target.value)} required />
+            <Input name="servicesTitle" label="Titel" help="Titel van de diensten sectie." value={content.servicesTitle!} onChange={e => handleContentChange('servicesTitle', e.target.value)} required showStyler />
+            <Textarea name="servicesSubtitle" label="Subtitel" help="Subtitel van de diensten sectie." value={content.servicesSubtitle!} onChange={e => handleContentChange('servicesSubtitle', e.target.value)} required showStyler />
             <h3 className="text-lg font-semibold mb-2 mt-4 text-white">Diensten Lijst</h3>
             {content.servicesList?.map((service, index) => (
                 <div key={service._key} className="p-4 border border-zinc-700 rounded-lg mb-4 bg-zinc-800/50 relative">
-                    <Input name={`service-title-${index}`} label="Dienst Titel" value={service.title} onChange={e => handleContentChange(`servicesList.${index}.title`, e.target.value)} required />
-                    <Textarea name={`service-desc-${index}`} label="Dienst Omschrijving" help="" value={service.description} onChange={e => handleContentChange(`servicesList.${index}.description`, e.target.value)} required />
+                    <Input name={`service-title-${index}`} label="Dienst Titel" value={service.title} onChange={e => handleContentChange(`servicesList.${index}.title`, e.target.value)} required showStyler />
+                    <Textarea name={`service-desc-${index}`} label="Dienst Omschrijving" help="" value={service.description} onChange={e => handleContentChange(`servicesList.${index}.description`, e.target.value)} required showStyler />
                     <ImageUpload name={`service-icon-${index}`} label="Icoon" help="Een klein icoon voor deze dienst." currentUrl={service.customIcon?.url} alt={service.customIcon?.alt} onAltChange={e => handleContentChange(`servicesList.${index}.customIcon.alt`, e.target.value)} onImageChange={file => handleImageUpload(file, `servicesList.${index}.customIcon.url`)} />
                     <button type="button" onClick={() => handleContentChange('servicesList', content.servicesList?.filter((_, i) => i !== index))} className="absolute top-2 right-2 text-zinc-400 hover:text-red-400"><Trash size={20} /></button>
                 </div>
@@ -507,8 +568,8 @@ function AdminDashboard() {
         return (
           <>
             <h2 className="text-2xl font-bold mb-4 text-zinc-100">Voor & Na Sectie</h2>
-            <Input name="beforeAfterTitle" label="Titel" help="Titel van de Voor & Na sectie." value={content.beforeAfterTitle!} onChange={e => handleContentChange('beforeAfterTitle', e.target.value)} required />
-            <Textarea name="beforeAfterSubtitle" label="Subtitel" help="Subtitel van de Voor & Na sectie." value={content.beforeAfterSubtitle!} onChange={e => handleContentChange('beforeAfterSubtitle', e.target.value)} required />
+            <Input name="beforeAfterTitle" label="Titel" help="Titel van de Voor & Na sectie." value={content.beforeAfterTitle!} onChange={e => handleContentChange('beforeAfterTitle', e.target.value)} required showStyler />
+            <Textarea name="beforeAfterSubtitle" label="Subtitel" help="Subtitel van de Voor & Na sectie." value={content.beforeAfterSubtitle!} onChange={e => handleContentChange('beforeAfterSubtitle', e.target.value)} required showStyler />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <ImageUpload name="beforeImage" label="'Voor' Afbeelding" help="De afbeelding die de situatie 'voor' toont." currentUrl={content.beforeImage?.url} alt={content.beforeImage?.alt} onAltChange={e => handleContentChange('beforeImage.alt', e.target.value)} onImageChange={file => handleImageUpload(file, 'beforeImage.url')} required />
               <ImageUpload name="afterImage" label="'Na' Afbeelding" help="De afbeelding die de situatie 'na' toont." currentUrl={content.afterImage?.url} alt={content.afterImage?.alt} onAltChange={e => handleContentChange('afterImage.alt', e.target.value)} onImageChange={file => handleImageUpload(file, 'afterImage.url')} required />
@@ -519,8 +580,8 @@ function AdminDashboard() {
         return (
           <>
             <h2 className="text-2xl font-bold mb-4 text-zinc-100">Galerij Call-to-Action Sectie</h2>
-            <Input name="servicesCtaTitle" label="Titel" help="Titel van de sectie die oproept om de galerij te bekijken." value={content.servicesCtaTitle!} onChange={e => handleContentChange('servicesCtaTitle', e.target.value)} required />
-            <Textarea name="servicesCtaSubtitle" label="Subtitel" help="Subtitel van deze sectie." value={content.servicesCtaSubtitle!} onChange={e => handleContentChange('servicesCtaSubtitle', e.target.value)} required />
+            <Input name="servicesCtaTitle" label="Titel" help="Titel van de sectie die oproept om de galerij te bekijken." value={content.servicesCtaTitle!} onChange={e => handleContentChange('servicesCtaTitle', e.target.value)} required showStyler />
+            <Textarea name="servicesCtaSubtitle" label="Subtitel" help="Subtitel van deze sectie." value={content.servicesCtaSubtitle!} onChange={e => handleContentChange('servicesCtaSubtitle', e.target.value)} required showStyler />
             <Input name="servicesCtaButtonText" label="Knop Tekst" help="Tekst op de knop om de galerij te openen." value={content.servicesCtaButtonText!} onChange={e => handleContentChange('servicesCtaButtonText', e.target.value)} required />
           </>
         );
@@ -528,8 +589,8 @@ function AdminDashboard() {
         return (
           <>
             <h2 className="text-2xl font-bold mb-4 text-zinc-100">Galerij Instellingen</h2>
-            <Input name="galleryTitle" label="Galerij Titel" help="De titel die bovenaan in de galerij popup verschijnt." value={content.galleryTitle!} onChange={e => handleContentChange('galleryTitle', e.target.value)} required />
-            <Textarea name="gallerySubtitle" label="Galerij Subtitel" help="De subtitel in de galerij popup." value={content.gallerySubtitle!} onChange={e => handleContentChange('gallerySubtitle', e.target.value)} required />
+            <Input name="galleryTitle" label="Galerij Titel" help="De titel die bovenaan in de galerij popup verschijnt." value={content.galleryTitle!} onChange={e => handleContentChange('galleryTitle', e.target.value)} required showStyler />
+            <Textarea name="gallerySubtitle" label="Galerij Subtitel" help="De subtitel in de galerij popup." value={content.gallerySubtitle!} onChange={e => handleContentChange('gallerySubtitle', e.target.value)} required showStyler />
              <h3 className="text-lg font-semibold mb-2 mt-4 text-white">Galerij Afbeeldingen</h3>
              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {gallery.map((img, index) => (
@@ -562,12 +623,12 @@ function AdminDashboard() {
         return (
           <>
             <h2 className="text-2xl font-bold mb-4 text-zinc-100">Contact Sectie</h2>
-            <Input name="contactTitle" label="Titel" help="Titel van de contact sectie." value={content.contactTitle!} onChange={e => handleContentChange('contactTitle', e.target.value)} required />
-            <Textarea name="contactSubtitle" label="Subtitel" help="Subtitel van de contact sectie." value={content.contactSubtitle!} onChange={e => handleContentChange('contactSubtitle', e.target.value)} required />
+            <Input name="contactTitle" label="Titel" help="Titel van de contact sectie." value={content.contactTitle!} onChange={e => handleContentChange('contactTitle', e.target.value)} required showStyler />
+            <Textarea name="contactSubtitle" label="Subtitel" help="Subtitel van de contact sectie." value={content.contactSubtitle!} onChange={e => handleContentChange('contactSubtitle', e.target.value)} required showStyler />
             <div className="mt-6 p-4 border-t border-zinc-700">
                 <h3 className="text-lg font-semibold mb-2 mt-4 text-white">Linkerkolom (Contactinfo)</h3>
-                <Input name="contactInfoTitle" label="Titel Contactkolom" help="Titel boven de adresgegevens." value={content.contactInfoTitle!} onChange={e => handleContentChange('contactInfoTitle', e.target.value)} required />
-                <Textarea name="contactInfoText" label="Tekst Contactkolom" help="De introtekst in de linkerkolom." value={content.contactInfoText!} onChange={e => handleContentChange('contactInfoText', e.target.value)} required />
+                <Input name="contactInfoTitle" label="Titel Contactkolom" help="Titel boven de adresgegevens." value={content.contactInfoTitle!} onChange={e => handleContentChange('contactInfoTitle', e.target.value)} required showStyler />
+                <Textarea name="contactInfoText" label="Tekst Contactkolom" help="De introtekst in de linkerkolom." value={content.contactInfoText!} onChange={e => handleContentChange('contactInfoText', e.target.value)} required showStyler />
                 <Input name="contactAddressTitle" label="Adres Titel" help="Bijv. 'Adres'." value={content.contactAddressTitle!} onChange={e => handleContentChange('contactAddressTitle', e.target.value)} required />
                 <Textarea name="contactAddress" label="Adres" help="Volledig adres. Gebruik enter voor nieuwe regels." value={content.contactAddress!} onChange={e => handleContentChange('contactAddress', e.target.value)} required />
                 <Input name="contactEmailTitle" label="Email Titel" help="Bijv. 'Email'." value={content.contactEmailTitle!} onChange={e => handleContentChange('contactEmailTitle', e.target.value)} required />
@@ -581,8 +642,8 @@ function AdminDashboard() {
                 <Input name="contactFormEmailLabel" label="Email Veld Label" help="Label voor het 'Email' invulveld." value={content.contactFormEmailLabel!} onChange={e => handleContentChange('contactFormEmailLabel', e.target.value)} required />
                 <Input name="contactFormMessageLabel" label="Bericht Veld Label" help="Label voor het 'Bericht' invulveld." value={content.contactFormMessageLabel!} onChange={e => handleContentChange('contactFormMessageLabel', e.target.value)} required />
                 <Input name="contactFormSubmitButtonText" label="Verstuurknop Tekst" help="Tekst op de verstuurknop." value={content.contactFormSubmitButtonText!} onChange={e => handleContentChange('contactFormSubmitButtonText', e.target.value)} required />
-                <Input name="contactFormSuccessTitle" label="Succes Titel" help="Titel na succesvol verzenden." value={content.contactFormSuccessTitle!} onChange={e => handleContentChange('contactFormSuccessTitle', e.target.value)} required />
-                <Textarea name="contactFormSuccessText" label="Succes Tekst" help="Tekst na succesvol verzenden." value={content.contactFormSuccessText!} onChange={e => handleContentChange('contactFormSuccessText', e.target.value)} required />
+                <Input name="contactFormSuccessTitle" label="Succes Titel" help="Titel na succesvol verzenden." value={content.contactFormSuccessTitle!} onChange={e => handleContentChange('contactFormSuccessTitle', e.target.value)} required showStyler />
+                <Textarea name="contactFormSuccessText" label="Succes Tekst" help="Tekst na succesvol verzenden." value={content.contactFormSuccessText!} onChange={e => handleContentChange('contactFormSuccessText', e.target.value)} required showStyler />
                 <Input name="contactFormSuccessAgainButtonText" label="'Nogmaals Versturen' Knop Tekst" help="Tekst op de knop om het formulier te resetten." value={content.contactFormSuccessAgainButtonText!} onChange={e => handleContentChange('contactFormSuccessAgainButtonText', e.target.value)} required />
             </div>
           </>

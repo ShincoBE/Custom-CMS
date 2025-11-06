@@ -22,6 +22,8 @@ const SkeletonLoader = () => (
 
 const ServiceCard = ({ service, index }: { service: Service; index: number }) => {
     const iconUrl = service.customIcon?.url || null;
+    const title = service.title || 'Onbekende Dienst';
+    const description = service.description || 'Geen beschrijving beschikbaar.';
 
     return (
         <div
@@ -43,8 +45,8 @@ const ServiceCard = ({ service, index }: { service: Service; index: number }) =>
                     <Question size={48} className="text-zinc-500" weight="bold" />
                 )}
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">{service.title || 'Onbekende Dienst'}</h3>
-            <p className="text-gray-400">{service.description || 'Geen beschrijving beschikbaar.'}</p>
+            <h3 className="text-2xl font-bold text-white mb-3" dangerouslySetInnerHTML={{ __html: title }} />
+            <p className="text-gray-400" dangerouslySetInnerHTML={{ __html: description }} />
         </div>
     );
 };

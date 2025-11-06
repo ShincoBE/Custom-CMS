@@ -235,8 +235,8 @@ function Contact({ content }: ContactProps) {
         <div className="bg-zinc-800/80 backdrop-blur-sm border border-zinc-700/50 rounded-2xl shadow-2xl overflow-hidden">
             <div className="grid md:grid-cols-5">
                 <div className="md:col-span-2 p-8 text-gray-300">
-                    <h3 className="text-2xl font-bold text-white mb-4">{content?.contactInfoTitle || 'Contactgegevens'}</h3>
-                    <p className="mb-8">{content?.contactInfoText || 'U kunt ons bereiken via de onderstaande gegevens, of door het formulier in te vullen.'}</p>
+                    <h3 className="text-2xl font-bold text-white mb-4" dangerouslySetInnerHTML={{ __html: content?.contactInfoTitle || 'Contactgegevens' }} />
+                    <p className="mb-8" dangerouslySetInnerHTML={{ __html: content?.contactInfoText || 'U kunt ons bereiken via de onderstaande gegevens, of door het formulier in te vullen.' }} />
                     <ul className="space-y-6">
                         <li className="flex">
                             <a 
@@ -252,7 +252,7 @@ function Contact({ content }: ContactProps) {
                                     </svg>
                                 </div>
                                 <div className="ml-4">
-                                    <p className="font-semibold text-white group-hover:text-green-500 transition-colors">{content?.contactAddressTitle || 'Adres'}</p>
+                                    <p className="font-semibold text-white group-hover:text-green-500 transition-colors" dangerouslySetInnerHTML={{ __html: content?.contactAddressTitle || 'Adres' }} />
                                     <address className="not-italic group-hover:underline" style={{ whiteSpace: 'pre-line' }}>
                                       {content?.contactAddress || defaultAddress}
                                     </address>
@@ -266,7 +266,7 @@ function Contact({ content }: ContactProps) {
                                 </svg>
                             </div>
                             <div className="ml-4">
-                                <p className="font-semibold text-white">{content?.contactEmailTitle || 'Email'}</p>
+                                <p className="font-semibold text-white" dangerouslySetInnerHTML={{ __html: content?.contactEmailTitle || 'Email' }} />
                                 <a href={`mailto:${content?.contactEmail || 'info.andries.serviceplus@gmail.com'}`} className="hover:text-green-500 hover:underline transition-colors break-all">
                                   {content?.contactEmail || 'info.andries.serviceplus@gmail.com'}
                                 </a>
@@ -279,7 +279,7 @@ function Contact({ content }: ContactProps) {
                                 </svg>
                             </div>
                             <div className="ml-4">
-                                <p className="font-semibold text-white">{content?.contactPhoneTitle || 'Telefoon'}</p>
+                                <p className="font-semibold text-white" dangerouslySetInnerHTML={{ __html: content?.contactPhoneTitle || 'Telefoon' }} />
                                 <a href={`tel:${(content?.contactPhone || '+32494399286').replace(/\s/g, '')}`} className="hover:text-green-500 hover:underline transition-colors">
                                   {content?.contactPhone || '+32 494 39 92 86'}
                                 </a>
@@ -294,8 +294,8 @@ function Contact({ content }: ContactProps) {
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <h3 className="text-2xl font-bold mt-4">{content?.contactFormSuccessTitle || 'Bericht Verzonden!'}</h3>
-                                <p className="mt-2 mb-6">{content?.contactFormSuccessText || 'Bedankt voor uw bericht. We nemen zo spoedielijk mogelijk contact met u op.'}</p>
+                                <h3 className="text-2xl font-bold mt-4" dangerouslySetInnerHTML={{ __html: content?.contactFormSuccessTitle || 'Bericht Verzonden!' }} />
+                                <p className="mt-2 mb-6" dangerouslySetInnerHTML={{ __html: content?.contactFormSuccessText || 'Bedankt voor uw bericht. We nemen zo spoedielijk mogelijk contact met u op.' }} />
                                 <button
                                     onClick={handleResetForm}
                                     className="text-green-300 font-semibold hover:underline"
