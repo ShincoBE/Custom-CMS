@@ -1,13 +1,13 @@
 // Vercel Serverless Function - API Router
 // This single file consolidates all API logic to stay within the Vercel Hobby plan limits.
-import { createClient } from '@vercel/kv';
-import { put } from '@vercel/blob';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import cookie from 'cookie';
-import nodemailer from 'nodemailer';
-import sharp from 'sharp';
-import { URL } from 'url';
+const { createClient } = require('@vercel/kv');
+const { put } = require('@vercel/blob');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const cookie = require('cookie');
+const nodemailer = require('nodemailer');
+const sharp = require('sharp');
+const { URL } = require('url');
 
 // --- START: SHARED UTILITIES ---
 
@@ -79,7 +79,7 @@ const DEFAULT_CONTENT = {
     contactFormMessageLabel: "Uw bericht",
     contactFormSubmitButtonText: "Verstuur Bericht",
     contactFormSuccessTitle: "Bericht Verzonden!",
-    contactFormSuccessText: "Bedankt voor uw bericht. We nemen zo spoedig mogelijk contact met u op.",
+    contactFormSuccessText: "Bedankt voor uw bericht. We nemen zo spoedielijk mogelijk contact met u op.",
     contactFormSuccessAgainButtonText: "Nog een bericht sturen",
     contactMapEnabled: true,
     contactMapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2503.491333794334!2d4.57099631583015!3d51.1357909795757!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47c3f0e0f0e0f0e1%3A0x8e0e0e0e0e0e0e0e!2sHazenstraat%2065%2C%202500%20Lier%2C%20Belgium!5e0!3m2!1sen!2sus!4v1620000000000",
@@ -314,7 +314,7 @@ async function handleRevertContent(req, res) {
 
 
 // --- MAIN ROUTER ---
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // Vercel populates req.body for JSON requests by default.
   // The upload handler reads the raw stream, which is still available.
   const url = new URL(req.url, `http://${req.headers.host}`);
@@ -337,4 +337,4 @@ export default async function handler(req, res) {
   if (path === '/api/revert-content' && req.method === 'POST') return handleRevertContent(req, res);
 
   return res.status(404).json({ error: 'Not Found' });
-}
+};
