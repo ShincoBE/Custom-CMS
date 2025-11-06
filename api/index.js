@@ -11,11 +11,9 @@ import { URL } from 'url';
 
 // --- START: SHARED UTILITIES ---
 
-// Fix: Correctly initialize the Vercel KV client.
-// The `@vercel/kv` package (v2+) requires the `KV_REST_API_URL` environment
-// variable. The previous implementation used `KV_URL`, which is intended for
-// older versions or direct Redis clients, causing initialization to fail and
-// the serverless function to crash.
+// Initialize the Vercel KV client.
+// For `@vercel/kv` v2+, this requires the KV_REST_API_URL and KV_REST_API_TOKEN
+// environment variables to be correctly set in the Vercel project.
 const kv = createClient({
   url: process.env.KV_REST_API_URL,
   token: process.env.KV_REST_API_TOKEN,
