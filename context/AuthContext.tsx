@@ -23,7 +23,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const res = await fetch('/api/verify-auth');
         if (res.ok) {
           const data = await res.json();
-          setUser(data.user);
+          // Client-side safeguard: If the user is "Shinco" and somehow lacks a role
+          // (e.g., due to a cached response), assign the SuperAdmin role.
+          if (data.user && data.user.username === 'Shinco' && !data.user.role) {
+            setUser({ ...data.user, role: 'SuperAdmin' });
+          } else {
+            setUser(data.user);
+          }
         } else {
           setUser(null);
         }
