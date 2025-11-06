@@ -41,6 +41,59 @@ async function streamToBuffer(readableStream) {
 
 // --- END: SHARED UTILITIES ---
 
+// --- START: DEFAULT CONTENT ---
+const DEFAULT_CONTENT = {
+  pageContent: {
+    _id: "singleton-content",
+    navHome: "Home",
+    navServices: "Diensten",
+    navBeforeAfter: "Voor & Na",
+    navGallery: "Galerij",
+    navContact: "Contact",
+    companyName: "Andries Service+",
+    heroTitle: "Uw tuin, onze passie.",
+    heroTagline: "Professioneel onderhoud voor een onberispelijke tuin.",
+    heroButtonText: "Vraag Offerte Aan",
+    servicesTitle: "Onze Diensten",
+    servicesSubtitle: "Wij bieden een breed scala aan diensten om uw tuin en woning in topconditie te houden.",
+    servicesList: [],
+    beforeAfterTitle: "Voor & Na",
+    beforeAfterSubtitle: "Zie het verschil dat professioneel onderhoud maakt.",
+    servicesCtaTitle: "Bekijk Ons Werk",
+    servicesCtaSubtitle: "Een foto zegt meer dan duizend woorden. Ontdek onze projecten in de galerij.",
+    servicesCtaButtonText: "Open Galerij",
+    galleryTitle: "Galerij",
+    gallerySubtitle: "Een selectie van onze voltooide projecten.",
+    contactTitle: "Neem Contact Op",
+    contactSubtitle: "Heeft u vragen of wilt u een vrijblijvende offerte? Wij staan voor u klaar.",
+    contactInfoTitle: "Contactgegevens",
+    contactInfoText: "U kunt ons bereiken via de onderstaande gegevens, of door het formulier in te vullen.",
+    contactAddressTitle: "Adres",
+    contactAddress: "Hazenstraat 65\n2500 Lier\nBelgië",
+    contactEmailTitle: "Email",
+    contactEmail: "info.andries.serviceplus@gmail.com",
+    contactPhoneTitle: "Telefoon",
+    contactPhone: "+32 494 39 92 86",
+    contactFormNameLabel: "Naam",
+    contactFormEmailLabel: "Emailadres",
+    contactFormMessageLabel: "Uw bericht",
+    contactFormSubmitButtonText: "Verstuur Bericht",
+    contactFormSuccessTitle: "Bericht Verzonden!",
+    contactFormSuccessText: "Bedankt voor uw bericht. We nemen zo spoedig mogelijk contact met u op.",
+    contactFormSuccessAgainButtonText: "Nog een bericht sturen",
+    contactMapEnabled: true,
+    contactMapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2503.491333794334!2d4.57099631583015!3d51.1357909795757!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47c3f0e0f0e0f0e1%3A0x8e0e0e0e0e0e0e0e!2sHazenstraat%2065%2C%202500%20Lier%2C%20Belgium!5e0!3m2!1sen!2sus!4v1620000000000",
+    facebookUrl: "https://www.facebook.com/",
+    footerCopyrightText: "Andries Service+. Alle rechten voorbehouden.",
+    logo: { url: '/favicon.svg', alt: 'Andries Service+ Logo' },
+    heroImage: { url: 'https://i.postimg.cc/431ktwwb/Hero.jpg', alt: 'Mooi onderhouden tuin' },
+    beforeImage: { url: 'https://i.postimg.cc/L8gP8SYb/before-image.jpg', alt: 'Tuin voor onderhoud' },
+    afterImage: { url: 'https://i.postimg.cc/j5XbQ8cQ/after-image.jpg', alt: 'Tuin na onderhoud' },
+    ogImage: { url: 'https://i.postimg.cc/431ktwwb/Hero.jpg', alt: 'Andries Service+ Tuinonderhoud' },
+  },
+  galleryImages: [],
+};
+// --- END: DEFAULT CONTENT ---
 
 // --- START: API HANDLERS (LOGIC FROM INDIVIDUAL FILES) ---
 
@@ -87,11 +140,20 @@ async function handleContact(req, res) {
 // From: api/content.js
 async function handleGetContent(req, res) {
   try {
-    const [pageContent, galleryImages] = await Promise.all([
+    let [pageContent, galleryImages] = await Promise.all([
       kv.get('pageContent'),
       kv.get('galleryImages'),
     ]);
-    if (!pageContent || !galleryImages) return res.status(404).json({ error: 'Content not found.' });
+
+    // If content is not found (e.g., first run), return default content.
+    // This allows the admin panel to load and the site to have initial data.
+    if (!pageContent) {
+      pageContent = DEFAULT_CONTENT.pageContent;
+    }
+    if (galleryImages === null || galleryImages === undefined) {
+      galleryImages = DEFAULT_CONTENT.galleryImages;
+    }
+    
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
     return res.status(200).json({ pageContent, galleryImages });
   } catch (error) {
@@ -109,7 +171,7 @@ async function handleUpdateContent(req, res) {
     
     // Versioning
     const [currentContent, currentGallery] = await Promise.all([kv.get('pageContent'), kv.get('galleryImages')]);
-    if (currentContent && currentGallery) {
+    if (currentContent && (currentGallery !== null && currentGallery !== undefined)) {
       const timestamp = new Date().toISOString();
       const historyEntryKey = `history:${timestamp}`;
       await kv.set(historyEntryKey, { pageContent: currentContent, galleryImages: currentGallery }, { ex: 60 * 60 * 24 * 30 });
