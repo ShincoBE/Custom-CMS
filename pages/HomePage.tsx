@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import type { PageContent, GalleryImage, Service, SiteSettings } from '../types';
-import { useAnalytics } from '../hooks/useAnalytics';
-import { usePageSEO } from '../hooks/usePageSEO';
+import type { PageContent, GalleryImage, Service, SiteSettings } from '@/types';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { usePageSEO } from '@/hooks/usePageSEO';
 
 // Import components
-import Header from '../components/Header';
-import Hero from '../components/Hero';
-import Services from '../components/Services';
-import BeforeAfter from '../components/BeforeAfter';
-import CtaGallery from '../components/CtaGallery';
-import Contact from '../components/Contact';
-import Footer from '../components/Footer';
-import Gallery from '../components/Gallery';
-import ScrollToTopButton from '../components/ScrollToTopButton';
-import ErrorBoundary from '../components/ErrorBoundary';
-import MaintenancePage from './MaintenancePage';
+import Header from '@/components/Header';
+import Hero from '@/components/Hero';
+import Services from '@/components/Services';
+import BeforeAfter from '@/components/BeforeAfter';
+import CtaGallery from '@/components/CtaGallery';
+import Contact from '@/components/Contact';
+import Footer from '@/components/Footer';
+import Gallery from '@/components/Gallery';
+import ScrollToTopButton from '@/components/ScrollToTopButton';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import MaintenancePage from '@/pages/MaintenancePage';
 
 type Status = 'loading' | 'success' | 'error';
 
