@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { SEO } from '../types';
+import type { SEO } from '@/types';
 
 const defaultTitle = "Andries Service+ | Professioneel Tuinonderhoud & Klusjes";
 const defaultDescription = "Andries Service+ biedt professioneel tuinonderhoud, tuinaanleg, schilderwerken en klusjesdiensten in de regio Lier. Vraag een vrijblijvende offerte aan voor een onberispelijke tuin en woning.";
