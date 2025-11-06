@@ -1,7 +1,8 @@
 // Vercel Serverless Function
 // This endpoint handles file uploads to Vercel Blob and optimizes images.
 import { put } from '@vercel/blob';
-import { getAuth } from '@clerk/backend';
+import jwt from 'jsonwebtoken';
+import cookie from 'cookie';
 import sharp from 'sharp';
 
 // Vercel Blob requires the raw request body, so we disable the default body parser.
@@ -26,14 +27,20 @@ export default async function handler(req, res) {
     return res.status(405).end('Method Not Allowed');
   }
 
-  // 1. Verify Authentication with Clerk
+  // 1. Verify Authentication with JWT from cookie
   try {
-    const { userId } = getAuth(req);
-    if (!userId) {
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const token = cookies.auth_token;
+
+    if (!token) {
         return res.status(401).json({ error: 'Authentication required.' });
     }
+
+    jwt.verify(token, process.env.JWT_SECRET);
+    // If verification is successful, proceed. If not, it will throw an error.
+
   } catch (error) {
-    console.error('Clerk auth verification failed:', error.message);
+    console.error('JWT verification failed:', error.message);
     return res.status(401).json({ error: 'Invalid or expired token.' });
   }
 

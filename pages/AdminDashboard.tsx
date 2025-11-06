@@ -1,8 +1,8 @@
 // pages/AdminDashboard.tsx
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { UserButton } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
 import type { PageContent, GalleryImage, Service } from '../types';
-import { Plus, Trash, UploadSimple, Spinner, CheckCircle, WarningCircle, Pencil } from 'phosphor-react';
+import { Plus, Trash, UploadSimple, Spinner, CheckCircle, WarningCircle, Pencil, SignOut } from 'phosphor-react';
 
 // --- HELPER COMPONENTS (scoped to this file) ---
 
@@ -184,6 +184,7 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: {
 // --- MAIN COMPONENT ---
 
 function AdminDashboard() {
+  const { logout } = useAuth();
   const [content, setContent] = useState<PageContent | null>(null);
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
   const [originalContent, setOriginalContent] = useState<string>('');
@@ -483,7 +484,13 @@ function AdminDashboard() {
                 {isSaving ? <Spinner size={20} className="animate-spin mr-2"/> : <CheckCircle size={20} className="mr-2"/>}
                 {isSaving ? 'Opslaan...' : 'Wijzigingen Opslaan'}
               </button>
-              <UserButton afterSignOutUrl="/" />
+              <button
+                onClick={logout}
+                title="Uitloggen"
+                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors"
+              >
+                  <SignOut size={20} />
+              </button>
             </div>
           </div>
         </div>
