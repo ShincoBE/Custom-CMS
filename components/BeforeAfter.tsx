@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import SectionHeader from './SectionHeader';
 import { useOnScreen } from '../hooks/useOnScreen';
 import type { PageContent } from '../types';
+import LazyImage from './ui/LazyImage';
 
 type Status = 'loading' | 'success' | 'error';
 
@@ -73,22 +74,20 @@ const BeforeAfter = ({ content, status }: BeforeAfterProps) => {
               onMouseMove={(e) => { if (isDragging.current) handleMove(e.clientX) }}
               onTouchMove={(e) => { if (isDragging.current) handleMove(e.touches[0].clientX) }}
             >
-              <img
+              <LazyImage
                 src={afterImage.url}
                 alt={afterImage.alt || "Tuin na onderhoud"}
                 className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
-                draggable="false"
               />
 
               <div
                 className="absolute top-0 left-0 h-full w-full overflow-hidden"
                 style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
               >
-                <img
+                <LazyImage
                   src={beforeImage.url}
                   alt={beforeImage.alt || "Tuin voor onderhoud"}
                   className="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
-                  draggable="false"
                 />
               </div>
               <div

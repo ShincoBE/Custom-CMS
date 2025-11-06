@@ -1,6 +1,7 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { GalleryImage, PageContent } from '../types';
 import SectionHeader from './SectionHeader';
+import LazyImage from './ui/LazyImage';
 
 interface GalleryProps {
   onClose: () => void;
@@ -10,25 +11,63 @@ interface GalleryProps {
 
 function Gallery({ onClose, content, images = [] }: GalleryProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string>('all');
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const lightboxRef = useRef<HTMLDivElement>(null);
 
   const isModalOpen = selectedImageIndex !== null;
-  const status = images.length > 0 ? 'success' : 'error'; // Simplified status based on passed images
+  const status = images.length > 0 ? 'success' : 'error';
+  
+  const categories = useMemo(() => {
+    const uniqueCategories = new Set(images.map(img => img.category).filter(Boolean));
+    return ['all', ...Array.from(uniqueCategories)];
+  }, [images]);
+
+  const filteredImages = useMemo(() => {
+    if (activeFilter === 'all') return images;
+    return images.filter(img => img.category === activeFilter);
+  }, [images, activeFilter]);
   
   const handleCloseModal = useCallback(() => {
     setSelectedImageIndex(null);
   }, []);
 
   const handleNext = useCallback(() => {
-    if (images.length > 0) {
-      setSelectedImageIndex(prev => (prev === null ? 0 : (prev + 1) % images.length));
+    if (filteredImages.length > 0) {
+      setSelectedImageIndex(prev => (prev === null ? 0 : (prev + 1) % filteredImages.length));
     }
-  }, [images.length]);
+  }, [filteredImages.length]);
 
   const handlePrev = useCallback(() => {
-    if (images.length > 0) {
-      setSelectedImageIndex(prev => (prev === null ? 0 : (prev - 1 + images.length) % images.length));
+    if (filteredImages.length > 0) {
+      setSelectedImageIndex(prev => (prev === null ? 0 : (prev - 1 + filteredImages.length) % filteredImages.length));
     }
-  }, [images.length]);
+  }, [filteredImages.length]);
+  
+  // Accessibility: Focus trapping
+  const trapFocus = (e: KeyboardEvent, container: HTMLElement | null) => {
+    if (!container) return;
+    const focusableElements = container.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (e.key === 'Tab') {
+      if (e.shiftKey) { // Shift+Tab
+        if (document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        }
+      } else { // Tab
+        if (document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    }
+  };
+
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -40,14 +79,11 @@ function Gallery({ onClose, content, images = [] }: GalleryProps) {
         }
       }
       if (isModalOpen) {
-        if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-          handlePrev();
-        }
-        if (e.key === 'ArrowRight') {
-          e.preventDefault();
-          handleNext();
-        }
+        if (e.key === 'ArrowLeft') e.preventDefault(); handlePrev();
+        if (e.key === 'ArrowRight') e.preventDefault(); handleNext();
+        trapFocus(e, lightboxRef.current);
+      } else {
+        trapFocus(e, galleryRef.current);
       }
     };
 
@@ -67,7 +103,8 @@ function Gallery({ onClose, content, images = [] }: GalleryProps) {
       onClick={onClose}
     >
       <div
-        className="relative bg-zinc-900 rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] overflow-y-auto p-4 sm:p-6 lg:p-8 animate-slide-up"
+        ref={galleryRef}
+        className="relative bg-zinc-900 rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden p-4 sm:p-6 lg:p-8 animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -80,27 +117,39 @@ function Gallery({ onClose, content, images = [] }: GalleryProps) {
           </svg>
         </button>
 
-        <div className="mb-8 text-center">
+        <div className="mb-4 text-center flex-shrink-0">
             <SectionHeader 
               title={content?.galleryTitle || "Galerij"} 
               subtitle={content?.gallerySubtitle || "Een selectie van onze voltooide projecten."} 
             />
+             {categories.length > 2 && (
+              <div className="flex justify-center flex-wrap gap-2 mb-4">
+                {categories.map(category => (
+                  <button
+                    key={category}
+                    onClick={() => setActiveFilter(category)}
+                    className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
+                      activeFilter === category
+                        ? 'bg-green-600 text-white'
+                        : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                    }`}
+                  >
+                    {category === 'all' ? 'Alles' : category}
+                  </button>
+                ))}
+              </div>
+            )}
         </div>
         
-        {status === 'error' && (
-           <div className="bg-zinc-800 border border-red-500/30 rounded-lg p-6 text-center">
-             <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-red-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-             </svg>
-            <p className="text-zinc-300">Galerij kon niet geladen worden.</p>
-            <p className="text-xs text-zinc-400 mt-1">Controleer of de afbeeldingen zijn toegevoegd in content.ts.</p>
-          </div>
-        )}
-        {status === 'success' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {images.map((image, index) => {
-              const thumbUrl = image.image.url;
-              return (
+        <div className="flex-grow overflow-y-auto">
+          {status === 'error' && (
+            <div className="bg-zinc-800 border border-red-500/30 rounded-lg p-6 text-center">
+              <p className="text-zinc-300">Galerij kon niet geladen worden.</p>
+            </div>
+          )}
+          {status === 'success' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {filteredImages.map((image, index) => (
                 <div
                   key={image._id}
                   className="group relative overflow-hidden rounded-lg cursor-pointer aspect-square bg-black/20"
@@ -110,13 +159,9 @@ function Gallery({ onClose, content, images = [] }: GalleryProps) {
                   role="button"
                   aria-label={image.image.alt || `Bekijk afbeelding ${index + 1}`}
                 >
-                  <img
-                    src={thumbUrl}
+                  <LazyImage
+                    src={image.image.url}
                     alt={image.image.alt || ''}
-                    loading="lazy"
-                    width="400"
-                    height="400"
-                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
@@ -125,14 +170,15 @@ function Gallery({ onClose, content, images = [] }: GalleryProps) {
                     </svg>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {isModalOpen && images[selectedImageIndex] && (
+      {isModalOpen && filteredImages[selectedImageIndex] && (
         <div
+          ref={lightboxRef}
           className={`fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 ${isModalOpen ? 'opacity-100' : 'opacity-0'}`}
           onClick={handleCloseModal}
           role="dialog"
@@ -143,9 +189,9 @@ function Gallery({ onClose, content, images = [] }: GalleryProps) {
             className={`relative transition-all duration-300 ${isModalOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <img
-              src={images[selectedImageIndex].image.url}
-              alt={images[selectedImageIndex].image.alt || ''}
+            <LazyImage
+              src={filteredImages[selectedImageIndex].image.url}
+              alt={filteredImages[selectedImageIndex].image.alt || ''}
               className="max-h-[80vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
             />
             
@@ -161,7 +207,7 @@ function Gallery({ onClose, content, images = [] }: GalleryProps) {
                 onClick={handlePrev}
                 className="absolute left-0 sm:-left-16 top-1/2 -translate-y-1/2 z-[70] p-3 bg-black/50 rounded-full text-white hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 focus-visible:ring-green-500 transition-all disabled:opacity-50"
                 aria-label="Vorige afbeelding"
-                disabled={images.length <= 1}
+                disabled={filteredImages.length <= 1}
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
@@ -170,13 +216,13 @@ function Gallery({ onClose, content, images = [] }: GalleryProps) {
                 onClick={handleNext}
                 className="absolute right-0 sm:-right-16 top-1/2 -translate-y-1/2 z-[70] p-3 bg-black/50 rounded-full text-white hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 focus-visible:ring-green-500 transition-all disabled:opacity-50"
                 aria-label="Volgende afbeelding"
-                disabled={images.length <= 1}
+                disabled={filteredImages.length <= 1}
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </button>
 
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white text-sm px-3 py-1 rounded-full">
-              {selectedImageIndex + 1} / {images.length}
+              {selectedImageIndex + 1} / {filteredImages.length}
             </div>
 
           </div>

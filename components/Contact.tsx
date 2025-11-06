@@ -362,6 +362,23 @@ function Contact({ content }: ContactProps) {
                 </div>
             </div>
         </div>
+
+        {content?.contactMapEnabled && content.contactMapUrl && (
+          <div className="mt-16 bg-zinc-800/80 border border-zinc-700/50 rounded-2xl shadow-2xl overflow-hidden">
+            <iframe
+              src={content.contactMapUrl}
+              width="100%"
+              height="450"
+              style={{ border: 0 }}
+              allowFullScreen={true}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Locatie op Google Maps"
+              className="grayscale invert-[90%] contrast-125"
+            ></iframe>
+          </div>
+        )}
+
       </div>
     </section>
   );

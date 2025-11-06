@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { UploadSimple, Spinner } from 'phosphor-react';
 import HelpTooltip from './HelpTooltip';
+import InputWithCounter from './InputWithCounter';
 
 interface ImageUploadProps {
     label: string;
@@ -56,16 +57,17 @@ const ImageUpload = ({ label, help, currentUrl, alt, onAltChange, onImageChange,
                     </button>
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/gif, image/webp, image/svg+xml" />
                     
-                    <label htmlFor={`${name}-alt`} className="sr-only">Alternatieve tekst</label>
-                    <input
-                        type="text"
-                        id={`${name}-alt`}
-                        name={`${name}-alt`}
-                        value={alt || ''}
-                        onChange={onAltChange}
-                        placeholder="Alternatieve tekst (voor SEO)"
-                        className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500 text-sm mt-2"
-                    />
+                    <div className="mt-2">
+                      <InputWithCounter
+                          name={`${name}-alt`}
+                          label="Alternatieve tekst (voor SEO)"
+                          help="Beschrijf wat er op de afbeelding te zien is. Essentieel voor zoekmachines en slechtzienden."
+                          value={alt || ''}
+                          onChange={onAltChange}
+                          maxLength={125}
+                          optimalRange={[70, 120]}
+                      />
+                    </div>
                 </div>
             </div>
             {uploadError && <p className="text-xs text-red-400 mt-2">{uploadError}</p>}

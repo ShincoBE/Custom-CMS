@@ -20,6 +20,9 @@ function getSanitizedKvUrl() {
 }
 // --- END: KV URL Sanitization ---
 
+const HISTORY_KEY = 'content_history';
+const MAX_HISTORY_LENGTH = 10;
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
@@ -60,8 +63,30 @@ export default async function handler(req, res) {
       url: getSanitizedKvUrl(),
       token: process.env.KV_REST_API_TOKEN,
     });
+
+    // --- Start: Content Versioning ---
+    const [currentContent, currentGallery] = await Promise.all([
+      kv.get('pageContent'),
+      kv.get('galleryImages')
+    ]);
+
+    if (currentContent && currentGallery) {
+      const timestamp = new Date().toISOString();
+      const historyEntryKey = `history:${timestamp}`;
+      const historyEntry = { pageContent: currentContent, galleryImages: currentGallery };
+      
+      // Save the current state to a new history key
+      await kv.set(historyEntryKey, historyEntry, { ex: 60 * 60 * 24 * 30 }); // Expire history after 30 days
+      
+      // Add the new history key to our list of versions
+      await kv.lpush(HISTORY_KEY, historyEntryKey);
+      
+      // Trim the list to keep only the last MAX_HISTORY_LENGTH versions
+      await kv.ltrim(HISTORY_KEY, 0, MAX_HISTORY_LENGTH - 1);
+    }
+    // --- End: Content Versioning ---
     
-    // Save both content sets in parallel
+    // Save both new content sets in parallel
     await Promise.all([
       kv.set('pageContent', pageContent),
       kv.set('galleryImages', galleryImages),

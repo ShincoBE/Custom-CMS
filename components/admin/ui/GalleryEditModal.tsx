@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { GalleryImage } from '../../../types';
 import { UploadSimple, Spinner } from 'phosphor-react';
-import AdminTextarea from './AdminTextarea';
+import InputWithCounter from './InputWithCounter';
+import ToggleSwitch from './ToggleSwitch.tsx';
 
 interface GalleryEditModalProps {
   isOpen: boolean;
@@ -22,8 +23,13 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: Gal
 
   if (!isOpen) return null;
 
-  const handleAltChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setEditedImage(prev => ({ ...prev, image: { ...prev.image, alt: e.target.value } }));
+  const handleFieldChange = (field: string, value: any) => {
+    setEditedImage(prev => {
+        if (field === 'alt') {
+            return { ...prev, image: { ...prev.image, alt: value }};
+        }
+        return { ...prev, [field]: value };
+    });
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,12 +71,29 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: Gal
                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/gif, image/webp, image/svg+xml" />
             </div>
             <div className="w-full sm:w-2/3">
-              <AdminTextarea
+              <ToggleSwitch 
+                label="Gepubliceerd"
+                help="Zet aan om deze afbeelding op de live website te tonen."
+                enabled={!!editedImage.published}
+                onChange={(val) => handleFieldChange('published', val)}
+              />
+               <InputWithCounter
+                name="gallery-category"
+                label="Categorie"
+                help="Optioneel. Gebruikt om de galerij te filteren (bv. 'Tuinonderhoud', 'Schilderwerken')."
+                value={editedImage.category || ''}
+                onChange={(e) => handleFieldChange('category', e.target.value)}
+              />
+              <InputWithCounter
+                as="textarea"
                 name="gallery-alt-text"
                 label="Alternatieve Tekst (voor SEO)"
                 help="Beschrijf de afbeelding voor zoekmachines en gebruikers met een visuele beperking."
                 value={editedImage.image.alt || ''}
-                onChange={handleAltChange}
+                onChange={(e) => handleFieldChange('alt', e.target.value)}
+                maxLength={125}
+                optimalRange={[70, 120]}
+                required
               />
             </div>
         </div>

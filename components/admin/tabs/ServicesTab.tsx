@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { PageContent } from '../../../types';
-import { Plus, Trash, Image, CaretDown } from 'phosphor-react';
-import AdminInput from '../ui/AdminInput';
-import AdminTextarea from '../ui/AdminTextarea';
+import { Plus, Trash, Image, CaretDown, MagnifyingGlass, CheckCircle, Prohibit } from 'phosphor-react';
+import InputWithCounter from '../ui/InputWithCounter';
 import ImageUpload from '../ui/ImageUpload';
+import ToggleSwitch from '../ui/ToggleSwitch.tsx';
 
 interface ServicesTabProps {
     content: PageContent;
@@ -12,9 +12,19 @@ interface ServicesTabProps {
 }
 
 const ServicesTab = ({ content, handleContentChange, handleImageUpload }: ServicesTabProps) => {
-    const [openedService, setOpenedService] = useState<number | null>(0);
+    const [openedService, setOpenedService] = useState<number | null>(null);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredServices = useMemo(() => {
+        if (!content.servicesList) return [];
+        if (!searchTerm) return content.servicesList;
+        return content.servicesList.filter(service =>
+            service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            service.description.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [content.servicesList, searchTerm]);
 
     const handleToggleService = (index: number) => {
         setOpenedService(openedService === index ? null : index);
@@ -53,57 +63,88 @@ const ServicesTab = ({ content, handleContentChange, handleImageUpload }: Servic
         setDropTargetIndex(null);
     };
 
+    const getOriginalIndex = (filteredIndex: number) => {
+        const service = filteredServices[filteredIndex];
+        return content.servicesList?.findIndex(s => s._key === service._key) ?? -1;
+    }
+
     return (
         <>
             <h2 className="text-2xl font-bold mb-4 text-zinc-100">Diensten Sectie</h2>
-            <AdminInput name="servicesTitle" label="Titel" help="Titel van de diensten sectie." value={content.servicesTitle!} onChange={e => handleContentChange('servicesTitle', e.target.value)} required showStyler />
-            <AdminTextarea name="servicesSubtitle" label="Subtitel" help="Subtitel van de diensten sectie." value={content.servicesSubtitle!} onChange={e => handleContentChange('servicesSubtitle', e.target.value)} required showStyler />
-            <h3 className="text-lg font-semibold mb-2 mt-4 text-white">Diensten Lijst</h3>
-            <div className="space-y-2">
-                {content.servicesList?.map((service, index) => (
-                    <div
-                        key={service._key}
-                        draggable
-                        onDragStart={e => handleDragStart(e, index)}
-                        onDragOver={e => handleDragOver(e, index)}
-                        onDragLeave={handleDragLeave}
-                        onDrop={e => handleDrop(e, index)}
-                        onDragEnd={handleDragEnd}
-                        className={`border border-zinc-700 rounded-lg bg-zinc-800/50 transition-all duration-300
-                            ${draggedIndex === index ? 'opacity-50' : ''}
-                            ${dropTargetIndex === index ? 'border-green-500 scale-105' : ''}
-                        `}
-                    >
-                        <div
-                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-zinc-700/50"
-                            onClick={() => handleToggleService(index)}
-                        >
-                            <div className="flex items-center">
-                                {service.customIcon?.url ? (
-                                    <img src={service.customIcon.url} alt={service.customIcon.alt || ''} className="w-8 h-8 mr-3 rounded-md object-contain bg-zinc-700 p-1" />
-                                ) : (
-                                    <div className="w-8 h-8 mr-3 rounded-md bg-zinc-700 flex items-center justify-center text-zinc-400">
-                                        <Image size={16} />
-                                    </div>
-                                )}
-                                <span className="font-medium">{service.title}</span>
-                            </div>
-                            <div className="flex items-center">
-                                <button type="button" onClick={(e) => { e.stopPropagation(); handleContentChange('servicesList', content.servicesList?.filter((_, i) => i !== index)) }} className="p-1 text-zinc-400 hover:text-red-400"><Trash size={20} /></button>
-                                <CaretDown size={20} className={`ml-2 transform transition-transform ${openedService === index ? 'rotate-180' : ''}`} />
-                            </div>
-                        </div>
-                        {openedService === index && (
-                            <div className="p-4 border-t border-zinc-700">
-                                <AdminInput name={`service-title-${index}`} label="Dienst Titel" value={service.title} onChange={e => handleContentChange(`servicesList.${index}.title`, e.target.value)} required showStyler />
-                                <AdminTextarea name={`service-desc-${index}`} label="Dienst Omschrijving" help="" value={service.description} onChange={e => handleContentChange(`servicesList.${index}.description`, e.target.value)} required showStyler />
-                                <ImageUpload name={`service-icon-${index}`} label="Icoon" help="Een klein icoon voor deze dienst." currentUrl={service.customIcon?.url} alt={service.customIcon?.alt} onAltChange={e => handleContentChange(`servicesList.${index}.customIcon.alt`, e.target.value)} onImageChange={file => handleImageUpload(file, `servicesList.${index}.customIcon.url`)} />
-                            </div>
-                        )}
-                    </div>
-                ))}
+            <InputWithCounter name="servicesTitle" label="Titel" help="Titel van de diensten sectie." value={content.servicesTitle!} onChange={e => handleContentChange('servicesTitle', e.target.value)} required showStyler />
+            <InputWithCounter as="textarea" name="servicesSubtitle" label="Subtitel" help="Subtitel van de diensten sectie." value={content.servicesSubtitle!} onChange={e => handleContentChange('servicesSubtitle', e.target.value)} required showStyler />
+            
+            <div className="flex justify-between items-center mt-6 mb-4">
+                <h3 className="text-lg font-semibold text-white">Diensten Lijst</h3>
+                <div className="relative">
+                    <MagnifyingGlass size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                    <input
+                        type="text"
+                        placeholder="Zoek dienst..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className="bg-zinc-700 border border-zinc-600 rounded-md pl-10 pr-4 py-2 text-white focus:ring-green-500 focus:border-green-500"
+                    />
+                </div>
             </div>
-            <button type="button" onClick={() => handleContentChange('servicesList', [...(content.servicesList || []), { _key: `new-${Date.now()}`, title: 'Nieuwe Dienst', description: 'Beschrijving van de nieuwe dienst.', customIcon: { url: '', alt: ''} }])} className="mt-4 inline-flex items-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600">
+
+            <div className="space-y-2">
+                {filteredServices?.map((service, index) => {
+                    const originalIndex = getOriginalIndex(index);
+                    if (originalIndex === -1) return null;
+                    return (
+                        <div
+                            key={service._key}
+                            draggable
+                            onDragStart={e => handleDragStart(e, originalIndex)}
+                            onDragOver={e => handleDragOver(e, originalIndex)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={e => handleDrop(e, originalIndex)}
+                            onDragEnd={handleDragEnd}
+                            className={`border border-zinc-700 rounded-lg bg-zinc-800/50 transition-all duration-300
+                                ${draggedIndex === originalIndex ? 'opacity-50' : ''}
+                                ${dropTargetIndex === originalIndex ? 'border-green-500 scale-105' : ''}
+                            `}
+                        >
+                            <div
+                                className="flex items-center justify-between p-4 cursor-pointer hover:bg-zinc-700/50"
+                                onClick={() => handleToggleService(originalIndex)}
+                            >
+                                <div className="flex items-center">
+                                    {/* Fix: Wrap Phosphor icons in a span with a title attribute to fix TypeScript error. */}
+                                    {service.published ? <span title="Gepubliceerd"><CheckCircle size={16} className="text-green-500 mr-3" /></span> : <span title="Concept"><Prohibit size={16} className="text-yellow-500 mr-3" /></span>}
+                                    {service.customIcon?.url ? (
+                                        <img src={service.customIcon.url} alt={service.customIcon.alt || ''} className="w-8 h-8 mr-3 rounded-md object-contain bg-zinc-700 p-1" />
+                                    ) : (
+                                        <div className="w-8 h-8 mr-3 rounded-md bg-zinc-700 flex items-center justify-center text-zinc-400">
+                                            <Image size={16} />
+                                        </div>
+                                    )}
+                                    <span className="font-medium">{service.title}</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); handleContentChange('servicesList', content.servicesList?.filter((_, i) => i !== originalIndex)) }} className="p-1 text-zinc-400 hover:text-red-400"><Trash size={20} /></button>
+                                    <CaretDown size={20} className={`ml-2 transform transition-transform ${openedService === originalIndex ? 'rotate-180' : ''}`} />
+                                </div>
+                            </div>
+                            {openedService === originalIndex && (
+                                <div className="p-4 border-t border-zinc-700">
+                                    <ToggleSwitch
+                                        label="Gepubliceerd"
+                                        help="Zet aan om deze dienst op de live website te tonen."
+                                        enabled={!!service.published}
+                                        onChange={val => handleContentChange(`servicesList.${originalIndex}.published`, val)}
+                                    />
+                                    <InputWithCounter name={`service-title-${originalIndex}`} label="Dienst Titel" value={service.title} onChange={e => handleContentChange(`servicesList.${originalIndex}.title`, e.target.value)} required showStyler />
+                                    <InputWithCounter as="textarea" name={`service-desc-${originalIndex}`} label="Dienst Omschrijving" help="" value={service.description} onChange={e => handleContentChange(`servicesList.${originalIndex}.description`, e.target.value)} required showStyler />
+                                    <ImageUpload name={`service-icon-${originalIndex}`} label="Icoon" help="Een klein icoon voor deze dienst." currentUrl={service.customIcon?.url} alt={service.customIcon?.alt} onAltChange={e => handleContentChange(`servicesList.${originalIndex}.customIcon.alt`, e.target.value)} onImageChange={file => handleImageUpload(file, `servicesList.${originalIndex}.customIcon.url`)} />
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+            <button type="button" onClick={() => handleContentChange('servicesList', [...(content.servicesList || []), { _key: `new-${Date.now()}`, title: 'Nieuwe Dienst', description: 'Beschrijving van de nieuwe dienst.', published: false, customIcon: { url: '', alt: ''} }])} className="mt-4 inline-flex items-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600">
                 <Plus size={16} className="mr-2"/> Dienst Toevoegen
             </button>
         </>

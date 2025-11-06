@@ -13,13 +13,15 @@ import CtaGalleryTab from '../components/admin/tabs/CtaGalleryTab';
 import GalleryTab from '../components/admin/tabs/GalleryTab';
 import ContactTab from '../components/admin/tabs/ContactTab';
 import UserManagementTab from '../components/admin/tabs/UserManagementTab';
+import HistoryTab from '../components/admin/tabs/HistoryTab';
+import HelpTab from '../components/admin/tabs/HelpTab';
 import GalleryEditModal from '../components/admin/ui/GalleryEditModal';
 import NotificationPopup from '../components/admin/ui/NotificationPopup';
 import ConfirmationModal from '../components/admin/ui/ConfirmationModal';
 
 
 function AdminDashboard() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [content, setContent] = useState<PageContent | null>(null);
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
   const [originalContent, setOriginalContent] = useState<string>('');
@@ -46,25 +48,29 @@ function AdminDashboard() {
     { id: 'galerij', label: 'Galerij' },
     { id: 'contact', label: 'Contact' },
     { id: 'gebruikers', label: 'Gebruikers' },
+    { id: 'geschiedenis', label: 'Geschiedenis' },
+    { id: 'help', label: 'Help' },
   ];
+  
+  const loadContent = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/content');
+      if (!response.ok) throw new Error('Kon content niet ophalen.');
+      const data = await response.json();
+      setContent(data.pageContent);
+      setGallery(data.galleryImages);
+      setOriginalContent(JSON.stringify({ pageContent: data.pageContent, galleryImages: data.galleryImages }));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const response = await fetch('/api/content');
-        if (!response.ok) throw new Error('Kon content niet ophalen.');
-        const data = await response.json();
-        setContent(data.pageContent);
-        setGallery(data.galleryImages);
-        setOriginalContent(JSON.stringify({ pageContent: data.pageContent, galleryImages: data.galleryImages }));
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchContent();
-  }, []);
+    loadContent();
+  }, [loadContent]);
 
   const hasChanges = useMemo(() => {
     if (!content) return false;
@@ -168,7 +174,7 @@ function AdminDashboard() {
 
   const renderTabContent = () => {
     switch(activeTab) {
-      case 'dashboard': return <DashboardTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
+      case 'dashboard': return <DashboardTab content={content} user={user} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
       case 'navigatie': return <NavigationTab content={content} handleContentChange={handleContentChange} />;
       case 'hero': return <HeroTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
       case 'diensten': return <ServicesTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
@@ -177,37 +183,43 @@ function AdminDashboard() {
       case 'galerij': return <GalleryTab content={content} gallery={gallery} handleContentChange={handleContentChange} setGallery={setGallery} setEditingImageIndex={setEditingImageIndex} />;
       case 'contact': return <ContactTab content={content} handleContentChange={handleContentChange} />;
       case 'gebruikers': return <UserManagementTab showNotification={showNotification} showConfirmation={showConfirmation} />;
+      case 'geschiedenis': return <HistoryTab showNotification={showNotification} showConfirmation={showConfirmation} onRestore={loadContent} />;
+      case 'help': return <HelpTab />;
       default: return null;
     }
   }
 
-  const getSaveButton = () => {
+  const getSaveButtonState = () => {
     if (isSaving) {
       return {
         text: 'Opslaan...',
         icon: <Spinner size={20} className="animate-spin mr-2" />,
-        className: 'bg-green-600'
+        className: 'bg-yellow-600',
+        disabled: true,
       };
     }
     if (hasChanges) {
       return {
         text: 'Wijzigingen Opslaan',
         icon: <FloppyDisk size={20} className="mr-2" />,
-        className: 'bg-green-600 hover:bg-green-700'
+        className: 'bg-green-600 hover:bg-green-700',
+        disabled: false,
       };
     }
     return {
       text: 'Opgeslagen',
       icon: <CheckCircle size={20} className="mr-2" />,
-      className: 'bg-zinc-600'
+      className: 'bg-zinc-600',
+      disabled: true,
     };
   };
-  const saveButton = getSaveButton();
+
+  const saveButtonState = getSaveButtonState();
 
   return (
     <div className="min-h-screen bg-zinc-900 text-white">
       <header className="sticky top-0 z-20 bg-zinc-800/80 backdrop-blur-sm border-b border-zinc-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <h1 className="text-xl font-bold">Content Management</h1>
             <div className="flex items-center space-x-4">
@@ -223,11 +235,11 @@ function AdminDashboard() {
               </a>
               <button
                 onClick={handleSave}
-                disabled={!hasChanges || isSaving}
-                className={`inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500 disabled:cursor-not-allowed transition-colors ${saveButton.className}`}
+                disabled={saveButtonState.disabled}
+                className={`inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500 disabled:cursor-not-allowed transition-colors ${saveButtonState.className}`}
               >
-                {saveButton.icon}
-                {saveButton.text}
+                {saveButtonState.icon}
+                {saveButtonState.text}
               </button>
               <button
                 onClick={logout}
@@ -242,7 +254,7 @@ function AdminDashboard() {
       </header>
       
       <main>
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="max-w-screen-2xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="border-b border-zinc-700 mb-6">
               <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
                   {tabs.map(tab => (

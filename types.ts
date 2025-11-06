@@ -10,6 +10,7 @@ export interface Service {
   title: string;
   description: string;
   customIcon?: AppImage; // The custom uploaded image (now optional)
+  published?: boolean; // New: To control visibility on the live site
 }
 
 export interface PageContent {
@@ -70,6 +71,8 @@ export interface PageContent {
   contactFormSuccessTitle?: string;
   contactFormSuccessText?: string;
   contactFormSuccessAgainButtonText?: string;
+  contactMapEnabled?: boolean; // New: Toggle for the interactive map
+  contactMapUrl?: string; // New: Embed URL for the Google Map
 
   // SEO & Social Media
   ogImage?: AppImage;
@@ -82,4 +85,6 @@ export interface PageContent {
 export interface GalleryImage {
   _id: string;
   image: AppImage;
+  published?: boolean; // New: To control visibility on the live site
+  category?: string; // New: For filtering in the gallery
 }

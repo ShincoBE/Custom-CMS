@@ -4,6 +4,7 @@ import { useOnScreen } from '../hooks/useOnScreen';
 import type { PageContent, Service } from '../types';
 import ErrorBoundary from './ErrorBoundary';
 import { Question } from 'phosphor-react';
+import LazyImage from './ui/LazyImage';
 
 type Status = 'loading' | 'success' | 'error';
 
@@ -27,18 +28,15 @@ const ServiceCard = ({ service, index }: { service: Service; index: number }) =>
 
     return (
         <div
-            className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 p-8 rounded-2xl shadow-lg text-center transition-all duration-300 hover:border-green-500/50 hover:shadow-green-500/10 hover:-translate-y-1"
+            className="group bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 p-8 rounded-2xl shadow-lg text-center transition-all duration-300 hover:border-green-500/50 hover:shadow-green-500/10 hover:-translate-y-1"
             style={{ transitionDelay: `${index * 100}ms` }}
         >
-            <div className="flex items-center justify-center h-20 w-20 rounded-full bg-green-900/50 border border-green-700/50 mb-6 mx-auto">
+            <div className="flex items-center justify-center h-20 w-20 rounded-full bg-green-900/50 border border-green-700/50 mb-6 mx-auto transition-transform duration-300 group-hover:scale-110">
                 {iconUrl ? (
-                    <img 
+                    <LazyImage 
                         src={iconUrl} 
                         alt={service.customIcon?.alt || `Icoon voor ${service.title}`} 
                         className="h-12 w-12 object-contain"
-                        width="48"
-                        height="48"
-                        loading="lazy"
                     />
                 ) : (
                     // Fallback to a simple Question icon if no custom icon is provided

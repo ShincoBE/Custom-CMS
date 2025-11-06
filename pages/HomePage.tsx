@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { PageContent, GalleryImage } from '../types';
+import type { PageContent, GalleryImage, Service } from '../types';
 
 // Import components
 import Header from '../components/Header';
@@ -30,8 +30,14 @@ function HomePage() {
         }
         const data = await response.json();
         
-        setPageContent(data.pageContent);
-        setGalleryImages(data.galleryImages);
+        // Filter out unpublished content before setting state
+        const publishedServices = data.pageContent.servicesList?.filter((service: Service) => service.published) || [];
+        const publishedContent = { ...data.pageContent, servicesList: publishedServices };
+        
+        const publishedGalleryImages = data.galleryImages?.filter((image: GalleryImage) => image.published) || [];
+
+        setPageContent(publishedContent);
+        setGalleryImages(publishedGalleryImages);
         setStatus('success');
 
         // After content is loaded, update the social media meta tags dynamically.

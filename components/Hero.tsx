@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { PageContent } from '../types';
+import LazyImage from './ui/LazyImage';
 
 type Status = 'loading' | 'success' | 'error';
 
@@ -69,12 +70,12 @@ function Hero({ content, status }: HeroProps) {
 
   return (
     <section id="home" className="relative h-screen flex items-center justify-center text-center text-white overflow-hidden" role="banner" aria-label="Hoofdpagina introductie">
-      <div 
-        className="absolute top-0 left-0 w-full h-full bg-cover bg-center"
-        style={{ backgroundImage: `url('${backgroundImageUrl}')` }}
-        role="img"
-        aria-label={heroImage?.alt || 'Een prachtig onderhouden tuin als achtergrond'}
-      ></div>
+      <LazyImage
+        src={backgroundImageUrl}
+        alt={heroImage?.alt || 'Een prachtig onderhouden tuin als achtergrond'}
+        className="absolute top-0 left-0 w-full h-full object-cover"
+        isBackground={true}
+      />
       <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60"></div>
       <div className="relative z-10 p-4">
         <h1 className={`text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-4 transition-all duration-700 ease-out ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
