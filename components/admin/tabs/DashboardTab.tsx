@@ -1,11 +1,11 @@
 import React from 'react';
-import type { PageContent } from '../../../types';
+import type { PageContent, User } from '../../../types';
 import InputWithCounter from '../ui/InputWithCounter';
 import ImageUpload from '../ui/ImageUpload';
 
 interface DashboardTabProps {
     content: PageContent;
-    user: { username: string } | null;
+    user: User | null;
     handleContentChange: (path: string, value: any) => void;
     handleImageUpload: (file: File, path: string) => Promise<void>;
 }
