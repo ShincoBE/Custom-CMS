@@ -31,9 +31,16 @@ const HistoryTab = ({ showNotification, showConfirmation, onRestore }: HistoryTa
     }, [fetchHistory]);
 
     const handleRestore = (timestamp: string) => {
+        const date = new Date(timestamp);
+        // This check is a safeguard; the button should be disabled for invalid dates.
+        if (isNaN(date.getTime())) {
+            showNotification('error', 'Kan versie met ongeldige datum niet herstellen.');
+            return;
+        }
+
         showConfirmation(
             'Versie Herstellen',
-            `Weet u zeker dat u de content wilt herstellen naar de versie van ${new Date(timestamp).toLocaleString('nl-BE')}? Alle niet-opgeslagen wijzigingen gaan verloren.`,
+            `Weet u zeker dat u de content wilt herstellen naar de versie van ${date.toLocaleString('nl-BE')}? Alle niet-opgeslagen wijzigingen gaan verloren.`,
             async () => {
                 setIsRestoring(timestamp);
                 try {
@@ -63,21 +70,29 @@ const HistoryTab = ({ showNotification, showConfirmation, onRestore }: HistoryTa
         {isLoading ? <Spinner size={24} className="animate-spin" /> : (
             <div className="border border-zinc-700 rounded-lg overflow-hidden">
                 <ul className="divide-y divide-zinc-700">
-                    {history.length > 0 ? history.map(timestamp => (
-                        <li key={timestamp} className="flex items-center justify-between p-4 bg-zinc-800/50 hover:bg-zinc-700/50">
-                            <span className="text-zinc-200">
-                                Versie van <time dateTime={timestamp}>{new Date(timestamp).toLocaleString('nl-BE', { dateStyle: 'long', timeStyle: 'medium' })}</time>
-                            </span>
-                            <button
-                                onClick={() => handleRestore(timestamp)}
-                                disabled={!!isRestoring}
-                                className="inline-flex items-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50"
-                            >
-                                {isRestoring === timestamp ? <Spinner size={16} className="animate-spin mr-2" /> : <ClockCounterClockwise size={16} className="mr-2"/>}
-                                {isRestoring === timestamp ? 'Herstellen...' : 'Herstel'}
-                            </button>
-                        </li>
-                    )) : (
+                    {history.length > 0 ? history.map(timestamp => {
+                        const date = new Date(timestamp);
+                        const isValidDate = !isNaN(date.getTime());
+                        const displayDate = isValidDate
+                            ? date.toLocaleString('nl-BE', { dateStyle: 'long', timeStyle: 'medium' })
+                            : 'Ongeldige Datum';
+
+                        return (
+                            <li key={timestamp} className={`flex items-center justify-between p-4 bg-zinc-800/50 ${isValidDate ? 'hover:bg-zinc-700/50' : ''}`}>
+                                <span className={`text-zinc-200 ${!isValidDate ? 'text-red-400' : ''}`}>
+                                    Versie van <time dateTime={timestamp}>{displayDate}</time>
+                                </span>
+                                <button
+                                    onClick={() => handleRestore(timestamp)}
+                                    disabled={!!isRestoring || !isValidDate}
+                                    className="inline-flex items-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isRestoring === timestamp ? <Spinner size={16} className="animate-spin mr-2" /> : <ClockCounterClockwise size={16} className="mr-2"/>}
+                                    {isRestoring === timestamp ? 'Herstellen...' : 'Herstel'}
+                                </button>
+                            </li>
+                        );
+                    }) : (
                         <li className="p-4 text-center text-zinc-400">Nog geen geschiedenis beschikbaar.</li>
                     )}
                 </ul>
