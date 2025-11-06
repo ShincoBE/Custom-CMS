@@ -3,7 +3,6 @@ import type { PageContent } from '../../../types';
 import AdminInput from '../ui/AdminInput';
 import AdminTextarea from '../ui/AdminTextarea';
 import ImageUpload from '../ui/ImageUpload';
-import SeoFields from '../ui/SeoFields';
 
 interface HeroTabProps {
     content: PageContent;
@@ -19,12 +18,6 @@ const HeroTab = ({ content, handleContentChange, handleImageUpload }: HeroTabPro
             <AdminTextarea name="heroTagline" label="Tagline" help="De subtitel onder de hoofdtitel." value={content.heroTagline!} onChange={e => handleContentChange('heroTagline', e.target.value)} required showStyler />
             <AdminInput name="heroButtonText" label="Knop Tekst" help="De tekst op de knop in de hero sectie." value={content.heroButtonText!} onChange={e => handleContentChange('heroButtonText', e.target.value)} required />
             <ImageUpload name="heroImage" label="Achtergrondafbeelding" help="De grote afbeelding op de achtergrond van de hero sectie." currentUrl={content.heroImage?.url} alt={content.heroImage?.alt} onAltChange={e => handleContentChange('heroImage.alt', e.target.value)} onImageChange={file => handleImageUpload(file, 'heroImage.url')} required />
-
-            <SeoFields
-                seo={content.homeSeo}
-                onSeoChange={(field, value) => handleContentChange(`homeSeo.${field}`, value)}
-                baseName="home"
-            />
         </>
     );
 };

@@ -4,12 +4,6 @@ export interface AppImage {
   url: string;
 }
 
-// SEO-related types
-export interface SEO {
-  title?: string;
-  description?: string;
-}
-
 // The definitive, simplified interface for a Service
 export interface Service {
   _key: string;
@@ -20,7 +14,6 @@ export interface Service {
   hasPage?: boolean; // New: Toggle for dedicated service page
   slug?: string; // New: URL slug for the dedicated page
   pageContent?: string; // New: Markdown/HTML content for the page
-  seo?: SEO; // New: SEO settings for the service page
 }
 
 export interface PageContent {
@@ -42,7 +35,6 @@ export interface PageContent {
   heroTagline?: string;
   heroButtonText?: string;
   heroImage?: AppImage;
-  homeSeo?: SEO; // New: SEO settings for the homepage
   
   // Services Section
   servicesTitle?: string;

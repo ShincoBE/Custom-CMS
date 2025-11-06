@@ -4,7 +4,6 @@ import { Plus, Trash, Image, CaretDown, MagnifyingGlass, CheckCircle, Prohibit }
 import InputWithCounter from '../ui/InputWithCounter';
 import ImageUpload from '../ui/ImageUpload';
 import ToggleSwitch from '../ui/ToggleSwitch.tsx';
-import SeoFields from '../ui/SeoFields';
 
 interface ServicesTabProps {
     content: PageContent;
@@ -164,11 +163,6 @@ const ServicesTab = ({ content, handleContentChange, handleImageUpload }: Servic
                                                     value={service.pageContent || ''} 
                                                     onChange={e => handleContentChange(`servicesList.${originalIndex}.pageContent`, e.target.value)} 
                                                     showStyler
-                                                />
-                                                <SeoFields
-                                                    seo={service.seo}
-                                                    onSeoChange={(field, value) => handleContentChange(`servicesList.${originalIndex}.seo.${field}`, value)}
-                                                    baseName={`service-${originalIndex}`}
                                                 />
                                             </div>
                                         )}

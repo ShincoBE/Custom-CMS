@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import type { PageContent, GalleryImage, Service, SiteSettings } from '@/types';
 import { useAnalytics } from '@/hooks/useAnalytics';
-import { usePageSEO } from '@/hooks/usePageSEO';
 
 // Import components
 import Header from '@/components/Header';
@@ -26,7 +25,6 @@ function ServicePage() {
   const { slug } = useParams();
 
   useAnalytics();
-  usePageSEO(service?.seo);
 
   useEffect(() => {
     const fetchContent = async () => {
