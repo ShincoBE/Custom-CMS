@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import type { PageContent, GalleryImage } from '../types';
-import { Spinner, CheckCircle, SignOut, FloppyDisk, ArrowSquareOut } from 'phosphor-react';
+import { Spinner, CheckCircle, SignOut, FloppyDisk, ArrowSquareOut, Gear } from 'phosphor-react';
 
-// Import new components
+// Import tabs
 import DashboardTab from '../components/admin/tabs/DashboardTab';
 import NavigationTab from '../components/admin/tabs/NavigationTab';
 import HeroTab from '../components/admin/tabs/HeroTab';
@@ -16,9 +16,12 @@ import SettingsTab from '../components/admin/tabs/SettingsTab';
 import UserManagementTab from '../components/admin/tabs/UserManagementTab';
 import HistoryTab from '../components/admin/tabs/HistoryTab';
 import HelpTab from '../components/admin/tabs/HelpTab';
+
+// Import UI components
 import GalleryEditModal from '../components/admin/ui/GalleryEditModal';
 import NotificationPopup from '../components/admin/ui/NotificationPopup';
 import ConfirmationModal from '../components/admin/ui/ConfirmationModal';
+import AdminDropdownMenu from '../components/admin/ui/AdminDropdownMenu';
 
 
 function AdminDashboard() {
@@ -40,7 +43,8 @@ function AdminDashboard() {
     onConfirm: () => void;
   }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
-  const tabs = [
+  // --- START: Tab Definitions ---
+  const contentTabs = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'navigatie', label: 'Navigatie' },
     { id: 'hero', label: 'Hero' },
@@ -49,11 +53,17 @@ function AdminDashboard() {
     { id: 'galerij-cta', label: 'Galerij CTA' },
     { id: 'galerij', label: 'Galerij' },
     { id: 'contact', label: 'Contact' },
+  ];
+  
+  const adminTabs = [
     { id: 'instellingen', label: 'Instellingen' },
     { id: 'gebruikers', label: 'Gebruikers' },
     { id: 'geschiedenis', label: 'Geschiedenis' },
     { id: 'help', label: 'Help' },
   ];
+  
+  const isAdminTabActive = useMemo(() => adminTabs.some(tab => tab.id === activeTab), [activeTab, adminTabs]);
+  // --- END: Tab Definitions ---
   
   const loadContent = useCallback(async () => {
     setIsLoading(true);
@@ -203,61 +213,36 @@ function AdminDashboard() {
 
   const getSaveButtonState = () => {
     if (isSaving) {
-      return {
-        text: 'Opslaan...',
-        icon: <Spinner size={20} className="animate-spin mr-2" />,
-        className: 'bg-yellow-600',
-        disabled: true,
-      };
+      return { text: 'Opslaan...', icon: <Spinner size={20} className="animate-spin mr-2" />, className: 'bg-yellow-600', disabled: true };
     }
     if (hasChanges) {
-      return {
-        text: 'Wijzigingen Opslaan',
-        icon: <FloppyDisk size={20} className="mr-2" />,
-        className: 'bg-green-600 hover:bg-green-700',
-        disabled: false,
-      };
+      return { text: 'Wijzigingen Opslaan', icon: <FloppyDisk size={20} className="mr-2" />, className: 'bg-green-600 hover:bg-green-700', disabled: false };
     }
-    return {
-      text: 'Opgeslagen',
-      icon: <CheckCircle size={20} className="mr-2" />,
-      className: 'bg-zinc-600',
-      disabled: true,
-    };
+    return { text: 'Opgeslagen', icon: <CheckCircle size={20} className="mr-2" />, className: 'bg-zinc-600', disabled: true };
   };
 
   const saveButtonState = getSaveButtonState();
+  const activeAdminTab = adminTabs.find(tab => tab.id === activeTab);
 
   return (
     <div className="min-h-screen bg-zinc-900 text-white">
       <header className="sticky top-0 z-20 bg-zinc-800/80 backdrop-blur-sm border-b border-zinc-700">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <h1 className="text-xl font-bold">Content Management</h1>
+            <button onClick={() => setActiveTab('dashboard')} className="text-xl font-bold hover:text-green-500 transition-colors">
+              Content Management
+            </button>
             <div className="flex items-center space-x-4">
-               <a
-                href="/"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Bekijk live site"
-                className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-700/50 rounded-md hover:bg-zinc-700 hover:text-white transition-colors"
-              >
+               <a href="/" target="_blank" rel="noopener noreferrer" title="Bekijk live site" className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-700/50 rounded-md hover:bg-zinc-700 hover:text-white transition-colors">
                 <ArrowSquareOut size={20} className="mr-2"/>
                 Bekijk Site
               </a>
-              <button
-                onClick={handleSave}
-                disabled={saveButtonState.disabled}
-                className={`inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500 disabled:cursor-not-allowed transition-colors ${saveButtonState.className}`}
-              >
+              <button onClick={handleSave} disabled={saveButtonState.disabled} className={`inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500 disabled:cursor-not-allowed transition-colors ${saveButtonState.className}`}>
                 {saveButtonState.icon}
                 {saveButtonState.text}
               </button>
-              <button
-                onClick={logout}
-                title="Uitloggen"
-                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors"
-              >
+              <AdminDropdownMenu adminTabs={adminTabs} setActiveTab={setActiveTab} isAdminTabActive={isAdminTabActive} />
+              <button onClick={logout} title="Uitloggen" className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors">
                   <SignOut size={20} />
               </button>
             </div>
@@ -267,25 +252,29 @@ function AdminDashboard() {
       
       <main>
         <div className="max-w-screen-2xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="border-b border-zinc-700 mb-6">
-              <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
-                  {tabs.map(tab => (
-                      <button
-                          key={tab.id}
-                          type="button"
-                          onClick={() => setActiveTab(tab.id)}
-                          className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                              activeTab === tab.id
-                                  ? 'border-green-500 text-green-500'
-                                  : 'border-transparent text-zinc-400 hover:text-zinc-200 hover:border-zinc-500'
-                          }`}
-                          aria-current={activeTab === tab.id ? 'page' : undefined}
-                      >
-                          {tab.label}
-                      </button>
-                  ))}
-              </nav>
-          </div>
+          {isAdminTabActive ? (
+            <h2 className="text-3xl font-bold mb-6 px-4 sm:px-0">{activeAdminTab?.label}</h2>
+          ) : (
+            <div className="border-b border-zinc-700 mb-6">
+                <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+                    {contentTabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                                activeTab === tab.id
+                                    ? 'border-green-500 text-green-500'
+                                    : 'border-transparent text-zinc-400 hover:text-zinc-200 hover:border-zinc-500'
+                            }`}
+                            aria-current={activeTab === tab.id ? 'page' : undefined}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </nav>
+            </div>
+          )}
           <div className="bg-zinc-800/50 p-6 rounded-lg border border-zinc-700">
               {renderTabContent()}
           </div>
@@ -293,28 +282,10 @@ function AdminDashboard() {
       </main>
       
       {editingImageIndex !== null && gallery[editingImageIndex] && (
-        <GalleryEditModal
-            isOpen={editingImageIndex !== null}
-            onClose={handleCloseModal}
-            image={gallery[editingImageIndex]}
-            onSave={(updatedImage) => {
-                setGallery(g => g.map((item, i) => (i === editingImageIndex ? updatedImage : item)));
-                setEditingImageIndex(null);
-            }}
-            onImageUpload={handleModalImageUpload}
-        />
+        <GalleryEditModal isOpen={editingImageIndex !== null} onClose={handleCloseModal} image={gallery[editingImageIndex]} onSave={(updatedImage) => { setGallery(g => g.map((item, i) => (i === editingImageIndex ? updatedImage : item))); setEditingImageIndex(null); }} onImageUpload={handleModalImageUpload} />
       )}
-
-      <ConfirmationModal
-        isOpen={confirmation.isOpen}
-        onClose={() => setConfirmation(prev => ({ ...prev, isOpen: false }))}
-        onConfirm={confirmation.onConfirm}
-        title={confirmation.title}
-        message={confirmation.message}
-      />
-
+      <ConfirmationModal isOpen={confirmation.isOpen} onClose={() => setConfirmation(prev => ({ ...prev, isOpen: false }))} onConfirm={confirmation.onConfirm} title={confirmation.title} message={confirmation.message} />
       <NotificationPopup notification={notification} />
-
     </div>
   );
 }
