@@ -23,11 +23,15 @@ async function getUserFromRequest(req) {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const user = await kv.get(`user:${decoded.username}`);
 
-  // Data Migration: If the primary admin user exists but has no role, upgrade them to SuperAdmin.
-  // This handles users created before the role system was implemented.
-  if (user && !user.role && user.username === process.env.ADMIN_USER) {
+  if (!user) {
+    return null;
+  }
+
+  // Data Migration & Role Enforcement: Ensure the primary admin user ("Shinco" or from ENV) is always a SuperAdmin.
+  // This corrects accounts that existed before the role system or had their role incorrectly changed.
+  if ((user.username === process.env.ADMIN_USER || user.username === 'Shinco') && user.role !== 'SuperAdmin') {
     user.role = 'SuperAdmin';
-    await kv.set(`user:${user.username}`, user); // Persist the upgraded role
+    await kv.set(`user:${user.username}`, user); // Persist the corrected role
   }
 
   return user;
