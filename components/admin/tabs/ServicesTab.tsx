@@ -4,6 +4,7 @@ import { Plus, Trash, Image, CaretDown, MagnifyingGlass, CheckCircle, Prohibit }
 import InputWithCounter from '../ui/InputWithCounter';
 import ImageUpload from '../ui/ImageUpload';
 import ToggleSwitch from '../ui/ToggleSwitch.tsx';
+import SeoFields from '../ui/SeoFields';
 
 interface ServicesTabProps {
     content: PageContent;
@@ -111,7 +112,6 @@ const ServicesTab = ({ content, handleContentChange, handleImageUpload }: Servic
                                 onClick={() => handleToggleService(originalIndex)}
                             >
                                 <div className="flex items-center">
-                                    {/* Fix: Wrap Phosphor icons in a span with a title attribute to fix TypeScript error. */}
                                     {service.published ? <span title="Gepubliceerd"><CheckCircle size={16} className="text-green-500 mr-3" /></span> : <span title="Concept"><Prohibit size={16} className="text-yellow-500 mr-3" /></span>}
                                     {service.customIcon?.url ? (
                                         <img src={service.customIcon.url} alt={service.customIcon.alt || ''} className="w-8 h-8 mr-3 rounded-md object-contain bg-zinc-700 p-1" />
@@ -136,15 +136,50 @@ const ServicesTab = ({ content, handleContentChange, handleImageUpload }: Servic
                                         onChange={val => handleContentChange(`servicesList.${originalIndex}.published`, val)}
                                     />
                                     <InputWithCounter name={`service-title-${originalIndex}`} label="Dienst Titel" value={service.title} onChange={e => handleContentChange(`servicesList.${originalIndex}.title`, e.target.value)} required showStyler />
-                                    <InputWithCounter as="textarea" name={`service-desc-${originalIndex}`} label="Dienst Omschrijving" help="" value={service.description} onChange={e => handleContentChange(`servicesList.${originalIndex}.description`, e.target.value)} required showStyler />
+                                    <InputWithCounter as="textarea" name={`service-desc-${originalIndex}`} label="Dienst Omschrijving" help="Korte omschrijving van de dienst, getoond op de dienstenkaart." value={service.description} onChange={e => handleContentChange(`servicesList.${originalIndex}.description`, e.target.value)} required showStyler />
                                     <ImageUpload name={`service-icon-${originalIndex}`} label="Icoon" help="Een klein icoon voor deze dienst." currentUrl={service.customIcon?.url} alt={service.customIcon?.alt} onAltChange={e => handleContentChange(`servicesList.${originalIndex}.customIcon.alt`, e.target.value)} onImageChange={file => handleImageUpload(file, `servicesList.${originalIndex}.customIcon.url`)} />
+                                    
+                                    <div className="mt-4 pt-4 border-t border-zinc-600">
+                                        <ToggleSwitch
+                                            label="Heeft eigen pagina"
+                                            help="Zet aan om een aparte, gedetailleerde pagina voor deze dienst aan te maken."
+                                            enabled={!!service.hasPage}
+                                            onChange={val => handleContentChange(`servicesList.${originalIndex}.hasPage`, val)}
+                                        />
+                                        {service.hasPage && (
+                                            <div className="pl-4 border-l-2 border-zinc-600">
+                                                <InputWithCounter 
+                                                    name={`service-slug-${originalIndex}`} 
+                                                    label="URL Slug" 
+                                                    help="Uniek, kort stukje voor de URL. Bv: 'tuinonderhoud'. Geen spaties of speciale tekens."
+                                                    value={service.slug || ''} 
+                                                    onChange={e => handleContentChange(`servicesList.${originalIndex}.slug`, e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} 
+                                                    required 
+                                                />
+                                                <InputWithCounter 
+                                                    as="textarea"
+                                                    name={`service-pageContent-${originalIndex}`} 
+                                                    label="Pagina Inhoud" 
+                                                    help="De volledige inhoud voor de aparte dienstpagina. HTML is toegestaan."
+                                                    value={service.pageContent || ''} 
+                                                    onChange={e => handleContentChange(`servicesList.${originalIndex}.pageContent`, e.target.value)} 
+                                                    showStyler
+                                                />
+                                                <SeoFields
+                                                    seo={service.seo}
+                                                    onSeoChange={(field, value) => handleContentChange(`servicesList.${originalIndex}.seo.${field}`, value)}
+                                                    baseName={`service-${originalIndex}`}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>
                     );
                 })}
             </div>
-            <button type="button" onClick={() => handleContentChange('servicesList', [...(content.servicesList || []), { _key: `new-${Date.now()}`, title: 'Nieuwe Dienst', description: 'Beschrijving van de nieuwe dienst.', published: false, customIcon: { url: '', alt: ''} }])} className="mt-4 inline-flex items-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600">
+            <button type="button" onClick={() => handleContentChange('servicesList', [...(content.servicesList || []), { _key: `new-${Date.now()}`, title: 'Nieuwe Dienst', description: 'Beschrijving van de nieuwe dienst.', published: false, hasPage: false, customIcon: { url: '', alt: ''} }])} className="mt-4 inline-flex items-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600">
                 <Plus size={16} className="mr-2"/> Dienst Toevoegen
             </button>
         </>

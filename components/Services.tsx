@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { Link } from 'react-router-dom';
 import SectionHeader from './SectionHeader';
 import { useOnScreen } from '../hooks/useOnScreen';
 import type { PageContent, Service } from '../types';
@@ -26,9 +27,9 @@ const ServiceCard = ({ service, index }: { service: Service; index: number }) =>
     const title = service.title || 'Onbekende Dienst';
     const description = service.description || 'Geen beschrijving beschikbaar.';
 
-    return (
+    const CardContent = (
         <div
-            className="group bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 p-8 rounded-2xl shadow-lg text-center transition-all duration-300 hover:border-green-500/50 hover:shadow-green-500/10 hover:-translate-y-1"
+            className="group bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 p-8 rounded-2xl shadow-lg text-center transition-all duration-300 hover:border-green-500/50 hover:shadow-green-500/10 hover:-translate-y-1 h-full flex flex-col justify-center"
             style={{ transitionDelay: `${index * 100}ms` }}
         >
             <div className="flex items-center justify-center h-20 w-20 rounded-full bg-green-900/50 border border-green-700/50 mb-6 mx-auto transition-transform duration-300 group-hover:scale-110">
@@ -39,7 +40,6 @@ const ServiceCard = ({ service, index }: { service: Service; index: number }) =>
                         className="h-12 w-12 object-contain"
                     />
                 ) : (
-                    // Fallback to a simple Question icon if no custom icon is provided
                     <Question size={48} className="text-zinc-500" weight="bold" />
                 )}
             </div>
@@ -47,6 +47,16 @@ const ServiceCard = ({ service, index }: { service: Service; index: number }) =>
             <p className="text-gray-400" dangerouslySetInnerHTML={{ __html: description }} />
         </div>
     );
+
+    if (service.hasPage && service.slug) {
+        return (
+            <Link to={`/diensten/${service.slug}`} className="block h-full">
+                {CardContent}
+            </Link>
+        );
+    }
+
+    return CardContent;
 };
 
 

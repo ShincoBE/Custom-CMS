@@ -208,12 +208,10 @@ function AdminDashboard() {
     const currentTabInfo = allTabs.find(tab => tab.id === activeTab);
     if (!currentTabInfo || (userRole && !currentTabInfo.roles.includes(userRole))) {
       setActiveTab('dashboard'); // Fallback to dashboard if access is denied
-      // Fix: Pass handleContentChange and handleImageUpload to DashboardTab
       return <DashboardTab content={content} user={user} settings={settings} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
     }
 
     switch(activeTab) {
-      // Fix: Pass handleContentChange and handleImageUpload to DashboardTab
       case 'dashboard': return <DashboardTab content={content} user={user} settings={settings} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
       case 'navigatie': return <NavigationTab content={content} handleContentChange={handleContentChange} />;
       case 'hero': return <HeroTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
