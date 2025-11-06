@@ -169,16 +169,16 @@ function Contact({ content }: ContactProps) {
     setSubmitError(null);
 
     if (!validateForm()) {
-      return;
+        return;
     }
 
     setIsLoading(true);
 
     const payload = {
-      name: formData.name,
-      email: formData.email,
-      message: formData.message,
-      fax: formData.fax, // Honeypot field
+        name: formData.name,
+        email: formData.email,
+        message: formData.message,
+        fax: formData.fax, // Honeypot field
     };
 
     try {
@@ -195,21 +195,31 @@ function Contact({ content }: ContactProps) {
             setSubmitted(true);
             setFormData({ name: '', email: '', message: '', fax: '' }); // Clear form on success
         } else {
-            // Robust error handling: Check if the response is JSON before parsing.
-            const contentType = response.headers.get('content-type');
-            let errorMessage = 'Er is een onbekende fout opgetreden bij het verzenden.';
-            if (contentType && contentType.includes('application/json')) {
-                const errorData = await response.json();
-                errorMessage = errorData.error || errorData.message || errorMessage;
-            } else {
-                // If not JSON, use the status text or a generic message.
-                errorMessage = response.statusText || errorMessage;
+            // Handle specific server errors with Dutch, user-friendly messages
+            let errorMessage = "Er is een onbekende serverfout opgetreden. Probeer het later opnieuw.";
+            
+            if (response.status === 400) {
+                // Try to get the specific validation error from the server
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || "De ingevoerde gegevens zijn ongeldig. Controleer het formulier.";
+                } catch {
+                     errorMessage = "De ingevoerde gegevens zijn ongeldig. Controleer het formulier.";
+                }
+            } else if (response.status >= 500) {
+                 errorMessage = "Er is een technische fout opgetreden aan onze kant. Probeer het later opnieuw.";
             }
-            throw new Error(errorMessage);
+            
+            // Log the technical error details in English for developers
+            console.error(`API Error: ${response.status} ${response.statusText}`);
+            
+            // Set the user-facing error message in Dutch
+            setSubmitError(errorMessage);
         }
-    } catch (error: any) {
+    } catch (error) {
+      // This block catches network errors (e.g., no internet connection)
       console.error('Failed to send message:', error);
-      setSubmitError(error.message || 'Sorry, uw bericht kon niet worden verzonden. Probeer het later opnieuw.');
+      setSubmitError('Netwerkfout: Kon de server niet bereiken. Controleer uw internetverbinding.');
     } finally {
       setIsLoading(false);
     }

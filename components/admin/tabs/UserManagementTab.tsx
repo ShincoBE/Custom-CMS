@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { Users, Spinner, Trash } from 'phosphor-react';
 import AdminInput from '../ui/AdminInput';
+import type { User, UserRole } from '../../../types';
 
 interface UserManagementTabProps {
     showNotification: (type: 'success' | 'error', message: string) => void;
@@ -10,10 +11,10 @@ interface UserManagementTabProps {
 
 const UserManagementTab = ({ showNotification, showConfirmation }: UserManagementTabProps) => {
     const { user: currentUser } = useAuth();
-    const [users, setUsers] = useState<string[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [isLoadingUsers, setIsLoadingUsers] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [newUser, setNewUser] = useState({ username: '', password: '' });
+    const [newUser, setNewUser] = useState({ username: '', password: '', role: 'Editor' as UserRole });
 
     const fetchUsers = useCallback(async () => {
         setIsLoadingUsers(true);
@@ -33,14 +34,14 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
         fetchUsers();
     }, [fetchUsers]);
 
-    const handleNewUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleNewUserChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setNewUser(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newUser.username.length < 3 || newUser.password.length < 8) {
-            showNotification('error', 'Gebruikersnaam moet > 2 tekens zijn en wachtwoord > 7 tekens.');
+            showNotification('error', 'Gebruikersnaam > 2 tekens en wachtwoord > 7 tekens.');
             return;
         }
         setIsSubmitting(true);
@@ -53,8 +54,8 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
             showNotification('success', data.message);
-            setNewUser({ username: '', password: '' }); // Reset form
-            fetchUsers(); // Refresh user list
+            setNewUser({ username: '', password: '', role: 'Editor' });
+            fetchUsers();
         } catch (error: any) {
             showNotification('error', error.message);
         } finally {
@@ -65,10 +66,9 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
     const handleDeleteUser = (username: string) => {
         showConfirmation(
             'Gebruiker Verwijderen',
-            `Weet u zeker dat u de gebruiker '${username}' wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.`,
+            `Weet u zeker dat u '${username}' wilt verwijderen?`,
             async () => {
-                setIsSubmitting(true);
-                 try {
+                try {
                     const res = await fetch('/api/users/delete', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -77,14 +77,28 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.error);
                     showNotification('success', data.message);
-                    fetchUsers(); // Refresh user list
+                    fetchUsers();
                 } catch (error: any) {
                     showNotification('error', error.message);
-                } finally {
-                    setIsSubmitting(false);
                 }
             }
         );
+    }
+
+    const handleRoleChange = async (username: string, role: UserRole) => {
+        try {
+            const res = await fetch('/api/users/update-role', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, role }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            showNotification('success', data.message);
+            fetchUsers();
+        } catch (error: any) {
+            showNotification('error', error.message);
+        }
     }
 
     return (
@@ -93,11 +107,18 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
             
             <div className="mb-8 p-4 border border-zinc-700 rounded-lg bg-zinc-800/50">
                 <h3 className="text-lg font-semibold mb-3 text-white">Nieuwe Gebruiker Toevoegen</h3>
-                <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <AdminInput name="username" label="Gebruikersnaam" value={newUser.username} onChange={handleNewUserChange} required autoComplete="off" />
                     <AdminInput name="password" label="Wachtwoord" type="password" value={newUser.password} onChange={handleNewUserChange} required autoComplete="new-password" />
+                    <div className="mb-6">
+                        <label htmlFor="role" className="block text-sm font-medium text-zinc-300 mb-1">Rol</label>
+                        <select id="role" name="role" value={newUser.role} onChange={handleNewUserChange} className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500">
+                            <option value="Editor">Editor</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
                     <button type="submit" disabled={isSubmitting} className="w-full md:w-auto self-end mb-6 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-zinc-600">
-                       {isSubmitting ? <Spinner size={20} className="animate-spin" /> : 'Gebruiker Aanmaken'}
+                       {isSubmitting ? <Spinner size={20} className="animate-spin" /> : 'Aanmaken'}
                     </button>
                 </form>
             </div>
@@ -105,25 +126,37 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
             <div>
                  <h3 className="text-lg font-semibold mb-3 text-white">Huidige Gebruikers</h3>
                  {isLoadingUsers ? <Spinner size={24} className="animate-spin" /> : (
-                    <ul className="space-y-2">
-                        {users.map(username => (
-                            <li key={username} className="flex items-center justify-between p-3 bg-zinc-700/50 rounded-md">
-                                <span className="text-zinc-200">{username}</span>
-                                {username === currentUser?.username ? (
-                                    <span className="text-xs text-zinc-400 italic">Huidige gebruiker</span>
-                                ) : (
-                                    <button
-                                        onClick={() => handleDeleteUser(username)}
-                                        disabled={isSubmitting}
-                                        className="text-zinc-400 hover:text-red-400 disabled:opacity-50"
-                                        aria-label={`Verwijder ${username}`}
-                                     >
-                                        <Trash size={20} />
-                                    </button>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
+                    <div className="border border-zinc-700 rounded-lg overflow-hidden">
+                        <ul className="divide-y divide-zinc-700">
+                            {users.map(user => (
+                                <li key={user.username} className="flex items-center justify-between p-3 bg-zinc-800/50">
+                                    <div className="flex flex-col">
+                                        <span className="text-zinc-200 font-medium">{user.username}</span>
+                                        <span className="text-xs text-zinc-400">{user.role}</span>
+                                    </div>
+                                    {user.username === currentUser?.username ? (
+                                        <span className="text-xs text-zinc-400 italic">Dit bent u</span>
+                                    ) : (
+                                      <div className="flex items-center space-x-2">
+                                        <select 
+                                            value={user.role} 
+                                            onChange={(e) => handleRoleChange(user.username, e.target.value as UserRole)}
+                                            className="bg-zinc-700 border-zinc-600 rounded-md px-2 py-1 text-xs"
+                                            disabled={user.role === 'SuperAdmin'}
+                                        >
+                                            <option value="Editor">Editor</option>
+                                            <option value="Admin">Admin</option>
+                                            {user.role === 'SuperAdmin' && <option value="SuperAdmin">SuperAdmin</option>}
+                                        </select>
+                                        <button onClick={() => handleDeleteUser(user.username)} className="text-zinc-400 hover:text-red-400" aria-label={`Verwijder ${user.username}`}>
+                                            <Trash size={20} />
+                                        </button>
+                                      </div>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                  )}
             </div>
         </>

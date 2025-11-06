@@ -88,3 +88,11 @@ export interface GalleryImage {
   published?: boolean; // New: To control visibility on the live site
   category?: string; // New: For filtering in the gallery
 }
+
+export type UserRole = 'SuperAdmin' | 'Admin' | 'Editor';
+
+export interface User {
+  username: string;
+  role: UserRole;
+  hashedPassword?: string; // Only exists on the backend
+}

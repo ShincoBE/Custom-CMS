@@ -43,25 +43,28 @@ function AdminDashboard() {
     onConfirm: () => void;
   }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
-  // --- START: Tab Definitions ---
-  const contentTabs = [
-    { id: 'dashboard', label: 'Dashboard' },
-    { id: 'navigatie', label: 'Navigatie' },
-    { id: 'hero', label: 'Hero' },
-    { id: 'diensten', label: 'Diensten' },
-    { id: 'voor-na', label: 'Voor & Na' },
-    { id: 'galerij-cta', label: 'Galerij CTA' },
-    { id: 'galerij', label: 'Galerij' },
-    { id: 'contact', label: 'Contact' },
-  ];
+  // --- START: Tab Definitions & Role-Based Access ---
+  const userRole = user?.role;
+
+  const contentTabs = useMemo(() => [
+    { id: 'dashboard', label: 'Dashboard', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'navigatie', label: 'Navigatie', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'hero', label: 'Hero', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'diensten', label: 'Diensten', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'voor-na', label: 'Voor & Na', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'galerij-cta', label: 'Galerij CTA', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'galerij', label: 'Galerij', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'contact', label: 'Contact', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+  ], []);
   
-  const adminTabs = [
-    { id: 'instellingen', label: 'Instellingen' },
-    { id: 'gebruikers', label: 'Gebruikers' },
-    { id: 'geschiedenis', label: 'Geschiedenis' },
-    { id: 'help', label: 'Help' },
-  ];
+  const adminTabs = useMemo(() => [
+    { id: 'instellingen', label: 'Instellingen', roles: ['SuperAdmin', 'Admin'] },
+    { id: 'gebruikers', label: 'Gebruikers', roles: ['SuperAdmin'] },
+    { id: 'geschiedenis', label: 'Geschiedenis', roles: ['SuperAdmin'] },
+    { id: 'help', label: 'Help', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+  ], []);
   
+  const visibleAdminTabs = useMemo(() => adminTabs.filter(tab => userRole && tab.roles.includes(userRole)), [adminTabs, userRole]);
   const isAdminTabActive = useMemo(() => adminTabs.some(tab => tab.id === activeTab), [activeTab, adminTabs]);
   // --- END: Tab Definitions ---
   
@@ -194,6 +197,14 @@ function AdminDashboard() {
   if (!content) return null;
 
   const renderTabContent = () => {
+    // Role-based check before rendering
+    const allTabs = [...contentTabs, ...adminTabs];
+    const currentTabInfo = allTabs.find(tab => tab.id === activeTab);
+    if (!currentTabInfo || (userRole && !currentTabInfo.roles.includes(userRole))) {
+      setActiveTab('dashboard'); // Fallback to dashboard if access is denied
+      return <DashboardTab content={content} user={user} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
+    }
+
     switch(activeTab) {
       case 'dashboard': return <DashboardTab content={content} user={user} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
       case 'navigatie': return <NavigationTab content={content} handleContentChange={handleContentChange} />;
@@ -241,7 +252,7 @@ function AdminDashboard() {
                 {saveButtonState.icon}
                 {saveButtonState.text}
               </button>
-              <AdminDropdownMenu adminTabs={adminTabs} setActiveTab={setActiveTab} isAdminTabActive={isAdminTabActive} />
+              {userRole !== 'Editor' && <AdminDropdownMenu adminTabs={visibleAdminTabs} setActiveTab={setActiveTab} isAdminTabActive={isAdminTabActive} />}
               <button onClick={logout} title="Uitloggen" className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors">
                   <SignOut size={20} />
               </button>
