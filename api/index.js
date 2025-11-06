@@ -21,8 +21,18 @@ async function getUserFromRequest(req) {
   const token = cookies.auth_token;
   if (!token) return null;
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  return await kv.get(`user:${decoded.username}`);
+  const user = await kv.get(`user:${decoded.username}`);
+
+  // Data Migration: If the primary admin user exists but has no role, upgrade them to SuperAdmin.
+  // This handles users created before the role system was implemented.
+  if (user && !user.role && user.username === process.env.ADMIN_USER) {
+    user.role = 'SuperAdmin';
+    await kv.set(`user:${user.username}`, user); // Persist the upgraded role
+  }
+
+  return user;
 }
+
 
 async function authorizeRequest(req, allowedRoles) {
     const user = await getUserFromRequest(req);
@@ -58,7 +68,7 @@ const DEFAULT_CONTENT = {
     contactEmailTitle: "Email", contactEmail: "info.andries.serviceplus@gmail.com",
     contactPhoneTitle: "Telefoon", contactPhone: "+32 494 39 92 86",
     contactFormNameLabel: "Naam", contactFormEmailLabel: "Emailadres", contactFormMessageLabel: "Uw bericht", contactFormSubmitButtonText: "Verstuur Bericht",
-    contactFormSuccessTitle: "Bericht Verzonden!", contactFormSuccessText: "Bedankt voor uw bericht. We nemen zo spoedielijk mogelijk contact met u op.", contactFormSuccessAgainButtonText: "Nog een bericht sturen",
+    contactFormSuccessTitle: "Bericht Verzonden!", contactFormSuccessText: "Bedankt voor uw bericht. We nemen zo spoedig mogelijk contact met u op.", contactFormSuccessAgainButtonText: "Nog een bericht sturen",
     contactMapEnabled: true, contactMapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2503.491333794334!2d4.57099631583015!3d51.1357909795757!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47c3f0e0f0e0f0e1%3A0x8e0e0e0e0e0e0e0e!2sHazenstraat%2065%2C%202500%20Lier%2C%20Belgium!5e0!3m2!1sen!2sus!4v1620000000000",
     facebookUrl: "https://www.facebook.com/", footerCopyrightText: "Andries Service+. Alle rechten voorbehouden.",
     logo: { url: '/favicon.svg', alt: 'Andries Service+ Logo' }, heroImage: { url: 'https://i.postimg.cc/431ktwwb/Hero.jpg', alt: 'Mooi onderhouden tuin' },
@@ -278,6 +288,19 @@ module.exports = async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const path = url.pathname;
   
+  // Middleware to parse JSON body for POST requests
+  if (req.method === 'POST') {
+    try {
+      const bodyBuffer = await streamToBuffer(req);
+      req.body = JSON.parse(bodyBuffer.toString() || '{}');
+    } catch (e) {
+      // Ignore parsing errors for routes that don't expect JSON (like /upload)
+      if (!(path === '/api/upload')) {
+        return res.status(400).json({ error: 'Invalid JSON body' });
+      }
+    }
+  }
+
   if (path === '/api/contact' && req.method === 'POST') return handleContact(req, res);
   if (path === '/api/content' && req.method === 'GET') return handleGetContent(req, res);
   if (path === '/api/login' && req.method === 'POST') return handleLogin(req, res);
