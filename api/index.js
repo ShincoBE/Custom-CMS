@@ -181,6 +181,8 @@ async function handleVerifyAuth(req, res) {
   try {
     const user = await getUserFromRequest(req);
     if (!user) throw new Error();
+    // This is a sensitive, user-specific endpoint. Prevent caching at all levels.
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({ user: { username: user.username, role: user.role } });
   } catch (error) {
     return res.status(401).json({ error: 'Ongeldige of verlopen token.' });
