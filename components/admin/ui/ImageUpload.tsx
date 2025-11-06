@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { UploadSimple, Spinner } from 'phosphor-react';
+import HelpTooltip from './HelpTooltip';
 
 interface ImageUploadProps {
     label: string;
@@ -34,9 +35,12 @@ const ImageUpload = ({ label, help, currentUrl, alt, onAltChange, onImageChange,
 
     return (
         <div className="mb-6 p-4 border border-zinc-600 rounded-lg bg-zinc-900/50">
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-                {label} {required && <span className="text-red-400">*</span>}
-            </label>
+            <div className="flex items-center space-x-2 mb-2">
+                <label className="block text-sm font-medium text-zinc-300">
+                    {label} {required && <span className="text-red-400">*</span>}
+                </label>
+                {help && <HelpTooltip text={help} />}
+            </div>
             <div className="flex items-start space-x-4">
                 {currentUrl ? (
                     <img src={currentUrl} alt={alt || 'Preview'} className="w-24 h-24 object-contain rounded-md bg-zinc-700" />
@@ -51,7 +55,6 @@ const ImageUpload = ({ label, help, currentUrl, alt, onAltChange, onImageChange,
                         {isUploading ? 'Uploaden...' : 'Afbeelding wijzigen'}
                     </button>
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/gif, image/webp, image/svg+xml" />
-                    <p className="text-xs text-zinc-400 mt-1 mb-2">{help}</p>
                     
                     <label htmlFor={`${name}-alt`} className="sr-only">Alternatieve tekst</label>
                     <input

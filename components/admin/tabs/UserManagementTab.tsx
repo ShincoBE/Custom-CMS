@@ -5,9 +5,10 @@ import AdminInput from '../ui/AdminInput';
 
 interface UserManagementTabProps {
     showNotification: (type: 'success' | 'error', message: string) => void;
+    showConfirmation: (title: string, message: string, onConfirm: () => void) => void;
 }
 
-const UserManagementTab = ({ showNotification }: UserManagementTabProps) => {
+const UserManagementTab = ({ showNotification, showConfirmation }: UserManagementTabProps) => {
     const { user: currentUser } = useAuth();
     const [users, setUsers] = useState<string[]>([]);
     const [isLoadingUsers, setIsLoadingUsers] = useState(true);
@@ -61,26 +62,29 @@ const UserManagementTab = ({ showNotification }: UserManagementTabProps) => {
         }
     };
     
-    const handleDeleteUser = async (username: string) => {
-        if (!window.confirm(`Weet je zeker dat je de gebruiker '${username}' wilt verwijderen?`)) {
-            return;
-        }
-        setIsSubmitting(true);
-         try {
-            const res = await fetch('/api/users/delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-            showNotification('success', data.message);
-            fetchUsers(); // Refresh user list
-        } catch (error: any) {
-            showNotification('error', error.message);
-        } finally {
-            setIsSubmitting(false);
-        }
+    const handleDeleteUser = (username: string) => {
+        showConfirmation(
+            'Gebruiker Verwijderen',
+            `Weet u zeker dat u de gebruiker '${username}' wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.`,
+            async () => {
+                setIsSubmitting(true);
+                 try {
+                    const res = await fetch('/api/users/delete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    showNotification('success', data.message);
+                    fetchUsers(); // Refresh user list
+                } catch (error: any) {
+                    showNotification('error', error.message);
+                } finally {
+                    setIsSubmitting(false);
+                }
+            }
+        );
     }
 
     return (

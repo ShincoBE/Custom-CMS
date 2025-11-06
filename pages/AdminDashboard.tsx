@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import type { PageContent, GalleryImage } from '../types';
-import { Spinner, CheckCircle, SignOut } from 'phosphor-react';
+import { Spinner, CheckCircle, SignOut, FloppyDisk, ArrowSquareOut } from 'phosphor-react';
 
 // Import new components
-import GeneralTab from '../components/admin/tabs/GeneralTab';
+import DashboardTab from '../components/admin/tabs/DashboardTab';
 import NavigationTab from '../components/admin/tabs/NavigationTab';
 import HeroTab from '../components/admin/tabs/HeroTab';
 import ServicesTab from '../components/admin/tabs/ServicesTab';
@@ -15,6 +15,7 @@ import ContactTab from '../components/admin/tabs/ContactTab';
 import UserManagementTab from '../components/admin/tabs/UserManagementTab';
 import GalleryEditModal from '../components/admin/ui/GalleryEditModal';
 import NotificationPopup from '../components/admin/ui/NotificationPopup';
+import ConfirmationModal from '../components/admin/ui/ConfirmationModal';
 
 
 function AdminDashboard() {
@@ -26,11 +27,17 @@ function AdminDashboard() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
-  const [activeTab, setActiveTab] = useState('algemeen');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null);
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
   const tabs = [
-    { id: 'algemeen', label: 'Algemeen' },
+    { id: 'dashboard', label: 'Dashboard' },
     { id: 'navigatie', label: 'Navigatie' },
     { id: 'hero', label: 'Hero' },
     { id: 'diensten', label: 'Diensten' },
@@ -68,6 +75,10 @@ function AdminDashboard() {
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 5000);
   }, []);
+  
+  const showConfirmation = (title: string, message: string, onConfirm: () => void) => {
+    setConfirmation({ isOpen: true, title, message, onConfirm });
+  };
 
   const handleContentChange = useCallback((path: string, value: any) => {
     setContent(prev => {
@@ -157,7 +168,7 @@ function AdminDashboard() {
 
   const renderTabContent = () => {
     switch(activeTab) {
-      case 'algemeen': return <GeneralTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
+      case 'dashboard': return <DashboardTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
       case 'navigatie': return <NavigationTab content={content} handleContentChange={handleContentChange} />;
       case 'hero': return <HeroTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
       case 'diensten': return <ServicesTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
@@ -165,10 +176,33 @@ function AdminDashboard() {
       case 'galerij-cta': return <CtaGalleryTab content={content} handleContentChange={handleContentChange} />;
       case 'galerij': return <GalleryTab content={content} gallery={gallery} handleContentChange={handleContentChange} setGallery={setGallery} setEditingImageIndex={setEditingImageIndex} />;
       case 'contact': return <ContactTab content={content} handleContentChange={handleContentChange} />;
-      case 'gebruikers': return <UserManagementTab showNotification={showNotification} />;
+      case 'gebruikers': return <UserManagementTab showNotification={showNotification} showConfirmation={showConfirmation} />;
       default: return null;
     }
   }
+
+  const getSaveButton = () => {
+    if (isSaving) {
+      return {
+        text: 'Opslaan...',
+        icon: <Spinner size={20} className="animate-spin mr-2" />,
+        className: 'bg-green-600'
+      };
+    }
+    if (hasChanges) {
+      return {
+        text: 'Wijzigingen Opslaan',
+        icon: <FloppyDisk size={20} className="mr-2" />,
+        className: 'bg-green-600 hover:bg-green-700'
+      };
+    }
+    return {
+      text: 'Opgeslagen',
+      icon: <CheckCircle size={20} className="mr-2" />,
+      className: 'bg-zinc-600'
+    };
+  };
+  const saveButton = getSaveButton();
 
   return (
     <div className="min-h-screen bg-zinc-900 text-white">
@@ -177,13 +211,23 @@ function AdminDashboard() {
           <div className="flex items-center justify-between h-16">
             <h1 className="text-xl font-bold">Content Management</h1>
             <div className="flex items-center space-x-4">
+               <a
+                href="/"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Bekijk live site"
+                className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-700/50 rounded-md hover:bg-zinc-700 hover:text-white transition-colors"
+              >
+                <ArrowSquareOut size={20} className="mr-2"/>
+                Bekijk Site
+              </a>
               <button
                 onClick={handleSave}
                 disabled={!hasChanges || isSaving}
-                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500 disabled:bg-zinc-600 disabled:cursor-not-allowed"
+                className={`inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500 disabled:cursor-not-allowed transition-colors ${saveButton.className}`}
               >
-                {isSaving ? <Spinner size={20} className="animate-spin mr-2"/> : <CheckCircle size={20} className="mr-2"/>}
-                {isSaving ? 'Opslaan...' : 'Wijzigingen Opslaan'}
+                {saveButton.icon}
+                {saveButton.text}
               </button>
               <button
                 onClick={logout}
@@ -236,6 +280,14 @@ function AdminDashboard() {
             onImageUpload={handleModalImageUpload}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmation.onConfirm}
+        title={confirmation.title}
+        message={confirmation.message}
+      />
 
       <NotificationPopup notification={notification} />
 

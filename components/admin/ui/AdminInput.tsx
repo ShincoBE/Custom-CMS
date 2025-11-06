@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import TextStyler from './TextStyler';
+import HelpTooltip from './HelpTooltip';
 
 interface AdminInputProps {
     label: string;
@@ -23,9 +24,12 @@ const AdminInput = ({ label, help, value, onChange, name, required = false, type
 
     return (
         <div className="mb-6">
-            <label htmlFor={name} className="block text-sm font-medium text-zinc-300 mb-1">
-              {label} {required && <span className="text-red-400">*</span>}
-            </label>
+            <div className="flex items-center space-x-2 mb-1">
+                <label htmlFor={name} className="block text-sm font-medium text-zinc-300">
+                  {label} {required && <span className="text-red-400">*</span>}
+                </label>
+                {help && <HelpTooltip text={help} />}
+            </div>
             {showStyler && <TextStyler inputRef={inputRef} onStyleApply={handleStyleApply} />}
             <input
               ref={inputRef}
@@ -37,7 +41,6 @@ const AdminInput = ({ label, help, value, onChange, name, required = false, type
               autoComplete={autoComplete}
               className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500"
             />
-            {help && <p className="text-xs text-zinc-400 mt-1">{help}</p>}
         </div>
     );
 };
