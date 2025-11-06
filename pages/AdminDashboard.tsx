@@ -12,6 +12,7 @@ import BeforeAfterTab from '../components/admin/tabs/BeforeAfterTab';
 import CtaGalleryTab from '../components/admin/tabs/CtaGalleryTab';
 import GalleryTab from '../components/admin/tabs/GalleryTab';
 import ContactTab from '../components/admin/tabs/ContactTab';
+import SettingsTab from '../components/admin/tabs/SettingsTab';
 import UserManagementTab from '../components/admin/tabs/UserManagementTab';
 import HistoryTab from '../components/admin/tabs/HistoryTab';
 import HelpTab from '../components/admin/tabs/HelpTab';
@@ -24,6 +25,7 @@ function AdminDashboard() {
   const { user, logout } = useAuth();
   const [content, setContent] = useState<PageContent | null>(null);
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
+  const [settings, setSettings] = useState<any | null>(null);
   const [originalContent, setOriginalContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -47,6 +49,7 @@ function AdminDashboard() {
     { id: 'galerij-cta', label: 'Galerij CTA' },
     { id: 'galerij', label: 'Galerij' },
     { id: 'contact', label: 'Contact' },
+    { id: 'instellingen', label: 'Instellingen' },
     { id: 'gebruikers', label: 'Gebruikers' },
     { id: 'geschiedenis', label: 'Geschiedenis' },
     { id: 'help', label: 'Help' },
@@ -60,7 +63,8 @@ function AdminDashboard() {
       const data = await response.json();
       setContent(data.pageContent);
       setGallery(data.galleryImages);
-      setOriginalContent(JSON.stringify({ pageContent: data.pageContent, galleryImages: data.galleryImages }));
+      setSettings(data.settings || {});
+      setOriginalContent(JSON.stringify({ pageContent: data.pageContent, galleryImages: data.galleryImages, settings: data.settings || {} }));
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -73,9 +77,9 @@ function AdminDashboard() {
   }, [loadContent]);
 
   const hasChanges = useMemo(() => {
-    if (!content) return false;
-    return JSON.stringify({ pageContent: content, galleryImages: gallery }) !== originalContent;
-  }, [content, gallery, originalContent]);
+    if (!content || !settings) return false;
+    return JSON.stringify({ pageContent: content, galleryImages: gallery, settings: settings }) !== originalContent;
+  }, [content, gallery, settings, originalContent]);
   
   const showNotification = useCallback((type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
@@ -99,6 +103,13 @@ function AdminDashboard() {
         current[keys[keys.length - 1]] = value;
         return newContent;
     });
+  }, []);
+
+  const handleSettingsChange = useCallback((key: string, value: any) => {
+      setSettings((prev: any) => ({
+          ...prev,
+          [key]: value,
+      }));
   }, []);
 
   const handleImageUpload = async (file: File, path: string) => {
@@ -126,7 +137,7 @@ function AdminDashboard() {
   };
 
   const handleSave = async () => {
-      if (!content) return;
+      if (!content || !settings) return;
       setIsSaving(true);
       setError(null);
       
@@ -140,7 +151,7 @@ function AdminDashboard() {
           const response = await fetch('/api/update-content', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ pageContent: content, galleryImages: gallery.filter(img => img.image.url) }),
+              body: JSON.stringify({ pageContent: content, galleryImages: gallery.filter(img => img.image.url), settings }),
           });
           if (!response.ok) {
               const errData = await response.json();
@@ -149,7 +160,7 @@ function AdminDashboard() {
           const data = await response.json();
           const validGallery = gallery.filter(img => img.image.url);
           setGallery(validGallery);
-          setOriginalContent(JSON.stringify({ pageContent: content, galleryImages: validGallery }));
+          setOriginalContent(JSON.stringify({ pageContent: content, galleryImages: validGallery, settings }));
           showNotification('success', data.message);
       } catch (err: any) {
           showNotification('error', err.message);
@@ -182,6 +193,7 @@ function AdminDashboard() {
       case 'galerij-cta': return <CtaGalleryTab content={content} handleContentChange={handleContentChange} />;
       case 'galerij': return <GalleryTab content={content} gallery={gallery} handleContentChange={handleContentChange} setGallery={setGallery} setEditingImageIndex={setEditingImageIndex} />;
       case 'contact': return <ContactTab content={content} handleContentChange={handleContentChange} />;
+      case 'instellingen': return <SettingsTab settings={settings} handleSettingsChange={handleSettingsChange} showNotification={showNotification} />;
       case 'gebruikers': return <UserManagementTab showNotification={showNotification} showConfirmation={showConfirmation} />;
       case 'geschiedenis': return <HistoryTab showNotification={showNotification} showConfirmation={showConfirmation} onRestore={loadContent} />;
       case 'help': return <HelpTab />;
