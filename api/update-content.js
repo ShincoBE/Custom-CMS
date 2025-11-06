@@ -1,11 +1,7 @@
 // Vercel Serverless Function
 // This endpoint updates the website content in the KV store.
 import { createClient } from '@vercel/kv';
-import jwt from 'jsonwebtoken';
-import { parse } from 'cookie';
-
-const { JWT_SECRET } = process.env;
-const COOKIE_NAME = 'auth_token';
+import { getAuth } from '@clerk/backend';
 
 // --- START: KV URL Sanitization ---
 // This helper function automatically corrects a common misconfiguration where the
@@ -33,20 +29,14 @@ export default async function handler(req, res) {
     return res.status(405).end('Method Not Allowed');
   }
 
-  // 1. Verify Authentication
+  // 1. Verify Authentication with Clerk
   try {
-    if (!JWT_SECRET) {
-        throw new Error('JWT_SECRET is not configured on the server.');
-    }
-    const cookies = parse(req.headers.cookie || '');
-    const token = cookies[COOKIE_NAME];
-
-    if (!token) {
+    const { userId } = getAuth(req);
+    if (!userId) {
       return res.status(401).json({ error: 'Authentication required.' });
     }
-    jwt.verify(token, JWT_SECRET);
   } catch (error) {
-    console.error('Auth verification failed:', error.message);
+    console.error('Clerk auth verification failed:', error.message);
     return res.status(401).json({ error: 'Invalid or expired token.' });
   }
 

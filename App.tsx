@@ -1,29 +1,46 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { SignedIn, SignedOut } from '@clerk/clerk-react';
 
-import { AuthProvider } from './context/AuthContext.tsx';
-import ProtectedRoute from './components/ProtectedRoute.tsx';
-
-import HomePage from './pages/HomePage.tsx';
-import AdminLogin from './pages/AdminLogin.tsx';
-import AdminDashboard from './pages/AdminDashboard.tsx';
+import HomePage from './pages/HomePage';
+import AdminDashboard from './pages/AdminDashboard';
+import { SignInPage } from './pages/SignInPage';
+import { SignUpPage } from './pages/SignUpPage';
 
 function App() {
   return (
-    <AuthProvider>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/admin" element={<AdminLogin />} />
-        <Route 
-          path="/admin/dashboard" 
-          element={
-            <ProtectedRoute>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route 
+        path="/admin"
+        element={
+          <>
+            <SignedOut>
+              <SignInPage />
+            </SignedOut>
+            <SignedIn>
               <AdminDashboard />
-            </ProtectedRoute>
-          } 
-        />
-      </Routes>
-    </AuthProvider>
+            </SignedIn>
+          </>
+        }
+      />
+       <Route 
+        path="/sign-in/*"
+        element={<SignInPage />}
+      />
+       <Route 
+        path="/sign-up/*"
+        element={<SignUpPage />}
+      />
+      <Route 
+        path="/admin/dashboard"
+        element={
+          <SignedIn>
+            <AdminDashboard />
+          </SignedIn>
+        } 
+      />
+    </Routes>
   );
 }
 

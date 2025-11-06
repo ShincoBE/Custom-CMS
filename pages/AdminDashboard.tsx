@@ -1,8 +1,8 @@
 // pages/AdminDashboard.tsx
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { UserButton } from '@clerk/clerk-react';
 import type { PageContent, GalleryImage, Service } from '../types';
-import { Plus, Trash, UploadSimple, Spinner, CheckCircle, WarningCircle } from 'phosphor-react';
+import { Plus, Trash, UploadSimple, Spinner, CheckCircle, WarningCircle, Pencil } from 'phosphor-react';
 
 // --- HELPER COMPONENTS (scoped to this file) ---
 
@@ -98,10 +98,92 @@ const ImageUpload = ({ label, help, currentUrl, alt, onAltChange, onImageChange,
     );
 };
 
+const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: {
+  isOpen: boolean;
+  onClose: () => void;
+  image: GalleryImage;
+  onSave: (image: GalleryImage) => void;
+  onImageUpload: (file: File) => Promise<string>;
+}) => {
+  const [editedImage, setEditedImage] = useState(image);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setEditedImage(image); // Sync state if the prop changes
+  }, [image]);
+
+  if (!isOpen) return null;
+
+  const handleAltChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditedImage(prev => ({ ...prev, image: { ...prev.image, alt: e.target.value } }));
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsUploading(true);
+      try {
+        const newUrl = await onImageUpload(file);
+        setEditedImage(prev => ({ ...prev, image: { ...prev.image, url: newUrl } }));
+      } catch (error) {
+        console.error("Upload failed", error);
+        // Future improvement: show an error message in the modal
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
+  const handleSave = () => {
+    onSave(editedImage);
+  };
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="gallery-modal-title">
+      <div className="bg-zinc-800 rounded-lg shadow-2xl w-full max-w-2xl p-6 border border-zinc-700 animate-slide-up" onClick={e => e.stopPropagation()}>
+        <h3 id="gallery-modal-title" className="text-xl font-bold mb-4 text-white">Galerij Afbeelding Bewerken</h3>
+        <div className="flex flex-col sm:flex-row items-start sm:space-x-6">
+            <div className="w-full sm:w-1/3 mb-4 sm:mb-0">
+                {editedImage.image.url ? (
+                    <img src={editedImage.image.url} alt={editedImage.image.alt || 'Preview'} className="w-full aspect-square object-cover rounded-md bg-zinc-700" />
+                ) : (
+                    <div className="w-full aspect-square bg-zinc-700 rounded-md flex items-center justify-center text-zinc-400 text-center p-2">
+                        Upload een afbeelding
+                    </div>
+                )}
+                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="w-full mt-2 inline-flex items-center justify-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50">
+                    {isUploading ? <Spinner size={16} className="animate-spin mr-2" /> : <UploadSimple size={16} className="mr-2" />}
+                    {isUploading ? 'Uploaden...' : (editedImage.image.url ? 'Wijzigen' : 'Uploaden')}
+                </button>
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/gif, image/webp, image/svg+xml" />
+            </div>
+            <div className="w-full sm:w-2/3">
+              <Textarea
+                name="gallery-alt-text"
+                label="Alternatieve Tekst (voor SEO)"
+                help="Beschrijf de afbeelding voor zoekmachines en gebruikers met een visuele beperking."
+                value={editedImage.image.alt || ''}
+                onChange={handleAltChange}
+              />
+            </div>
+        </div>
+        <div className="mt-6 flex justify-end space-x-3">
+          <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-700 rounded-md hover:bg-zinc-600">
+            Annuleren
+          </button>
+          <button type="button" onClick={handleSave} className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700" disabled={!editedImage.image.url}>
+            Opslaan
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- MAIN COMPONENT ---
 
 function AdminDashboard() {
-  const { logout } = useAuth();
   const [content, setContent] = useState<PageContent | null>(null);
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
   const [originalContent, setOriginalContent] = useState<string>('');
@@ -110,6 +192,7 @@ function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
   const [activeTab, setActiveTab] = useState('algemeen');
+  const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null);
 
   const tabs = [
     { id: 'algemeen', label: 'Algemeen' },
@@ -178,7 +261,7 @@ function AdminDashboard() {
       handleContentChange(path, blob.url);
   };
   
-  const handleGalleryImageUpload = async (file: File, index: number) => {
+  const handleModalImageUpload = async (file: File) => {
       const response = await fetch('/api/upload', {
           method: 'POST',
           headers: { 'x-vercel-filename': file.name },
@@ -186,11 +269,7 @@ function AdminDashboard() {
       });
       if (!response.ok) throw new Error('Upload mislukt');
       const blob = await response.json();
-      setGallery(prev => {
-          const newGallery = [...prev];
-          newGallery[index].image.url = blob.url;
-          return newGallery;
-      });
+      return blob.url;
   };
 
   const handleSave = async () => {
@@ -209,20 +288,33 @@ function AdminDashboard() {
           const response = await fetch('/api/update-content', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ pageContent: content, galleryImages: gallery }),
+              body: JSON.stringify({ pageContent: content, galleryImages: gallery.filter(img => img.image.url) }), // Filter out empty new images
           });
           if (!response.ok) {
               const errData = await response.json();
               throw new Error(errData.error || 'Opslaan mislukt.');
           }
           const data = await response.json();
-          setOriginalContent(JSON.stringify({ pageContent: content, galleryImages: gallery }));
+          // After saving, also filter out any invalid images from local state
+          const validGallery = gallery.filter(img => img.image.url);
+          setGallery(validGallery);
+          setOriginalContent(JSON.stringify({ pageContent: content, galleryImages: validGallery }));
           showNotification('success', data.message);
       } catch (err: any) {
           showNotification('error', err.message);
       } finally {
           setIsSaving(false);
       }
+  };
+
+  const handleCloseModal = () => {
+      if (editingImageIndex !== null) {
+          const image = gallery[editingImageIndex];
+          if (image && image._id.startsWith('new-') && !image.image.url) {
+              setGallery(g => g.filter((_, i) => i !== editingImageIndex));
+          }
+      }
+      setEditingImageIndex(null);
   };
 
   if (isLoading) return <div className="min-h-screen bg-zinc-900 text-white flex items-center justify-center"><Spinner size={32} className="animate-spin" /></div>;
@@ -316,13 +408,24 @@ function AdminDashboard() {
              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {gallery.map((img, index) => (
                     <div key={img._id} className="relative group aspect-square">
-                        <div className="absolute inset-0">
-                          <ImageUpload name={`gallery-img-${index}`} label="" help="" currentUrl={img.image.url} alt={img.image.alt} onAltChange={e => setGallery(g => g.map((item, i) => i === index ? {...item, image: {...item.image, alt: e.target.value}} : item))} onImageChange={file => handleGalleryImageUpload(file, index)} />
-                        </div>
-                        <button type="button" onClick={() => setGallery(g => g.filter((_, i) => i !== index))} className="absolute top-1 right-1 z-10 text-white bg-red-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><Trash size={16} /></button>
+                        <button type="button" onClick={() => setEditingImageIndex(index)} className="w-full h-full rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500">
+                             {img.image.url ? (
+                              <img src={img.image.url} alt={img.image.alt || 'Galerij afbeelding'} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full bg-zinc-700 flex items-center justify-center text-zinc-400 text-center text-sm p-2">
+                                <span>Afbeelding instellen</span>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Pencil size={32} className="text-white" />
+                            </div>
+                        </button>
+                        <button type="button" onClick={() => setGallery(g => g.filter((_, i) => i !== index))} className="absolute top-1 right-1 z-10 text-white bg-red-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Verwijder afbeelding">
+                            <Trash size={16} />
+                        </button>
                     </div>
                 ))}
-                <button type="button" onClick={() => setGallery(g => [...g, { _id: `new-${Date.now()}`, image: { url: '', alt: '' }}])} className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-zinc-600 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:border-green-500 transition-colors">
+                <button type="button" onClick={() => { const newIndex = gallery.length; setGallery(g => [...g, { _id: `new-${Date.now()}`, image: { url: '', alt: '' }}]); setEditingImageIndex(newIndex); }} className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-zinc-600 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:border-green-500 transition-colors">
                     <Plus size={32} />
                     <span>Toevoegen</span>
                 </button>
@@ -380,12 +483,7 @@ function AdminDashboard() {
                 {isSaving ? <Spinner size={20} className="animate-spin mr-2"/> : <CheckCircle size={20} className="mr-2"/>}
                 {isSaving ? 'Opslaan...' : 'Wijzigingen Opslaan'}
               </button>
-              <button
-                onClick={logout}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-red-500"
-              >
-                Logout
-              </button>
+              <UserButton afterSignOutUrl="/" />
             </div>
           </div>
         </div>
@@ -423,6 +521,20 @@ function AdminDashboard() {
           </form>
         </div>
       </main>
+
+       {/* --- Gallery Edit Modal --- */}
+      {editingImageIndex !== null && gallery[editingImageIndex] && (
+        <GalleryEditModal
+            isOpen={editingImageIndex !== null}
+            onClose={handleCloseModal}
+            image={gallery[editingImageIndex]}
+            onSave={(updatedImage) => {
+                setGallery(g => g.map((item, i) => (i === editingImageIndex ? updatedImage : item)));
+                setEditingImageIndex(null);
+            }}
+            onImageUpload={handleModalImageUpload}
+        />
+      )}
 
       {/* --- Notification Popup --- */}
        {notification && (
