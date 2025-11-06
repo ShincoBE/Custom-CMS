@@ -11,22 +11,13 @@ import { URL } from 'url';
 
 // --- START: SHARED UTILITIES ---
 
-function getSanitizedKvUrl() {
-  const url = process.env.KV_URL;
-  if (url && url.startsWith('rediss://')) {
-    try {
-      const parsedUrl = new URL(url.replace('rediss://', 'https://'));
-      return `https://${parsedUrl.hostname}`;
-    } catch (e) {
-      console.error("Failed to parse and sanitize KV_URL, using original value.", e);
-      return url;
-    }
-  }
-  return url;
-}
-
+// Fix: Correctly initialize the Vercel KV client.
+// The `@vercel/kv` package (v2+) requires the `KV_REST_API_URL` environment
+// variable. The previous implementation used `KV_URL`, which is intended for
+// older versions or direct Redis clients, causing initialization to fail and
+// the serverless function to crash.
 const kv = createClient({
-  url: getSanitizedKvUrl(),
+  url: process.env.KV_REST_API_URL,
   token: process.env.KV_REST_API_TOKEN,
 });
 
