@@ -18,6 +18,27 @@ const jsonString = contentFile.substring(contentFile.indexOf('{'), contentFile.l
 const { pageContentData, galleryImagesData } = JSON.parse(jsonString);
 
 
+// --- START: KV URL Sanitization ---
+// This helper function automatically corrects a common misconfiguration where the
+// Redis connection string (rediss://) is used instead of the REST API URL (https://).
+function getSanitizedKvUrl() {
+  const url = process.env.KV_URL;
+  if (url && url.startsWith('rediss://')) {
+    try {
+      // The URL constructor can parse the components of the redis string if we temporarily replace the protocol
+      const parsedUrl = new URL(url.replace('rediss://', 'https://'));
+      // We only need the hostname for the REST API URL
+      return `https://${parsedUrl.hostname}`;
+    } catch (e) {
+      console.error("Failed to parse and sanitize KV_URL, using original value.", e);
+      return url; // Fallback to original URL on parsing error
+    }
+  }
+  return url;
+}
+// --- END: KV URL Sanitization ---
+
+
 // Load environment variables from .env.local
 // The --env-file flag in the package.json script handles this
 if (!process.env.KV_URL || !process.env.KV_REST_API_TOKEN) {
@@ -26,18 +47,8 @@ if (!process.env.KV_URL || !process.env.KV_REST_API_TOKEN) {
   process.exit(1);
 }
 
-// --- VALIDATION: Check for incorrect URL format ---
-// This prevents the "UrlError" if the user accidentally uses the Redis connection string.
-if (process.env.KV_URL.startsWith('rediss:')) {
-    console.error('❌ Fout: Ongeldig KV_URL formaat gedetecteerd.');
-    console.error('Uw KV_URL in .env.local begint met "rediss://", maar het moet de REST API URL zijn die begint met "https://".');
-    console.error('Kopieer de juiste URL uit de instellingen van uw Vercel KV-database en probeer het opnieuw.');
-    process.exit(1);
-}
-
-
 const kv = createClient({
-  url: process.env.KV_URL,
+  url: getSanitizedKvUrl(), // Use the sanitized URL
   token: process.env.KV_REST_API_TOKEN,
 });
 
