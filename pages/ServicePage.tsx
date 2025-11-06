@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import type { PageContent, GalleryImage, Service, SiteSettings } from '../types';
 import { useAnalytics } from '../hooks/useAnalytics';
+import { usePageSEO } from '../hooks/usePageSEO.ts';
 
 // Import components
 import Header from '../components/Header';
@@ -25,6 +26,7 @@ function ServicePage() {
   const { slug } = useParams();
 
   useAnalytics();
+  usePageSEO(service?.seo);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -64,20 +66,6 @@ function ServicePage() {
 
     Promise.all([fetchContent(), checkAuth()]);
   }, [slug]);
-  
-  // SEO Effect
-  useEffect(() => {
-    if (service?.seo?.title) {
-        document.title = service.seo.title;
-    }
-    if (service?.seo?.description) {
-        document.querySelector('meta[name="description"]')?.setAttribute('content', service.seo.description);
-    }
-    return () => {
-        // Reset to default on unmount if needed, handled by HomePage component on navigation
-    };
-  }, [service]);
-
 
   const handleOpenGallery = () => setIsGalleryOpen(true);
   const handleCloseGallery = () => setIsGalleryOpen(false);
