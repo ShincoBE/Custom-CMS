@@ -287,7 +287,99 @@ async function handleTestEmail(req, res) {
   }
 }
 
-// --- END: API HANDLERS ---
+// --- START: ANALYTICS HANDLERS ---
+async function handleTrack(req, res) {
+    try {
+        const { path, referrer } = req.body;
+        if (!path) return res.status(400).json({ error: 'Path is required.' });
+
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const key = `analytics:${today}`;
+
+        const referrerHost = referrer ? new URL(referrer).hostname : 'direct';
+
+        // Use a pipeline to perform atomic increments
+        const pipeline = kv.pipeline();
+        pipeline.hincrby(key, 'total', 1);
+        pipeline.hincrby(key, `page:${path}`, 1);
+        pipeline.hincrby(key, `ref:${referrerHost}`, 1);
+        await pipeline.exec();
+        
+        // Set an expiry for the daily data to keep the DB clean (e.g., 90 days)
+        await kv.expire(key, 60 * 60 * 24 * 91);
+
+        return res.status(200).json({ success: true });
+    } catch (error) {
+        // Fail silently to not impact user experience
+        console.error("Analytics tracking error:", error);
+        return res.status(200).json({ success: false });
+    }
+}
+
+
+async function handleGetAnalytics(req, res) {
+    try {
+        await authorizeRequest(req, ['SuperAdmin', 'Admin']);
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        const days = parseInt(url.searchParams.get('days') || '30', 10);
+        
+        const dateKeys = [];
+        for (let i = 0; i < days; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            dateKeys.push(`analytics:${d.toISOString().split('T')[0]}`);
+        }
+
+        const dailyData = await (dateKeys.length > 0 ? kv.mget(...dateKeys) : Promise.resolve([]));
+        
+        const aggregated = {
+            total: 0,
+            pages: {},
+            referrers: {},
+            daily: []
+        };
+        
+        dateKeys.forEach((key, index) => {
+            const data = dailyData[index];
+            const date = key.split(':')[1];
+            if (data) {
+                const totalViews = Number(data.total || 0);
+                aggregated.total += totalViews;
+                aggregated.daily.push({ date, visits: totalViews });
+
+                Object.keys(data).forEach(field => {
+                    if (field.startsWith('page:')) {
+                        const page = field.substring(5);
+                        aggregated.pages[page] = (aggregated.pages[page] || 0) + Number(data[field]);
+                    } else if (field.startsWith('ref:')) {
+                        const ref = field.substring(4);
+                        aggregated.referrers[ref] = (aggregated.referrers[ref] || 0) + Number(data[field]);
+                    }
+                });
+            } else {
+                 aggregated.daily.push({ date, visits: 0 });
+            }
+        });
+
+        const sortedPages = Object.entries(aggregated.pages).sort(([, a], [, b]) => b - a).slice(0, 10);
+        const sortedReferrers = Object.entries(aggregated.referrers).sort(([, a], [, b]) => b - a).slice(0, 10);
+        
+        const topReferrer = sortedReferrers[0] ? sortedReferrers[0][0] : 'N/A';
+
+        return res.status(200).json({
+            total: aggregated.total,
+            topReferrer: topReferrer,
+            daily: aggregated.daily.reverse(),
+            pages: sortedPages.map(([path, visits]) => ({ path, visits })),
+            referrers: sortedReferrers.map(([source, visits]) => ({ source, visits }))
+        });
+
+    } catch (error) {
+        return res.status(error.message === 'Access denied.' ? 403 : 500).json({ error: error.message });
+    }
+}
+// --- END: ANALYTICS HANDLERS ---
+
 
 // --- MAIN ROUTER ---
 module.exports = async (req, res) => {
@@ -307,9 +399,13 @@ module.exports = async (req, res) => {
     }
   }
 
+  // PUBLIC ROUTES
   if (path === '/api/contact' && req.method === 'POST') return handleContact(req, res);
   if (path === '/api/content' && req.method === 'GET') return handleGetContent(req, res);
+  if (path === '/api/track' && req.method === 'POST') return handleTrack(req, res);
   if (path === '/api/login' && req.method === 'POST') return handleLogin(req, res);
+  
+  // PROTECTED ADMIN ROUTES
   if (path === '/api/update-content' && req.method === 'POST') return handleUpdateContent(req, res);
   if (path === '/api/upload' && req.method === 'POST') return handleUpload(req, res);
   if (path === '/api/logout' && req.method === 'POST') return handleLogout(req, res);
@@ -321,6 +417,8 @@ module.exports = async (req, res) => {
   if (path === '/api/content-history' && req.method === 'GET') return handleGetHistory(req, res);
   if (path === '/api/revert-content' && req.method === 'POST') return handleRevertContent(req, res);
   if (path === '/api/test-email' && req.method === 'POST') return handleTestEmail(req, res);
+  if (path === '/api/analytics' && req.method === 'GET') return handleGetAnalytics(req, res);
+
 
   return res.status(404).json({ error: 'Not Found' });
 };

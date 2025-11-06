@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import type { PageContent, GalleryImage, Service } from '../types';
+import type { PageContent, GalleryImage, Service, SiteSettings } from '../types';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 // Import components
 import Header from '../components/Header';
@@ -12,6 +13,7 @@ import Footer from '../components/Footer';
 import Gallery from '../components/Gallery';
 import ScrollToTopButton from '../components/ScrollToTopButton';
 import ErrorBoundary from '../components/ErrorBoundary';
+import MaintenancePage from './MaintenancePage';
 
 type Status = 'loading' | 'success' | 'error';
 
@@ -19,7 +21,11 @@ function HomePage() {
   const [status, setStatus] = useState<Status>('loading');
   const [pageContent, setPageContent] = useState<PageContent | null>(null);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useAnalytics();
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -30,7 +36,6 @@ function HomePage() {
         }
         const data = await response.json();
         
-        // Filter out unpublished content before setting state
         const publishedServices = data.pageContent.servicesList?.filter((service: Service) => service.published) || [];
         const publishedContent = { ...data.pageContent, servicesList: publishedServices };
         
@@ -38,9 +43,9 @@ function HomePage() {
 
         setPageContent(publishedContent);
         setGalleryImages(publishedGalleryImages);
+        setSettings(data.settings);
         setStatus('success');
 
-        // After content is loaded, update the social media meta tags dynamically.
         if (data.pageContent.ogImage?.url) {
           const imageUrl = data.pageContent.ogImage.url;
           document.querySelector('meta[property="og:image"]')?.setAttribute('content', imageUrl);
@@ -52,8 +57,19 @@ function HomePage() {
         setStatus('error');
       }
     };
+    
+    // Check if user is an admin to bypass maintenance mode
+    const checkAuth = async () => {
+       try {
+        const res = await fetch('/api/verify-auth');
+        setIsAdmin(res.ok);
+       } catch {
+        setIsAdmin(false);
+       }
+    };
 
-    fetchContent();
+    Promise.all([fetchContent(), checkAuth()]);
+
   }, []);
 
   const handleOpenGallery = () => setIsGalleryOpen(true);
@@ -70,6 +86,9 @@ function HomePage() {
     };
   }, [isGalleryOpen]);
 
+  if (settings?.maintenanceMode && !isAdmin) {
+    return <MaintenancePage />;
+  }
 
   return (
     <ErrorBoundary>

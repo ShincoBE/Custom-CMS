@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import type { PageContent, GalleryImage } from '../types';
-import { Spinner, CheckCircle, SignOut, FloppyDisk, ArrowSquareOut, Gear } from 'phosphor-react';
+import type { PageContent, GalleryImage, SiteSettings } from '../types';
+import { Spinner, CheckCircle, SignOut, FloppyDisk, ArrowSquareOut } from 'phosphor-react';
 
 // Import tabs
 import DashboardTab from '../components/admin/tabs/DashboardTab';
@@ -15,7 +15,9 @@ import ContactTab from '../components/admin/tabs/ContactTab';
 import SettingsTab from '../components/admin/tabs/SettingsTab';
 import UserManagementTab from '../components/admin/tabs/UserManagementTab';
 import HistoryTab from '../components/admin/tabs/HistoryTab';
+import AnalyticsTab from '../components/admin/tabs/AnalyticsTab';
 import HelpTab from '../components/admin/tabs/HelpTab';
+
 
 // Import UI components
 import GalleryEditModal from '../components/admin/ui/GalleryEditModal';
@@ -28,7 +30,7 @@ function AdminDashboard() {
   const { user, logout } = useAuth();
   const [content, setContent] = useState<PageContent | null>(null);
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
-  const [settings, setSettings] = useState<any | null>(null);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [originalContent, setOriginalContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -49,7 +51,7 @@ function AdminDashboard() {
   const contentTabs = useMemo(() => [
     { id: 'dashboard', label: 'Dashboard', roles: ['SuperAdmin', 'Admin', 'Editor'] },
     { id: 'navigatie', label: 'Navigatie', roles: ['SuperAdmin', 'Admin', 'Editor'] },
-    { id: 'hero', label: 'Hero', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'hero', label: 'Hero & SEO', roles: ['SuperAdmin', 'Admin', 'Editor'] },
     { id: 'diensten', label: 'Diensten', roles: ['SuperAdmin', 'Admin', 'Editor'] },
     { id: 'voor-na', label: 'Voor & Na', roles: ['SuperAdmin', 'Admin', 'Editor'] },
     { id: 'galerij-cta', label: 'Galerij CTA', roles: ['SuperAdmin', 'Admin', 'Editor'] },
@@ -58,6 +60,7 @@ function AdminDashboard() {
   ], []);
   
   const adminTabs = useMemo(() => [
+    { id: 'statistieken', label: 'Statistieken', roles: ['SuperAdmin', 'Admin'] },
     { id: 'instellingen', label: 'Instellingen', roles: ['SuperAdmin', 'Admin'] },
     { id: 'gebruikers', label: 'Gebruikers', roles: ['SuperAdmin'] },
     { id: 'geschiedenis', label: 'Geschiedenis', roles: ['SuperAdmin'] },
@@ -110,7 +113,10 @@ function AdminDashboard() {
         const keys = path.split('.');
         let current = newContent;
         for (let i = 0; i < keys.length - 1; i++) {
-            if (!current[keys[i]]) current[keys[i]] = {};
+            if (current[keys[i]] === undefined || current[keys[i]] === null) {
+              // If path is like 'servicesList.0.seo' and 'seo' doesn't exist, create it.
+              current[keys[i]] = {};
+            }
             current = current[keys[i]];
         }
         current[keys[keys.length - 1]] = value;
@@ -194,7 +200,7 @@ function AdminDashboard() {
 
   if (isLoading) return <div className="min-h-screen bg-zinc-900 text-white flex items-center justify-center"><Spinner size={32} className="animate-spin" /></div>;
   if (error) return <div className="min-h-screen bg-zinc-900 text-white flex items-center justify-center text-red-400">{error}</div>;
-  if (!content) return null;
+  if (!content || !settings) return null;
 
   const renderTabContent = () => {
     // Role-based check before rendering
@@ -202,10 +208,12 @@ function AdminDashboard() {
     const currentTabInfo = allTabs.find(tab => tab.id === activeTab);
     if (!currentTabInfo || (userRole && !currentTabInfo.roles.includes(userRole))) {
       setActiveTab('dashboard'); // Fallback to dashboard if access is denied
+      // Fix: Pass handleContentChange and handleImageUpload to DashboardTab
       return <DashboardTab content={content} user={user} settings={settings} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
     }
 
     switch(activeTab) {
+      // Fix: Pass handleContentChange and handleImageUpload to DashboardTab
       case 'dashboard': return <DashboardTab content={content} user={user} settings={settings} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
       case 'navigatie': return <NavigationTab content={content} handleContentChange={handleContentChange} />;
       case 'hero': return <HeroTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
@@ -217,6 +225,7 @@ function AdminDashboard() {
       case 'instellingen': return <SettingsTab settings={settings} handleSettingsChange={handleSettingsChange} showNotification={showNotification} />;
       case 'gebruikers': return <UserManagementTab showNotification={showNotification} showConfirmation={showConfirmation} />;
       case 'geschiedenis': return <HistoryTab showNotification={showNotification} showConfirmation={showConfirmation} onRestore={loadContent} />;
+      case 'statistieken': return <AnalyticsTab showNotification={showNotification} />;
       case 'help': return <HelpTab />;
       default: return null;
     }

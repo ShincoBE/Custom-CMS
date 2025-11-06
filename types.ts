@@ -4,6 +4,12 @@ export interface AppImage {
   url: string;
 }
 
+// SEO-related types
+export interface SEO {
+  title?: string;
+  description?: string;
+}
+
 // The definitive, simplified interface for a Service
 export interface Service {
   _key: string;
@@ -11,6 +17,10 @@ export interface Service {
   description: string;
   customIcon?: AppImage; // The custom uploaded image (now optional)
   published?: boolean; // New: To control visibility on the live site
+  hasPage?: boolean; // New: Toggle for dedicated service page
+  slug?: string; // New: URL slug for the dedicated page
+  pageContent?: string; // New: Markdown/HTML content for the page
+  seo?: SEO; // New: SEO settings for the service page
 }
 
 export interface PageContent {
@@ -32,6 +42,7 @@ export interface PageContent {
   heroTagline?: string;
   heroButtonText?: string;
   heroImage?: AppImage;
+  homeSeo?: SEO; // New: SEO settings for the homepage
   
   // Services Section
   servicesTitle?: string;
@@ -71,8 +82,8 @@ export interface PageContent {
   contactFormSuccessTitle?: string;
   contactFormSuccessText?: string;
   contactFormSuccessAgainButtonText?: string;
-  contactMapEnabled?: boolean; // New: Toggle for the interactive map
-  contactMapUrl?: string; // New: Embed URL for the Google Map
+  contactMapEnabled?: boolean; 
+  contactMapUrl?: string; 
 
   // SEO & Social Media
   ogImage?: AppImage;
@@ -85,8 +96,8 @@ export interface PageContent {
 export interface GalleryImage {
   _id: string;
   image: AppImage;
-  published?: boolean; // New: To control visibility on the live site
-  category?: string; // New: For filtering in the gallery
+  published?: boolean; 
+  category?: string; 
 }
 
 export type UserRole = 'SuperAdmin' | 'Admin' | 'Editor';
@@ -94,5 +105,37 @@ export type UserRole = 'SuperAdmin' | 'Admin' | 'Editor';
 export interface User {
   username: string;
   role: UserRole;
-  hashedPassword?: string; // Only exists on the backend
+  hashedPassword?: string; 
+}
+
+// Analytics Types
+export interface DailyAnalytics {
+  total: number;
+  pages: Record<string, number>;
+  referrers: Record<string, number>;
+}
+
+export interface AnalyticsData {
+  total: number;
+  topReferrer: string;
+  daily: { date: string; visits: number }[];
+  pages: { path: string; visits: number }[];
+  referrers: { source: string; visits: number }[];
+}
+
+// Site-wide settings
+export interface SiteSettings {
+    emailUser?: string;
+    emailPass?: string;
+    emailTo?: string;
+    maintenanceMode?: boolean;
+    analyticsUrl?: string;
+}
+
+// Activity Log Type
+export interface ActivityLogEntry {
+    _id: string;
+    timestamp: string;
+    username: string;
+    action: string;
 }
