@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { PageContent, GalleryImage, Service, SiteSettings } from '../types';
 import { useAnalytics } from '../hooks/useAnalytics';
-import { usePageSEO } from '../hooks/usePageSEO.ts';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 // Import components
 import Header from '../components/Header';
