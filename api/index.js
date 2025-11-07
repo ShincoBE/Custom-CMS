@@ -315,6 +315,53 @@ async function handleTestEmail(req, res) {
   }
 }
 
+async function handleSitemap(req, res) {
+  try {
+    const pageContent = await kv.get('pageContent') || DEFAULT_CONTENT.pageContent;
+    const services = pageContent?.servicesList || [];
+    
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const host = req.headers['host'];
+    const baseUrl = `${protocol}://${host}`;
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const urls = [
+      { loc: baseUrl, lastmod: today, changefreq: 'weekly', priority: '1.0' },
+    ];
+
+    services.forEach(service => {
+      if (service.published && service.hasPage && service.slug) {
+        const safeSlug = encodeURIComponent(service.slug);
+        urls.push({
+          loc: `${baseUrl}/diensten/${safeSlug}`,
+          lastmod: today,
+          changefreq: 'monthly',
+          priority: '0.8'
+        });
+      }
+    });
+
+    const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  ${urls.map(url => `
+  <url>
+    <loc>${url.loc}</loc>
+    <lastmod>${url.lastmod}</lastmod>
+    <changefreq>${url.changefreq}</changefreq>
+    <priority>${url.priority}</priority>
+  </url>`).join('')}
+</urlset>`;
+
+    res.setHeader('Content-Type', 'application/xml');
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
+    return res.status(200).send(sitemapXml.trim());
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    return res.status(500).json({ error: 'Failed to generate sitemap.' });
+  }
+}
+
 // --- START: ANALYTICS HANDLERS ---
 async function handleTrack(req, res) {
     try {
@@ -497,6 +544,9 @@ module.exports = async (req, res) => {
       }
     }
   }
+
+  // SITEMAP ROUTE
+  if (path === '/sitemap.xml' && req.method === 'GET') return handleSitemap(req, res);
 
   // PUBLIC ROUTES
   if (path === '/api/contact' && req.method === 'POST') return handleContact(req, res);

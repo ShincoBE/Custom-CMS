@@ -113,21 +113,20 @@ const DonutChart = ({ data }: { data: { type: string; visits: number }[] }) => {
     );
 };
 
-
 const DataTable = ({ title, icon, data, columns }: { title: string, icon: React.ReactNode, data: any[], columns: { header: string, accessor: (row: any) => any, isNumeric?: boolean }[] }) => (
     <div>
         <h3 className="text-lg font-semibold mb-3 text-white flex items-center">{icon}{title}</h3>
         <div className="bg-zinc-800/50 p-2 rounded-lg border border-zinc-700">
             <ul className="divide-y divide-zinc-700/50">
-                {data.length > 0 ? data.map((item, index) => (
+                {data.map((item, index) => (
                     <li key={index} className="flex justify-between items-center py-2 px-2">
                         {columns.map((col, colIndex) => (
-                           <span key={colIndex} className={`text-sm ${colIndex === 0 ? 'text-zinc-300 truncate pr-4 flex-grow' : 'font-bold text-white'}`}>
+                           <span key={colIndex} className={`text-sm ${colIndex === 0 ? 'truncate pr-4 flex-grow' : 'font-bold'} ${item.placeholder ? 'text-zinc-500' : (colIndex === 0 ? 'text-zinc-300' : 'text-white')}`}>
                                 {col.accessor(item)}
                            </span>
                         ))}
                     </li>
-                )) : <li className="text-center text-zinc-400 text-sm py-4">Geen data</li>}
+                ))}
             </ul>
         </div>
     </div>
@@ -168,6 +167,18 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
             return <div className="text-center text-zinc-400 p-8">Nog geen analysegegevens beschikbaar. Kom later terug.</div>
         }
         
+        // Pad data to always show a top 3, with placeholders if needed.
+        const padData = (dataArray: any[], size: number = 3) => {
+            const padded = [...(dataArray || [])];
+            while (padded.length < size) {
+                padded.push({ placeholder: true });
+            }
+            return padded.slice(0, size);
+        };
+
+        const topEvents = padData(data.events);
+        const topPages = padData(data.pages);
+        
         return (
             <div className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -203,19 +214,19 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                      <DataTable 
                         title="Belangrijkste Interacties"
                         icon={<HandPointing size={20} className="mr-2"/>}
-                        data={data.events}
+                        data={topEvents}
                         columns={[
-                            { header: 'Actie', accessor: (row) => formatEvent(row.name, row.detail) },
-                            { header: 'Aantal', accessor: (row) => row.count.toLocaleString('nl-BE') }
+                            { header: 'Actie', accessor: (row) => row.placeholder ? 'Nog geen data' : formatEvent(row.name, row.detail) },
+                            { header: 'Aantal', accessor: (row) => row.placeholder ? '-' : row.count.toLocaleString('nl-BE') }
                         ]}
                      />
                      <DataTable 
                         title="Top Pagina's"
                         icon={<Users size={20} className="mr-2"/>}
-                        data={data.pages}
+                        data={topPages}
                         columns={[
-                            { header: 'Pagina', accessor: (row) => formatPath(row.path) },
-                            { header: 'Bezoeken', accessor: (row) => row.visits.toLocaleString('nl-BE') }
+                            { header: 'Pagina', accessor: (row) => row.placeholder ? 'Nog geen data' : formatPath(row.path) },
+                            { header: 'Bezoeken', accessor: (row) => row.placeholder ? '-' : row.visits.toLocaleString('nl-BE') }
                         ]}
                      />
                 </div>

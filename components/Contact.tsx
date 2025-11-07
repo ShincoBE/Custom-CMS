@@ -274,39 +274,43 @@ function Contact({ content }: ContactProps) {
                                 </div>
                             </a>
                         </li>
-                        <li className="flex items-start">
-                             <div className="flex-shrink-0 mt-1">
-                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                            <div className="ml-4">
-                                <p className="font-semibold text-white" dangerouslySetInnerHTML={{ __html: content?.contactEmailTitle || 'Email' }} />
-                                <a 
-                                  href={`mailto:${content?.contactEmail || 'info.andries.serviceplus@gmail.com'}`} 
-                                  className="hover:text-green-500 hover:underline transition-colors break-all"
-                                  onClick={() => trackEvent('Click', 'Email')}
-                                >
-                                  {content?.contactEmail || 'info.andries.serviceplus@gmail.com'}
-                                </a>
-                            </div>
+                        <li className="flex">
+                            <a 
+                              href={`mailto:${content?.contactEmail || 'info.andries.serviceplus@gmail.com'}`} 
+                              className="flex items-start group"
+                              onClick={() => trackEvent('Click', 'Email')}
+                            >
+                                <div className="flex-shrink-0 mt-1">
+                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="font-semibold text-white group-hover:text-green-500 transition-colors" dangerouslySetInnerHTML={{ __html: content?.contactEmailTitle || 'Email' }} />
+                                    <span className="group-hover:text-green-500 group-hover:underline transition-colors break-all">
+                                      {content?.contactEmail || 'info.andries.serviceplus@gmail.com'}
+                                    </span>
+                                </div>
+                            </a>
                         </li>
-                        <li className="flex items-start">
-                             <div className="flex-shrink-0 mt-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                </svg>
-                            </div>
-                            <div className="ml-4">
-                                <p className="font-semibold text-white" dangerouslySetInnerHTML={{ __html: content?.contactPhoneTitle || 'Telefoon' }} />
-                                <a 
-                                  href={`tel:${(content?.contactPhone || '+32494399286').replace(/\s/g, '')}`} 
-                                  className="hover:text-green-500 hover:underline transition-colors"
-                                  onClick={() => trackEvent('Click', 'Phone')}
-                                >
-                                  {content?.contactPhone || '+32 494 39 92 86'}
-                                </a>
-                            </div>
+                        <li className="flex">
+                             <a 
+                              href={`tel:${(content?.contactPhone || '+32494399286').replace(/\s/g, '')}`} 
+                              className="flex items-start group"
+                              onClick={() => trackEvent('Click', 'Phone')}
+                            >
+                                <div className="flex-shrink-0 mt-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="font-semibold text-white group-hover:text-green-500 transition-colors" dangerouslySetInnerHTML={{ __html: content?.contactPhoneTitle || 'Telefoon' }} />
+                                    <span className="group-hover:text-green-500 group-hover:underline transition-colors">
+                                      {content?.contactPhone || '+32 494 39 92 86'}
+                                    </span>
+                                </div>
+                            </a>
                         </li>
                     </ul>
                 </div>
