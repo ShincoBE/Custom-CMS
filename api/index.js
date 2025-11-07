@@ -126,7 +126,7 @@ async function handleContact(req, res) {
 
     // User Confirmation Email
     const userSubject = replacePlaceholders(content.contactUserEmailSubject || DEFAULT_CONTENT.pageContent.contactUserEmailSubject, { name });
-    const userBody = replacePlaceholders(content.contactUserEmailBody || DEFAULT_CONTENT.pageContent.contactUserEmailBody, { name, email, message, year });
+    const userBody = replacePlaceholders(content.contactUserEmailBody || DEFAULT_CONTENT.pageContent.contactUserEmailBody, { name, email, message: formattedMessage, year });
     await transporter.sendMail({ from: `"Andries Service+" <${emailUser}>`, to: email, subject: userSubject, html: userBody });
 
     return res.status(200).json({ success: true });
