@@ -43,13 +43,17 @@ const StatCard = ({ title, value, icon }: { title: string, value: string | numbe
     </div>
 );
 
-const DailyBarChart = ({ data }: { data: { date: string, visits: number, uniques: number }[] }) => {
+const DailyBarChart = ({ data, period }: { data: { date: string, visits: number, uniques: number }[], period: number }) => {
     const maxVisits = Math.max(...data.map(d => d.visits), 0);
+    const isWeekly = period > 60;
     return (
         <div className="flex items-end h-64 space-x-2 p-4 bg-zinc-900/50 rounded-lg">
             {data.map(({ date, visits, uniques }) => {
                 const height = maxVisits > 0 ? (visits / maxVisits) * 100 : 0;
-                const formattedDate = new Date(date).toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' });
+                const dateObj = new Date(date);
+                const formattedDate = dateObj.toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' });
+                const tooltipTitle = isWeekly ? `Week van ${formattedDate}` : formattedDate;
+
                 return (
                     <div key={date} className="flex-1 flex flex-col items-center justify-end group relative">
                         <div className="w-full h-full flex items-end">
@@ -57,6 +61,7 @@ const DailyBarChart = ({ data }: { data: { date: string, visits: number, uniques
                         </div>
                         <span className="text-xs text-zinc-400 mt-2">{formattedDate}</span>
                         <div className="absolute bottom-full mb-2 hidden group-hover:block px-2 py-1 text-xs text-white bg-zinc-900 rounded-md border border-zinc-700 shadow-lg text-center whitespace-nowrap">
+                           <div className="font-semibold">{tooltipTitle}</div>
                            <strong>{visits}</strong> {visits === 1 ? 'bezoek' : 'bezoeken'}<br/>
                            <strong>{uniques}</strong> {uniques === 1 ? 'unieke' : 'unieke'}
                         </div>
@@ -173,7 +178,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                 </div>
                 <div>
                     <h3 className="text-lg font-semibold mb-3 text-white">Bezoeken Per Dag</h3>
-                    <DailyBarChart data={data.daily} />
+                    <DailyBarChart data={data.daily} period={days} />
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-1">

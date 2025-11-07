@@ -431,23 +431,37 @@ async function handleGetAnalytics(req, res) {
 
         const topLocations = sortAndSlice(aggregated.locations, 10).map(([loc, visits]) => {
             const [country, city] = loc.split(':');
-            // Fix: Decode city name to handle URL-encoded characters like %20 for spaces.
             return { country, city: decodeURIComponent(city), visits };
         });
 
-        // Fix: Decode city name for the topCity card as well.
         const topCity = topLocations[0] ? `${decodeURIComponent(topLocations[0].city)}, ${topLocations[0].country}` : 'N/A';
         const topReferrer = sortAndSlice(aggregated.referrers, 1)[0]?.[0] || 'N/A';
 
-        // Fix: Sort daily data chronologically to ensure the graph is correct.
         const sortedDaily = aggregated.daily.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        let chartData = sortedDaily;
+        if (days > 60) {
+            const weeklyData = [];
+            for (let i = 0; i < sortedDaily.length; i += 7) {
+                const weekSlice = sortedDaily.slice(i, i + 7);
+                if (weekSlice.length > 0) {
+                    const weekAggregate = weekSlice.reduce((acc, day) => {
+                        acc.visits += day.visits;
+                        acc.uniques += day.uniques; // Note: Sum of daily uniques, not true weekly uniques.
+                        return acc;
+                    }, { date: weekSlice[0].date, visits: 0, uniques: 0 });
+                    weeklyData.push(weekAggregate);
+                }
+            }
+            chartData = weeklyData;
+        }
 
         return res.status(200).json({
             total: aggregated.total,
             uniques: aggregated.uniques,
             topReferrer: topReferrer,
             topCity: topCity,
-            daily: sortedDaily,
+            daily: chartData,
             pages: sortAndSlice(aggregated.pages).map(([path, visits]) => ({ path, visits })),
             referrers: sortAndSlice(aggregated.referrers).map(([source, visits]) => ({ source, visits })),
             devices: sortAndSlice(aggregated.devices, 3).map(([type, visits]) => ({ type, visits })),
