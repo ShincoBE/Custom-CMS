@@ -110,6 +110,17 @@ const FloatingLabelTextarea = ({ id, name, value, onChange, error, disabled = fa
     );
 };
 
+const getMapUrl = (url?: string): string | undefined => {
+    if (!url) return undefined;
+    // Ensure the URL starts with the full Google Maps domain.
+    if (url.startsWith('https://www.google.com/maps/embed')) return url;
+    // Handle cases where only the 'embed?pb=...' part was copied.
+    if (url.startsWith('embed?pb=')) {
+        return `https://www.google.com/maps/${url}`;
+    }
+    return url; // Return as-is for other cases, though it may still be invalid.
+};
+
 interface ContactProps {
   content: PageContent | null;
 }
@@ -393,7 +404,7 @@ function Contact({ content }: ContactProps) {
         {content?.contactMapEnabled && content.contactMapUrl && (
           <div className="mt-16 bg-zinc-800/80 border border-zinc-700/50 rounded-2xl shadow-2xl overflow-hidden">
             <iframe
-              src={content.contactMapUrl}
+              src={getMapUrl(content.contactMapUrl)}
               width="100%"
               height="450"
               style={{ border: 0 }}

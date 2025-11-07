@@ -28,8 +28,8 @@ const ContactTab = ({ content, handleContentChange }: ContactTabProps) => {
                         as="textarea"
                         name="contactMapUrl"
                         label="Google Maps Embed URL"
-                        help="Plak hier de 'src' URL van de Google Maps insluitcode. Bijv: https://www.google.com/maps/embed?pb=..."
-                        value={content.contactMapUrl!}
+                        help="Ga naar Google Maps, zoek de locatie, klik op 'Delen' -> 'Kaart insluiten'. Kopieer de VOLLEDIGE URL uit de 'src=\"...\"' tag en plak die hier."
+                        value={content.contactMapUrl || ''}
                         onChange={e => handleContentChange('contactMapUrl', e.target.value)}
                         required
                     />
@@ -61,7 +61,7 @@ const ContactTab = ({ content, handleContentChange }: ContactTabProps) => {
                 <h3 className="text-lg font-semibold mb-2 mt-4 text-white">E-mail Sjablonen</h3>
                 <p className="text-sm text-zinc-400 mb-4">
                     Pas hier de e-mails aan die verzonden worden. Gebruik placeholders: 
-                    {/* Fix: Corrected JSX syntax for displaying placeholder text. The double curly braces `{{...}}` were being interpreted as an object, which is not a valid React child. Changed to a string literal `{'{{...}}'}` to render the text correctly. */}
+                    {/* Fix: Corrected JSX syntax for displaying placeholder text. The double curly braces `{{...}}` were being interpreted as an object, which is not a valid React child. Changed to a string literal to render the text correctly. */}
                     <code className="text-xs bg-zinc-700 p-1 rounded mx-1">{`{{name}}`}</code>
                     <code className="text-xs bg-zinc-700 p-1 rounded mx-1">{`{{email}}`}</code>
                     <code className="text-xs bg-zinc-700 p-1 rounded mx-1">{`{{message}}`}</code>
