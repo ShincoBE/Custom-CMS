@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { PageContent } from '../types';
 import LazyImage from './ui/LazyImage';
+import { trackEvent } from '../hooks/useAnalytics';
 
 type Status = 'loading' | 'success' | 'error';
 
@@ -86,7 +87,10 @@ function Hero({ content, status }: HeroProps) {
         />
         <a 
           href="#contact" 
-          onClick={handleSmoothScroll}
+          onClick={(e) => {
+            handleSmoothScroll(e);
+            trackEvent('Click', 'Hero CTA');
+          }}
           className={`bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-all transform hover:scale-105 duration-300 ease-out delay-400 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
         >
           {heroButtonText}

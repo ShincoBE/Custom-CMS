@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { useOnScreen } from '../hooks/useOnScreen';
 import type { PageContent } from '../types';
 import SectionHeader from './SectionHeader';
+import { trackEvent } from '../hooks/useAnalytics';
 
 interface CtaGalleryProps {
   onOpenGallery: () => void;
@@ -24,7 +25,10 @@ function CtaGallery({ onOpenGallery, content }: CtaGalleryProps) {
           subtitle={content?.servicesCtaSubtitle || 'Een foto zegt meer dan duizend woorden. Ontdek onze projecten in de galerij.'}
         />
         <button
-          onClick={onOpenGallery}
+          onClick={() => {
+            onOpenGallery();
+            trackEvent('Click', 'CTA Gallery Button');
+          }}
           className="group inline-flex items-center justify-center py-4 px-10 border border-transparent shadow-sm text-lg font-bold rounded-full text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-950 focus:ring-green-500 transition-all duration-300 transform hover:scale-105"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3 -ml-1 transition-transform duration-300 group-hover:rotate-[-10deg]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

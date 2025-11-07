@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import SectionHeader from './SectionHeader';
 import { useOnScreen } from '../hooks/useOnScreen';
 import type { PageContent } from '../types';
+import { trackEvent } from '../hooks/useAnalytics';
 
 // --- CONFIGURATION ---
 // For Vercel deployment, the frontend and API are on the same domain.
@@ -192,6 +193,7 @@ function Contact({ content }: ContactProps) {
         });
 
         if (response.ok) {
+            trackEvent('Form Submit', 'Contact Success');
             setSubmitted(true);
             setFormData({ name: '', email: '', message: '', fax: '' }); // Clear form on success
         } else {
@@ -210,6 +212,7 @@ function Contact({ content }: ContactProps) {
                  errorMessage = "Er is een technische fout opgetreden aan onze kant. Probeer het later opnieuw.";
             }
             
+            trackEvent('Form Submit', `Contact Error: ${response.status}`);
             // Log the technical error details in English for developers
             console.error(`API Error: ${response.status} ${response.statusText}`);
             
@@ -218,6 +221,7 @@ function Contact({ content }: ContactProps) {
         }
     } catch (error) {
       // This block catches network errors (e.g., no internet connection)
+      trackEvent('Form Submit', 'Contact Error: Network');
       console.error('Failed to send message:', error);
       setSubmitError('Netwerkfout: Kon de server niet bereiken. Controleer uw internetverbinding.');
     } finally {
@@ -254,6 +258,7 @@ function Contact({ content }: ContactProps) {
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="flex items-start group"
+                              onClick={() => trackEvent('Click', 'Address')}
                             >
                                 <div className="flex-shrink-0 mt-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
@@ -277,7 +282,11 @@ function Contact({ content }: ContactProps) {
                             </div>
                             <div className="ml-4">
                                 <p className="font-semibold text-white" dangerouslySetInnerHTML={{ __html: content?.contactEmailTitle || 'Email' }} />
-                                <a href={`mailto:${content?.contactEmail || 'info.andries.serviceplus@gmail.com'}`} className="hover:text-green-500 hover:underline transition-colors break-all">
+                                <a 
+                                  href={`mailto:${content?.contactEmail || 'info.andries.serviceplus@gmail.com'}`} 
+                                  className="hover:text-green-500 hover:underline transition-colors break-all"
+                                  onClick={() => trackEvent('Click', 'Email')}
+                                >
                                   {content?.contactEmail || 'info.andries.serviceplus@gmail.com'}
                                 </a>
                             </div>
@@ -290,7 +299,11 @@ function Contact({ content }: ContactProps) {
                             </div>
                             <div className="ml-4">
                                 <p className="font-semibold text-white" dangerouslySetInnerHTML={{ __html: content?.contactPhoneTitle || 'Telefoon' }} />
-                                <a href={`tel:${(content?.contactPhone || '+32494399286').replace(/\s/g, '')}`} className="hover:text-green-500 hover:underline transition-colors">
+                                <a 
+                                  href={`tel:${(content?.contactPhone || '+32494399286').replace(/\s/g, '')}`} 
+                                  className="hover:text-green-500 hover:underline transition-colors"
+                                  onClick={() => trackEvent('Click', 'Phone')}
+                                >
                                   {content?.contactPhone || '+32 494 39 92 86'}
                                 </a>
                             </div>

@@ -315,29 +315,57 @@ async function handleTestEmail(req, res) {
 // --- START: ANALYTICS HANDLERS ---
 async function handleTrack(req, res) {
     try {
-        const { path, referrer } = req.body;
-        if (!path) return res.status(400).json({ error: 'Path is required.' });
-
-        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const { type, path, referrer, uniqueId, eventName, eventDetail } = req.body;
+        if (!path || !type || !uniqueId) return res.status(400).json({ error: 'Missing required tracking data.' });
+        
+        const today = new Date().toISOString().split('T')[0];
         const key = `analytics:${today}`;
-
-        const referrerHost = referrer ? new URL(referrer).hostname : 'direct';
-
-        // Use a pipeline to perform atomic increments
+        
         const pipeline = kv.pipeline();
+
+        // Always track a page view or event
         pipeline.hincrby(key, 'total', 1);
-        pipeline.hincrby(key, `page:${path}`, 1);
-        pipeline.hincrby(key, `ref:${referrerHost}`, 1);
+
+        // Track unique visitor for the day
+        pipeline.sadd(`analytics-unique:${today}`, uniqueId);
+
+        // Location data from Vercel headers
+        const country = req.headers['x-vercel-ip-country'] || 'Unknown';
+        const city = req.headers['x-vercel-ip-city'] || 'Unknown';
+        pipeline.hincrby(key, `loc:${country}:${city}`, 1);
+
+        // Device data from User-Agent
+        const ua = req.headers['user-agent'] || '';
+        let device = 'Desktop';
+        if (/mobile/i.test(ua)) device = 'Mobile';
+        else if (/tablet/i.test(ua)) device = 'Tablet';
+        pipeline.hincrby(key, `dev:${device}`, 1);
+
+        if (type === 'pageview') {
+            pipeline.hincrby(key, `page:${path}`, 1);
+            let referrerHost = 'direct';
+            if (referrer) {
+                try {
+                    referrerHost = new URL(referrer).hostname;
+                } catch (e) {
+                    referrerHost = 'other';
+                }
+            }
+            pipeline.hincrby(key, `ref:${referrerHost}`, 1);
+        } else if (type === 'event' && eventName && eventDetail) {
+             pipeline.hincrby(key, `evt:${eventName}:${eventDetail}`, 1);
+        }
+        
         await pipeline.exec();
         
-        // Set an expiry for the daily data to keep the DB clean (e.g., 90 days)
-        await kv.expire(key, 60 * 60 * 24 * 91);
+        // Set expiry to keep DB clean
+        await kv.expire(key, 60 * 60 * 24 * 91); // 91 days
+        await kv.expire(`analytics-unique:${today}`, 60 * 60 * 24 * 2); // 2 days for unique sets
 
         return res.status(200).json({ success: true });
     } catch (error) {
-        // Fail silently to not impact user experience
         console.error("Analytics tracking error:", error);
-        return res.status(200).json({ success: false });
+        return res.status(200).json({ success: false }); // Fail silently
     }
 }
 
@@ -349,57 +377,80 @@ async function handleGetAnalytics(req, res) {
         const days = parseInt(url.searchParams.get('days') || '30', 10);
         
         const dateKeys = [];
+        const uniqueKeys = [];
         for (let i = 0; i < days; i++) {
             const d = new Date();
             d.setDate(d.getDate() - i);
-            dateKeys.push(`analytics:${d.toISOString().split('T')[0]}`);
+            const dateStr = d.toISOString().split('T')[0];
+            dateKeys.push(`analytics:${dateStr}`);
+            uniqueKeys.push(`analytics-unique:${dateStr}`);
         }
 
-        const dailyData = await (dateKeys.length > 0 ? kv.mget(...dateKeys) : Promise.resolve([]));
+        const [dailyData, uniqueData] = await Promise.all([
+            dateKeys.length > 0 ? kv.mget(...dateKeys) : Promise.resolve([]),
+            uniqueKeys.length > 0 ? Promise.all(uniqueKeys.map(k => kv.scard(k))) : Promise.resolve([])
+        ]);
         
         const aggregated = {
-            total: 0,
-            pages: {},
-            referrers: {},
-            daily: []
+            total: 0, uniques: 0, pages: {}, referrers: {}, daily: [], devices: {}, locations: {}, events: {}
         };
+        
+        const uniqueVisitorIds = new Set();
+        const uniquePromises = uniqueKeys.map(key => kv.smembers(key));
+        const allUniqueSets = await Promise.all(uniquePromises);
+        allUniqueSets.forEach(set => set.forEach(id => uniqueVisitorIds.add(id)));
+        aggregated.uniques = uniqueVisitorIds.size;
         
         dateKeys.forEach((key, index) => {
             const data = dailyData[index];
             const date = key.split(':')[1];
+            const dailyUniques = uniqueData[index] || 0;
+            
             if (data) {
                 const totalViews = Number(data.total || 0);
                 aggregated.total += totalViews;
-                aggregated.daily.push({ date, visits: totalViews });
+                aggregated.daily.push({ date, visits: totalViews, uniques: dailyUniques });
 
                 Object.keys(data).forEach(field => {
-                    if (field.startsWith('page:')) {
-                        const page = field.substring(5);
-                        aggregated.pages[page] = (aggregated.pages[page] || 0) + Number(data[field]);
-                    } else if (field.startsWith('ref:')) {
-                        const ref = field.substring(4);
-                        aggregated.referrers[ref] = (aggregated.referrers[ref] || 0) + Number(data[field]);
-                    }
+                    const value = Number(data[field]);
+                    if (field.startsWith('page:')) aggregated.pages[field.substring(5)] = (aggregated.pages[field.substring(5)] || 0) + value;
+                    else if (field.startsWith('ref:')) aggregated.referrers[field.substring(4)] = (aggregated.referrers[field.substring(4)] || 0) + value;
+                    else if (field.startsWith('dev:')) aggregated.devices[field.substring(4)] = (aggregated.devices[field.substring(4)] || 0) + value;
+                    else if (field.startsWith('loc:')) aggregated.locations[field.substring(4)] = (aggregated.locations[field.substring(4)] || 0) + value;
+                    else if (field.startsWith('evt:')) aggregated.events[field.substring(4)] = (aggregated.events[field.substring(4)] || 0) + value;
                 });
             } else {
-                 aggregated.daily.push({ date, visits: 0 });
+                 aggregated.daily.push({ date, visits: 0, uniques: 0 });
             }
         });
 
-        const sortedPages = Object.entries(aggregated.pages).sort(([, a], [, b]) => b - a).slice(0, 10);
-        const sortedReferrers = Object.entries(aggregated.referrers).sort(([, a], [, b]) => b - a).slice(0, 10);
-        
-        const topReferrer = sortedReferrers[0] ? sortedReferrers[0][0] : 'N/A';
+        const sortAndSlice = (obj, limit = 10) => Object.entries(obj).sort(([, a], [, b]) => b - a).slice(0, limit);
+
+        const topLocations = sortAndSlice(aggregated.locations, 10).map(([loc, visits]) => {
+            const [country, city] = loc.split(':');
+            return { country, city, visits };
+        });
+        const topCity = topLocations[0] ? `${topLocations[0].city}, ${topLocations[0].country}` : 'N/A';
+        const topReferrer = sortAndSlice(aggregated.referrers, 1)[0]?.[0] || 'N/A';
 
         return res.status(200).json({
             total: aggregated.total,
+            uniques: aggregated.uniques,
             topReferrer: topReferrer,
+            topCity: topCity,
             daily: aggregated.daily.reverse(),
-            pages: sortedPages.map(([path, visits]) => ({ path, visits })),
-            referrers: sortedReferrers.map(([source, visits]) => ({ source, visits }))
+            pages: sortAndSlice(aggregated.pages).map(([path, visits]) => ({ path, visits })),
+            referrers: sortAndSlice(aggregated.referrers).map(([source, visits]) => ({ source, visits })),
+            devices: sortAndSlice(aggregated.devices, 3).map(([type, visits]) => ({ type, visits })),
+            locations: topLocations,
+            events: sortAndSlice(aggregated.events).map(([evt, count]) => {
+                const [name, detail] = evt.split(':', 2);
+                return { name, detail, count };
+            }),
         });
 
     } catch (error) {
+        console.error("Error getting analytics:", error);
         return res.status(error.message === 'Access denied.' ? 403 : 500).json({ error: error.message });
     }
 }

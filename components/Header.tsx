@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { PageContent } from '../types';
+import { trackEvent } from '../hooks/useAnalytics';
 
 type Status = 'loading' | 'success' | 'error';
 
@@ -82,6 +83,7 @@ function Header({ onOpenGallery, content, status }: HeaderProps) {
         key={item.label}
         onClick={() => {
           onOpenGallery();
+          trackEvent('Click', 'Nav Gallery Button');
           if (isMobile) setIsMenuOpen(false);
         }}
         className={isMobile ? "text-gray-300 hover:bg-zinc-800 hover:text-white block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors" : "text-gray-300 hover:bg-zinc-800 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"}

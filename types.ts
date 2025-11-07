@@ -114,11 +114,17 @@ export interface DailyAnalytics {
 
 export interface AnalyticsData {
   total: number;
+  uniques: number;
   topReferrer: string;
-  daily: { date: string; visits: number }[];
+  topCity: string;
+  daily: { date: string; visits: number; uniques: number }[];
   pages: { path: string; visits: number }[];
   referrers: { source: string; visits: number }[];
+  devices: { type: string; visits: number }[];
+  locations: { country: string; city: string; visits: number }[];
+  events: { name: string; detail: string; count: number }[];
 }
+
 
 // Site-wide settings
 export interface SiteSettings {
