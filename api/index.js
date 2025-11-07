@@ -72,9 +72,13 @@ const DEFAULT_CONTENT = {
     contactEmailTitle: "Email", contactEmail: "info.andries.serviceplus@gmail.com",
     contactPhoneTitle: "Telefoon", contactPhone: "+32 494 39 92 86",
     contactFormNameLabel: "Naam", contactFormEmailLabel: "Emailadres", contactFormMessageLabel: "Uw bericht", contactFormSubmitButtonText: "Verstuur Bericht",
-    contactFormSuccessTitle: "Bericht Verzonden!", contactFormSuccessText: "Bedankt voor uw bericht. We nemen zo spoedig mogelijk contact met u op.", contactFormSuccessAgainButtonText: "Nog een bericht sturen",
+    contactFormSuccessTitle: "Bericht Verzonden!", contactFormSuccessText: "Bedankt voor uw bericht. We nemen zo spoedielijk mogelijk contact met u op.", contactFormSuccessAgainButtonText: "Nog een bericht sturen",
     contactMapEnabled: true, contactMapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2503.491333794334!2d4.57099631583015!3d51.1357909795757!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47c3f0e0f0e0f0e1%3A0x8e0e0e0e0e0e0e0e!2sHazenstraat%2065%2C%202500%20Lier%2C%20Belgium!5e0!3m2!1sen!2sus!4v1620000000000",
     facebookUrl: "https://www.facebook.com/", footerCopyrightText: "Andries Service+. Alle rechten voorbehouden.",
+    contactAdminEmailSubject: 'Nieuw bericht van {{name}} via Andries Service+',
+    contactAdminEmailBody: `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Nieuw Contactbericht</title></head><body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #18181b; color: #e4e4e7;"><table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #18181b;"><tr><td align="center"><table width="600" border="0" cellspacing="0" cellpadding="20" style="background-color: #27272a; border-radius: 8px; margin: 20px 0;"><tr><td align="center" style="border-bottom: 1px solid #3f3f46; padding-bottom: 20px;"><h1 style="color: #ffffff; margin: 0;">Nieuw bericht via website</h1></td></tr><tr><td style="padding: 20px;"><p style="font-size: 16px;">U heeft een nieuw bericht ontvangen van <strong>{{name}}</strong>.</p><table width="100%" border="0" cellspacing="0" cellpadding="10" style="background-color: #18181b; border: 1px solid #3f3f46; border-radius: 4px; margin-top: 20px;"><tr><td style="width: 100px; color: #a1a1aa;">Naam:</td><td style="color: #ffffff;">{{name}}</td></tr><tr><td style="color: #a1a1aa;">Email:</td><td><a href="mailto:{{email}}" style="color: #16a34a; text-decoration: none;">{{email}}</a></td></tr><tr><td style="color: #a1a1aa; vertical-align: top;">Bericht:</td><td style="color: #ffffff; white-space: pre-wrap;">{{message}}</td></tr></table></td></tr><tr><td align="center" style="padding-top: 20px; font-size: 12px; color: #71717a;">&copy; {{year}} Andries Service+. Alle rechten voorbehouden.</td></tr></table></td></tr></table></body></html>`,
+    contactUserEmailSubject: 'Bedankt voor uw bericht, {{name}}!',
+    contactUserEmailBody: `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Bedankt voor uw bericht</title></head><body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #18181b; color: #e4e4e7;"><table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #18181b;"><tr><td align="center"><table width="600" border="0" cellspacing="0" cellpadding="20" style="background-color: #27272a; border-radius: 8px; margin: 20px 0;"><tr><td align="center" style="border-bottom: 1px solid #3f3f46; padding-bottom: 20px;"><h1 style="color: #ffffff; margin: 0;">Bericht Ontvangen!</h1></td></tr><tr><td style="padding: 20px;"><p style="font-size: 16px;">Beste {{name}},</p><p style="font-size: 16px; line-height: 1.5;">Bedankt voor uw interesse in Andries Service+. We hebben uw bericht in goede orde ontvangen en nemen zo spoedig mogelijk contact met u op.</p><p style="font-size: 16px; margin-top: 30px;">Met vriendelijke groeten,</p><p style="font-size: 16px; font-weight: bold; color: #16a34a; margin: 0;">Het Andries Service+ Team</p></td></tr><tr><td align="center" style="padding-top: 20px; font-size: 12px; color: #71717a;">&copy; {{year}} Andries Service+. Alle rechten voorbehouden.</td></tr></table></td></tr></table></body></html>`,
     logo: { url: '/favicon.svg', alt: 'Andries Service+ Logo' }, heroImage: { url: 'https://i.postimg.cc/431ktwwb/Hero.jpg', alt: 'Mooi onderhouden tuin' },
     beforeImage: { url: 'https://i.postimg.cc/L8gP8SYb/before-image.jpg', alt: 'Tuin voor onderhoud' }, afterImage: { url: 'https://i.postimg.cc/j5XbQ8cQ/after-image.jpg', alt: 'Tuin na onderhoud' },
     ogImage: { url: 'https://i.postimg.cc/431ktwwb/Hero.jpg', alt: 'Andries Service+ Tuinonderhoud' },
@@ -93,14 +97,34 @@ async function handleContact(req, res) {
   if (!emailRegex.test(email)) return res.status(400).json({ error: 'Voer een geldig emailadres in.' });
   if (message.length < 10 || message.length > 500) return res.status(400).json({ error: 'Bericht moet tussen 10 en 500 tekens lang zijn.' });
   try {
-    const settings = await kv.get('settings');
+    const [settings, pageContent] = await Promise.all([kv.get('settings'), kv.get('pageContent')]);
     const emailUser = settings?.emailUser || process.env.EMAIL_USER;
     const emailPass = settings?.emailPass || process.env.EMAIL_PASS;
     const emailTo = settings?.emailTo || process.env.EMAIL_TO;
     if (!emailUser || !emailPass || !emailTo) throw new Error('E-mailconfiguratie ontbreekt.');
+    
     const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: emailUser, pass: emailPass } });
-    await transporter.sendMail({ from: `"Andries Service+ Website" <${emailUser}>`, to: emailTo, replyTo: email, subject: `[Andries Service+] Nieuw bericht van ${name}`, html: `<h2>Nieuw bericht van ${name}</h2><p><strong>Email:</strong> ${email}</p><p><strong>Bericht:</strong></p><p>${message}</p>` });
-    await transporter.sendMail({ from: `"Andries Service+" <${emailUser}>`, to: email, subject: `Bevestiging: Wij hebben uw bericht ontvangen!`, html: `<h2>Bedankt voor uw bericht, ${name}!</h2><p>We nemen zo spoedig mogelijk contact met u op.</p>` });
+    const year = new Date().getFullYear();
+    const content = pageContent || DEFAULT_CONTENT.pageContent;
+
+    const replacePlaceholders = (template, data) => {
+        return template
+            .replace(/{{name}}/g, data.name)
+            .replace(/{{email}}/g, data.email)
+            .replace(/{{message}}/g, data.message)
+            .replace(/{{year}}/g, data.year);
+    };
+
+    // Admin Notification Email
+    const adminSubject = replacePlaceholders(content.contactAdminEmailSubject, { name });
+    const adminBody = replacePlaceholders(content.contactAdminEmailBody, { name, email, message, year });
+    await transporter.sendMail({ from: `"Andries Service+ Website" <${emailUser}>`, to: emailTo, replyTo: email, subject: adminSubject, html: adminBody });
+
+    // User Confirmation Email
+    const userSubject = replacePlaceholders(content.contactUserEmailSubject, { name });
+    const userBody = replacePlaceholders(content.contactUserEmailBody, { name, email, message, year });
+    await transporter.sendMail({ from: `"Andries Service+" <${emailUser}>`, to: email, subject: userSubject, html: userBody });
+
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error('Error sending email:', error);

@@ -57,6 +57,49 @@ const ContactTab = ({ content, handleContentChange }: ContactTabProps) => {
                 <InputWithCounter as="textarea" name="contactFormSuccessText" label="Succes Tekst" help="Tekst na succesvol verzenden." value={content.contactFormSuccessText!} onChange={e => handleContentChange('contactFormSuccessText', e.target.value)} required showStyler />
                 <InputWithCounter name="contactFormSuccessAgainButtonText" label="'Nogmaals Versturen' Knop Tekst" help="Tekst op de knop om het formulier te resetten." value={content.contactFormSuccessAgainButtonText!} onChange={e => handleContentChange('contactFormSuccessAgainButtonText', e.target.value)} required />
             </div>
+            <div className="mt-6 p-4 border-t border-zinc-700">
+                <h3 className="text-lg font-semibold mb-2 mt-4 text-white">E-mail Sjablonen</h3>
+                <p className="text-sm text-zinc-400 mb-4">
+                    Pas hier de e-mails aan die verzonden worden. Gebruik placeholders: 
+                    {/* Fix: Corrected JSX syntax for displaying placeholder text. The double curly braces `{{...}}` were being interpreted as an object, which is not a valid React child. Changed to a string literal `{'{{...}}'}` to render the text correctly. */}
+                    <code className="text-xs bg-zinc-700 p-1 rounded mx-1">{`{{name}}`}</code>
+                    <code className="text-xs bg-zinc-700 p-1 rounded mx-1">{`{{email}}`}</code>
+                    <code className="text-xs bg-zinc-700 p-1 rounded mx-1">{`{{message}}`}</code>
+                    <code className="text-xs bg-zinc-700 p-1 rounded mx-1">{`{{year}}`}</code>
+                </p>
+
+                <h4 className="font-semibold mb-2 text-zinc-200">Notificatie aan Admin</h4>
+                <InputWithCounter 
+                    name="contactAdminEmailSubject" 
+                    label="Onderwerp (Admin)" 
+                    value={content.contactAdminEmailSubject!} 
+                    onChange={e => handleContentChange('contactAdminEmailSubject', e.target.value)} 
+                />
+                <InputWithCounter 
+                    as="textarea"
+                    name="contactAdminEmailBody" 
+                    label="Bericht (Admin) - HTML toegestaan"
+                    help="De HTML body van de e-mail die naar u wordt gestuurd."
+                    value={content.contactAdminEmailBody!} 
+                    onChange={e => handleContentChange('contactAdminEmailBody', e.target.value)} 
+                />
+
+                <h4 className="font-semibold mb-2 mt-6 text-zinc-200">Bevestiging aan Gebruiker</h4>
+                <InputWithCounter 
+                    name="contactUserEmailSubject" 
+                    label="Onderwerp (Gebruiker)" 
+                    value={content.contactUserEmailSubject!} 
+                    onChange={e => handleContentChange('contactUserEmailSubject', e.target.value)} 
+                />
+                <InputWithCounter 
+                    as="textarea"
+                    name="contactUserEmailBody" 
+                    label="Bericht (Gebruiker) - HTML toegestaan"
+                    help="De HTML body van de e-mail die naar de gebruiker wordt gestuurd."
+                    value={content.contactUserEmailBody!} 
+                    onChange={e => handleContentChange('contactUserEmailBody', e.target.value)} 
+                />
+            </div>
         </>
     );
 };

@@ -76,6 +76,11 @@ export interface PageContent {
   contactFormSuccessAgainButtonText?: string;
   contactMapEnabled?: boolean; 
   contactMapUrl?: string; 
+  // New: Email template fields
+  contactAdminEmailSubject?: string;
+  contactAdminEmailBody?: string;
+  contactUserEmailSubject?: string;
+  contactUserEmailBody?: string;
 
   // SEO & Social Media
   ogImage?: AppImage;
