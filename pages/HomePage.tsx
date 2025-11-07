@@ -14,6 +14,7 @@ import Gallery from '@/components/Gallery';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import MaintenancePage from '@/pages/MaintenancePage';
+import CookieConsent from '@/components/CookieConsent';
 
 type Status = 'loading' | 'success' | 'error';
 
@@ -104,6 +105,7 @@ function HomePage() {
         <Footer content={pageContent} />
         {isGalleryOpen && <Gallery onClose={handleCloseGallery} content={pageContent} images={galleryImages} />}
         <ScrollToTopButton />
+        <CookieConsent />
       </div>
     </ErrorBoundary>
   );

@@ -11,6 +11,7 @@ import ScrollToTopButton from '@/components/ScrollToTopButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import MaintenancePage from '@/pages/MaintenancePage';
 import { Spinner } from 'phosphor-react';
+import CookieConsent from '@/components/CookieConsent';
 
 type Status = 'loading' | 'success' | 'error' | 'notfound';
 
@@ -120,6 +121,7 @@ function ServicePage() {
         <Footer content={pageContent} />
         {isGalleryOpen && <Gallery onClose={handleCloseGallery} content={pageContent} images={galleryImages} />}
         <ScrollToTopButton />
+        <CookieConsent />
       </div>
     </ErrorBoundary>
   );

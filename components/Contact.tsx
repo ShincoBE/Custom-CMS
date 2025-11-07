@@ -268,7 +268,7 @@ function Contact({ content }: ContactProps) {
                                 </div>
                                 <div className="ml-4">
                                     <p className="font-semibold text-white group-hover:text-green-500 transition-colors" dangerouslySetInnerHTML={{ __html: content?.contactAddressTitle || 'Adres' }} />
-                                    <address className="not-italic group-hover:underline" style={{ whiteSpace: 'pre-line' }}>
+                                    <address className="not-italic group-hover:text-green-500 group-hover:underline transition-colors" style={{ whiteSpace: 'pre-line' }}>
                                       {content?.contactAddress || defaultAddress}
                                     </address>
                                 </div>
@@ -401,7 +401,6 @@ function Contact({ content }: ContactProps) {
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               title="Locatie op Google Maps"
-              className="grayscale invert-[90%] contrast-125"
             ></iframe>
           </div>
         )}
