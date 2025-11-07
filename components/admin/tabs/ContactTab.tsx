@@ -74,6 +74,7 @@ const ContactTab = ({ content, handleContentChange }: ContactTabProps) => {
                     label="Onderwerp (Admin)" 
                     value={content.contactAdminEmailSubject!} 
                     onChange={e => handleContentChange('contactAdminEmailSubject', e.target.value)} 
+                    required
                 />
                 <InputWithCounter 
                     as="textarea"
@@ -82,6 +83,7 @@ const ContactTab = ({ content, handleContentChange }: ContactTabProps) => {
                     help="De HTML body van de e-mail die naar u wordt gestuurd."
                     value={content.contactAdminEmailBody!} 
                     onChange={e => handleContentChange('contactAdminEmailBody', e.target.value)} 
+                    required
                 />
 
                 <h4 className="font-semibold mb-2 mt-6 text-zinc-200">Bevestiging aan Gebruiker</h4>
@@ -90,6 +92,7 @@ const ContactTab = ({ content, handleContentChange }: ContactTabProps) => {
                     label="Onderwerp (Gebruiker)" 
                     value={content.contactUserEmailSubject!} 
                     onChange={e => handleContentChange('contactUserEmailSubject', e.target.value)} 
+                    required
                 />
                 <InputWithCounter 
                     as="textarea"
@@ -98,6 +101,7 @@ const ContactTab = ({ content, handleContentChange }: ContactTabProps) => {
                     help="De HTML body van de e-mail die naar de gebruiker wordt gestuurd."
                     value={content.contactUserEmailBody!} 
                     onChange={e => handleContentChange('contactUserEmailBody', e.target.value)} 
+                    required
                 />
             </div>
         </>
