@@ -107,6 +107,9 @@ async function handleContact(req, res) {
     const year = new Date().getFullYear();
     const content = pageContent || DEFAULT_CONTENT.pageContent;
 
+    // Fix: Convert newlines to <br> tags for proper HTML email formatting.
+    const formattedMessage = message.replace(/(?:\r\n|\r|\n)/g, '<br>');
+
     const replacePlaceholders = (template, data) => {
         if (!template) return '';
         return template
@@ -118,7 +121,7 @@ async function handleContact(req, res) {
 
     // Admin Notification Email
     const adminSubject = replacePlaceholders(content.contactAdminEmailSubject || DEFAULT_CONTENT.pageContent.contactAdminEmailSubject, { name });
-    const adminBody = replacePlaceholders(content.contactAdminEmailBody || DEFAULT_CONTENT.pageContent.contactAdminEmailBody, { name, email, message, year });
+    const adminBody = replacePlaceholders(content.contactAdminEmailBody || DEFAULT_CONTENT.pageContent.contactAdminEmailBody, { name, email, message: formattedMessage, year });
     await transporter.sendMail({ from: `"Andries Service+ Website" <${emailUser}>`, to: emailTo, replyTo: email, subject: adminSubject, html: adminBody });
 
     // User Confirmation Email
