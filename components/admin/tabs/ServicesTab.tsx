@@ -101,9 +101,9 @@ const ServicesTab = ({ content, handleContentChange, handleImageUpload }: Servic
                             onDragLeave={handleDragLeave}
                             onDrop={e => handleDrop(e, originalIndex)}
                             onDragEnd={handleDragEnd}
-                            className={`border border-zinc-700 rounded-lg bg-zinc-800/50 transition-all duration-300
+                            className={`rounded-lg bg-zinc-800/50 transition-all duration-300
                                 ${draggedIndex === originalIndex ? 'opacity-50' : ''}
-                                ${dropTargetIndex === originalIndex ? 'border-green-500 scale-105' : ''}
+                                ${dropTargetIndex === originalIndex ? 'border-2 border-green-500 bg-green-900/30 scale-105' : 'border border-zinc-700'}
                             `}
                         >
                             <div

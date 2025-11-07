@@ -12,7 +12,7 @@ export function useAnalytics() {
 
     const trackPageView = async () => {
       try {
-        await fetch('/api/track', {
+        await fetch('/api/event', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

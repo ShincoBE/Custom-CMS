@@ -402,7 +402,7 @@ module.exports = async (req, res) => {
   // PUBLIC ROUTES
   if (path === '/api/contact' && req.method === 'POST') return handleContact(req, res);
   if (path === '/api/content' && req.method === 'GET') return handleGetContent(req, res);
-  if (path === '/api/track' && req.method === 'POST') return handleTrack(req, res);
+  if (path === '/api/event' && req.method === 'POST') return handleTrack(req, res);
   if (path === '/api/login' && req.method === 'POST') return handleLogin(req, res);
   
   // PROTECTED ADMIN ROUTES
