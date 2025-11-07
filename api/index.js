@@ -387,7 +387,7 @@ async function handleGetAnalytics(req, res) {
         }
 
         const [dailyData, uniqueData] = await Promise.all([
-            dateKeys.length > 0 ? kv.mget(...dateKeys) : Promise.resolve([]),
+            dateKeys.length > 0 ? Promise.all(dateKeys.map(key => kv.hgetall(key))) : Promise.resolve([]),
             uniqueKeys.length > 0 ? Promise.all(uniqueKeys.map(k => kv.scard(k))) : Promise.resolve([])
         ]);
         
