@@ -1,7 +1,33 @@
 import React, { useState, useEffect, useCallback } from 'react';
 // Fix: Replaced non-existent 'CursorClick' and 'HandTap' icons with 'HandPointing' to resolve module export errors.
-import { ChartBar, Spinner, Users, Link as LinkIcon, Globe, DeviceMobile, HandPointing, MapPin } from 'phosphor-react';
+// Add ArrowClockwise for refresh button
+import { ChartBar, Spinner, Users, Link as LinkIcon, Globe, DeviceMobile, HandPointing, MapPin, ArrowClockwise } from 'phosphor-react';
 import type { AnalyticsData } from '../../../types';
+
+// --- START: Formatting Helpers ---
+const formatPath = (path: string) => {
+    if (path === '/') return 'Homepagina';
+    if (path.startsWith('/diensten/')) return `Dienst: ${path.substring(9)}`;
+    return path;
+};
+
+const formatReferrer = (referrer: string) => {
+    if (referrer === 'direct' || referrer === 'N/A') return 'Direct verkeer';
+    return referrer;
+};
+
+const formatEvent = (name: string, detail: string) => {
+    const eventMap: Record<string, string> = {
+        'Hero CTA': "Klik op 'Vraag Offerte Aan' (Hero)",
+        'Nav Gallery Button': "Klik op 'Galerij' (Navigatie)",
+        'CTA Gallery Button': "Klik op 'Open Galerij' (CTA)",
+        'Email': "Klik op E-mailadres (Contact)",
+        'Phone': "Klik op Telefoonnummer (Contact)",
+        'Address': "Klik op Adres (Contact)"
+    };
+    return eventMap[detail] || `${name}: ${detail}`;
+};
+// --- END: Formatting Helpers ---
 
 interface AnalyticsTabProps {
     showNotification: (type: 'success' | 'error', message: string) => void;
@@ -143,7 +169,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                     <StatCard title="Totaal Bezoeken" value={data.total.toLocaleString('nl-BE')} icon={<ChartBar size={24} className="text-green-500 mr-3" />} />
                     <StatCard title="Unieke Bezoekers" value={data.uniques.toLocaleString('nl-BE')} icon={<Users size={24} className="text-green-500 mr-3" />} />
                     <StatCard title="Top Stad" value={data.topCity} icon={<MapPin size={24} className="text-green-500 mr-3" />} />
-                    <StatCard title="Top Verwijzer" value={data.topReferrer} icon={<LinkIcon size={24} className="text-green-500 mr-3" />} />
+                    <StatCard title="Top Verwijzer" value={formatReferrer(data.topReferrer)} icon={<LinkIcon size={24} className="text-green-500 mr-3" />} />
                 </div>
                 <div>
                     <h3 className="text-lg font-semibold mb-3 text-white">Bezoeken Per Dag</h3>
@@ -174,7 +200,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                         icon={<HandPointing size={20} className="mr-2"/>}
                         data={data.events}
                         columns={[
-                            { header: 'Actie', accessor: (row) => `${row.name}: ${row.detail}` },
+                            { header: 'Actie', accessor: (row) => formatEvent(row.name, row.detail) },
                             { header: 'Aantal', accessor: (row) => row.count.toLocaleString('nl-BE') }
                         ]}
                      />
@@ -183,7 +209,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                         icon={<Users size={20} className="mr-2"/>}
                         data={data.pages}
                         columns={[
-                            { header: 'Pagina', accessor: (row) => row.path === '/' ? '/ (Home)' : row.path },
+                            { header: 'Pagina', accessor: (row) => formatPath(row.path) },
                             { header: 'Bezoeken', accessor: (row) => row.visits.toLocaleString('nl-BE') }
                         ]}
                      />
@@ -203,15 +229,30 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                         <button
                             key={period}
                             onClick={() => setDays(period)}
+                            disabled={isLoading}
                             className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
                                 days === period
                                 ? 'bg-green-600 text-white'
                                 : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
-                            }`}
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                             {period} dagen
                         </button>
                     ))}
+                    <button
+                        type="button"
+                        onClick={() => fetchAnalytics(days)}
+                        disabled={isLoading}
+                        className="p-2 text-zinc-300 bg-zinc-700 rounded-md hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Statistieken vernieuwen"
+                        title="Vernieuwen"
+                    >
+                        {isLoading ? (
+                            <Spinner size={16} className="animate-spin" />
+                        ) : (
+                            <ArrowClockwise size={16} />
+                        )}
+                    </button>
                 </div>
             </div>
             {renderContent()}

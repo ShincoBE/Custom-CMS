@@ -428,17 +428,23 @@ async function handleGetAnalytics(req, res) {
 
         const topLocations = sortAndSlice(aggregated.locations, 10).map(([loc, visits]) => {
             const [country, city] = loc.split(':');
-            return { country, city, visits };
+            // Fix: Decode city name to handle URL-encoded characters like %20 for spaces.
+            return { country, city: decodeURIComponent(city), visits };
         });
-        const topCity = topLocations[0] ? `${topLocations[0].city}, ${topLocations[0].country}` : 'N/A';
+
+        // Fix: Decode city name for the topCity card as well.
+        const topCity = topLocations[0] ? `${decodeURIComponent(topLocations[0].city)}, ${topLocations[0].country}` : 'N/A';
         const topReferrer = sortAndSlice(aggregated.referrers, 1)[0]?.[0] || 'N/A';
+
+        // Fix: Sort daily data chronologically to ensure the graph is correct.
+        const sortedDaily = aggregated.daily.sort((a, b) => new Date(a.date) - new Date(b.date));
 
         return res.status(200).json({
             total: aggregated.total,
             uniques: aggregated.uniques,
             topReferrer: topReferrer,
             topCity: topCity,
-            daily: aggregated.daily.reverse(),
+            daily: sortedDaily,
             pages: sortAndSlice(aggregated.pages).map(([path, visits]) => ({ path, visits })),
             referrers: sortAndSlice(aggregated.referrers).map(([source, visits]) => ({ source, visits })),
             devices: sortAndSlice(aggregated.devices, 3).map(([type, visits]) => ({ type, visits })),
