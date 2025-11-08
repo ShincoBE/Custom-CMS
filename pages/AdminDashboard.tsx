@@ -247,7 +247,7 @@ function AdminDashboard() {
       <header className="sticky top-0 z-20 bg-zinc-800/80 backdrop-blur-sm border-b border-zinc-700">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <button onClick={() => setActiveTab('dashboard')} className="text-xl font-bold hover:text-green-500 transition-colors">
+            <button onClick={() => setActiveTab('dashboard')} className="text-lg sm:text-xl font-bold hover:text-green-500 transition-colors">
               Content Management
             </button>
             <div className="flex items-center space-x-4">

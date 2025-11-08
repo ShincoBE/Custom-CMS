@@ -205,7 +205,7 @@ function Gallery({ onClose, content, images = [] }: GalleryProps) {
             
             <button
                 onClick={handlePrev}
-                className="absolute left-0 sm:-left-16 top-1/2 -translate-y-1/2 z-[70] p-3 bg-black/50 rounded-full text-white hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 focus-visible:ring-green-500 transition-all disabled:opacity-50"
+                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-[70] p-3 bg-black/50 rounded-full text-white hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 focus-visible:ring-green-500 transition-all disabled:opacity-50"
                 aria-label="Vorige afbeelding"
                 disabled={filteredImages.length <= 1}
             >
@@ -214,7 +214,7 @@ function Gallery({ onClose, content, images = [] }: GalleryProps) {
             
             <button
                 onClick={handleNext}
-                className="absolute right-0 sm:-right-16 top-1/2 -translate-y-1/2 z-[70] p-3 bg-black/50 rounded-full text-white hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 focus-visible:ring-green-500 transition-all disabled:opacity-50"
+                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-[70] p-3 bg-black/50 rounded-full text-white hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 focus-visible:ring-green-500 transition-all disabled:opacity-50"
                 aria-label="Volgende afbeelding"
                 disabled={filteredImages.length <= 1}
             >

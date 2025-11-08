@@ -131,7 +131,7 @@ const GalleryTab = ({ content, gallery, handleContentChange, setGallery, setEdit
                 </div>
             )}
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
                 <div className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-zinc-600 rounded-lg text-zinc-400">
                     <input type="checkbox" checked={selectedImages.size > 0 && selectedImages.size === filteredGallery.length} onChange={handleSelectAll} className="h-4 w-4 rounded bg-zinc-700 border-zinc-500 text-green-600 focus:ring-green-500" />
                     <label className="text-xs mt-2">Selecteer alles</label>
