@@ -60,8 +60,7 @@ const ContactTab = ({ content, handleContentChange }: ContactTabProps) => {
             <div className="mt-6 p-4 border-t border-zinc-700">
                 <h3 className="text-lg font-semibold mb-2 mt-4 text-white">E-mail Sjablonen</h3>
                 <p className="text-sm text-zinc-400 mb-4">
-                    Pas hier de e-mails aan die verzonden worden. Gebruik placeholders: 
-                    {/* Fix: Corrected JSX syntax for displaying placeholder text. The double curly braces {{...}} were being interpreted as an object, which is not a valid React child. Changed to a string literal to render the text correctly. */}
+                    Pas hier de e-mails aan die verzonden worden. Gebruik placeholders:
                     <code className="text-xs bg-zinc-700 p-1 rounded mx-1">{`{{name}}`}</code>
                     <code className="text-xs bg-zinc-700 p-1 rounded mx-1">{`{{email}}`}</code>
                     <code className="text-xs bg-zinc-700 p-1 rounded mx-1">{`{{message}}`}</code>
