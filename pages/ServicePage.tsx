@@ -12,6 +12,8 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import MaintenancePage from '@/pages/MaintenancePage';
 import { Spinner } from 'phosphor-react';
 import CookieConsent from '@/components/CookieConsent';
+import StructuredData from '@/components/StructuredData';
+
 
 type Status = 'loading' | 'success' | 'error' | 'notfound';
 
@@ -99,6 +101,7 @@ function ServicePage() {
           case 'success':
               return service && (
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <StructuredData pageContent={pageContent} service={service} />
                     <div className="bg-zinc-900/60 backdrop-blur-sm border border-zinc-700/50 rounded-2xl shadow-2xl my-12 sm:my-16 overflow-hidden">
                         <div className="p-6 sm:p-10 lg:p-12">
                             <header className="text-center mb-10">
@@ -130,7 +133,7 @@ function ServicePage() {
   return (
     <ErrorBoundary>
       <div className="text-white font-sans antialiased flex flex-col min-h-screen bg-zinc-950 bg-[radial-gradient(circle_at_top,_rgba(10,40,20,0.3),_transparent_40%)]">
-        <Header onOpenGallery={handleOpenGallery} content={pageContent} status={status === 'loading' ? 'loading' : 'success'} />
+        <Header onOpenGallery={handleOpenGallery} content={pageContent} settings={settings} status={status === 'loading' ? 'loading' : 'success'} />
         <main className="flex-grow pt-16">
           {renderContent()}
         </main>

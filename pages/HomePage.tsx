@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import type { PageContent, GalleryImage, Service, SiteSettings } from '@/types';
+import { useLocation, Link } from 'react-router-dom';
+import type { PageContent, GalleryImage, Service, SiteSettings, Testimonial, BlogPost } from '@/types';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
 // Import components
@@ -16,6 +16,10 @@ import ScrollToTopButton from '@/components/ScrollToTopButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import MaintenancePage from '@/pages/MaintenancePage';
 import CookieConsent from '@/components/CookieConsent';
+import Testimonials from '@/components/Testimonials';
+import BlogCard from '@/components/BlogCard';
+import SectionHeader from '@/components/SectionHeader';
+import StructuredData from '@/components/StructuredData';
 
 type Status = 'loading' | 'success' | 'error';
 
@@ -23,6 +27,7 @@ function HomePage() {
   const [status, setStatus] = useState<Status>('loading');
   const [pageContent, setPageContent] = useState<PageContent | null>(null);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -68,12 +73,16 @@ function HomePage() {
         const data = await response.json();
         
         const publishedServices = data.pageContent.servicesList?.filter((service: Service) => service.published) || [];
-        const publishedContent = { ...data.pageContent, servicesList: publishedServices };
+        const publishedTestimonials = data.pageContent.testimonials?.filter((testimonial: Testimonial) => testimonial.published) || [];
+        const publishedContent = { ...data.pageContent, servicesList: publishedServices, testimonials: publishedTestimonials };
         
         const publishedGalleryImages = data.galleryImages?.filter((image: GalleryImage) => image.published) || [];
+        const publishedBlogPosts = data.blogPosts?.filter((post: BlogPost) => post.published) || [];
+
 
         setPageContent(publishedContent);
         setGalleryImages(publishedGalleryImages);
+        setBlogPosts(publishedBlogPosts);
         setSettings(data.settings);
         setStatus('success');
 
@@ -124,11 +133,37 @@ function HomePage() {
   return (
     <ErrorBoundary>
       <div className="bg-zinc-950 text-white font-sans antialiased">
-        <Header onOpenGallery={handleOpenGallery} content={pageContent} status={status} />
+        <StructuredData pageContent={pageContent} />
+        <Header onOpenGallery={handleOpenGallery} content={pageContent} settings={settings} status={status} />
         <main>
           <Hero content={pageContent} status={status} />
           <Services content={pageContent} status={status} />
           <BeforeAfter content={pageContent} status={status} />
+          {settings?.showTestimonials && pageContent?.testimonials && pageContent.testimonials.length > 0 && (
+            <Testimonials content={pageContent} />
+          )}
+          {settings?.showBlog && blogPosts.length > 0 && (
+            <section className="py-20 bg-zinc-900">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                     <SectionHeader 
+                        title={pageContent?.blogTitle || "Laatste Projecten"}
+                        subtitle={pageContent?.blogSubtitle || "Een kijkje in onze recente werkzaamheden en verhalen."}
+                     />
+                     <div className="mt-12 grid gap-8 lg:grid-cols-3">
+                        {blogPosts.slice(0, 3).map(post => (
+                           <BlogCard key={post._id} post={post} />
+                        ))}
+                     </div>
+                     {blogPosts.length > 3 && (
+                        <div className="mt-12 text-center">
+                            <Link to="/blog" className="text-green-500 font-semibold hover:underline">
+                                Bekijk alle projecten &rarr;
+                            </Link>
+                        </div>
+                     )}
+                </div>
+            </section>
+          )}
           <CtaGallery onOpenGallery={handleOpenGallery} content={pageContent} />
           <Contact content={pageContent} />
         </main>

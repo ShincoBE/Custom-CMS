@@ -1,23 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import type { PageContent } from '../types';
 import LazyImage from './ui/LazyImage';
 import { trackEvent } from '../hooks/useAnalytics';
 
 type Status = 'loading' | 'success' | 'error';
-
-const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
-  e.preventDefault();
-  const href = e.currentTarget.getAttribute('href');
-  if (!href || href === '#') return;
-  const targetId = href.substring(1);
-  const targetElement = document.getElementById(targetId);
-  if (targetElement) {
-    const headerOffset = 64;
-    const elementPosition = targetElement.getBoundingClientRect().top;
-    const offsetPosition = elementPosition + window.scrollY - headerOffset;
-    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-  }
-};
 
 const SkeletonLoader = () => (
   <section id="home" className="relative h-screen flex items-center justify-center text-center text-white overflow-hidden bg-zinc-900">
@@ -85,16 +72,13 @@ function Hero({ content, status }: HeroProps) {
         <p className={`text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-8 text-gray-300 transition-all duration-700 ease-out delay-200 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
            dangerouslySetInnerHTML={{ __html: heroTagline }}
         />
-        <a 
-          href="#contact" 
-          onClick={(e) => {
-            handleSmoothScroll(e);
-            trackEvent('Click', 'Hero CTA');
-          }}
-          className={`bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-all transform hover:scale-105 duration-300 ease-out delay-400 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+        <Link 
+          to="/offerte" 
+          onClick={() => trackEvent('Click', 'Hero CTA')}
+          className={`bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-all transform hover:scale-105 duration-300 ease-out delay-400 inline-block ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
         >
           {heroButtonText}
-        </a>
+        </Link>
       </div>
     </section>
   );

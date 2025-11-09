@@ -16,6 +16,26 @@ export interface Service {
   pageContent?: string; // New: Markdown/HTML content for the page
 }
 
+export interface Testimonial {
+  _key: string;
+  quote: string;
+  name: string;
+  rating: number; // 1 to 5
+  published?: boolean;
+}
+
+export interface BlogPost {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  mainImage?: AppImage;
+  content: string;
+  published?: boolean;
+  publishedAt: string;
+}
+
+
 export interface PageContent {
   _id: string;
   
@@ -25,6 +45,7 @@ export interface PageContent {
   navBeforeAfter?: string;
   navGallery?: string;
   navContact?: string;
+  navBlog?: string; // New: for blog link
   
   // Header
   logo?: AppImage;
@@ -46,6 +67,15 @@ export interface PageContent {
   beforeAfterSubtitle?: string;
   beforeImage?: AppImage;
   afterImage?: AppImage;
+  
+  // Testimonials Section
+  testimonialsTitle?: string;
+  testimonialsSubtitle?: string;
+  testimonials?: Testimonial[];
+  
+  // Blog Section
+  blogTitle?: string;
+  blogSubtitle?: string;
   
   // CTA Gallery Section
   servicesCtaTitle?: string;
@@ -133,6 +163,8 @@ export interface SiteSettings {
     emailTo?: string;
     maintenanceMode?: boolean;
     analyticsUrl?: string;
+    showTestimonials?: boolean;
+    showBlog?: boolean;
 }
 
 // Activity Log Type

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import type { PageContent } from '../types';
+import { useLocation, Link } from 'react-router-dom';
+import type { PageContent, SiteSettings } from '../types';
 import { trackEvent } from '../hooks/useAnalytics';
 
 type Status = 'loading' | 'success' | 'error';
@@ -28,10 +28,11 @@ const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
 interface HeaderProps {
   onOpenGallery: () => void;
   content: PageContent | null;
+  settings: SiteSettings | null;
   status: Status;
 }
 
-function Header({ onOpenGallery, content, status }: HeaderProps) {
+function Header({ onOpenGallery, content, settings, status }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
@@ -60,6 +61,7 @@ function Header({ onOpenGallery, content, status }: HeaderProps) {
     { href: '#home', label: content?.navHome || 'Home', type: 'link' },
     { href: '#diensten', label: content?.navServices || 'Diensten', type: 'link' },
     { href: '#before-after', label: content?.navBeforeAfter || 'Voor & Na', type: 'link' },
+    ...(settings?.showBlog ? [{ href: '/blog', label: content?.navBlog || 'Projecten', type: 'link' }] : []),
     { label: content?.navGallery || 'Galerij', type: 'button' },
     { href: '#contact', label: content?.navContact || 'Contact', type: 'link' },
   ];
@@ -70,6 +72,20 @@ function Header({ onOpenGallery, content, status }: HeaderProps) {
 
   const renderNavLinks = (isMobile: boolean) => navLinks.map((item) => {
     if (item.type === 'link') {
+        // External link (e.g., /blog)
+        if (item.href?.startsWith('/')) {
+            return (
+                 <Link
+                    key={item.label}
+                    to={item.href}
+                    onClick={() => { if (isMobile) setIsMenuOpen(false); }}
+                    className={isMobile ? "text-gray-300 hover:bg-zinc-800 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors" : "text-gray-300 hover:bg-zinc-800 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"}
+                >
+                    {item.label}
+                </Link>
+            )
+        }
+      // Anchor link
       const finalHref = isHomePage ? item.href : `/${item.href}`;
       return (
         <a

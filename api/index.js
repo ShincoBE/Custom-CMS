@@ -60,7 +60,7 @@ async function streamToBuffer(readableStream) {
 const DEFAULT_CONTENT = {
   pageContent: {
     _id: "singleton-content",
-    navHome: "Home", navServices: "Diensten", navBeforeAfter: "Voor & Na", navGallery: "Galerij", navContact: "Contact",
+    navHome: "Home", navServices: "Diensten", navBeforeAfter: "Voor & Na", navGallery: "Galerij", navContact: "Contact", navBlog: "Projecten",
     companyName: "Andries Service+", heroTitle: "Uw tuin, onze passie.", heroTagline: "Professioneel onderhoud voor een onberripselijke tuin.", heroButtonText: "Vraag Offerte Aan",
     servicesTitle: "Onze Diensten", servicesSubtitle: "Wij bieden een breed scala aan diensten om uw tuin en woning in topconditie te houden.", 
     servicesList: [
@@ -106,6 +106,24 @@ const DEFAULT_CONTENT = {
       }
     ],
     beforeAfterTitle: "Voor & Na", beforeAfterSubtitle: "Zie het verschil dat professioneel onderhoud maakt.",
+    testimonialsTitle: "Wat Klanten Zeggen", testimonialsSubtitle: "Onze grootste trots is de tevredenheid van onze klanten.",
+    testimonials: [
+      {
+        _key: 'testimonial_1',
+        quote: "Andries Service+ heeft onze verwilderde tuin omgetoverd tot een paradijs. Professioneel, stipt en met oog voor detail. Een absolute aanrader!",
+        name: "Familie Peeters",
+        rating: 5,
+        published: true
+      },
+      {
+        _key: 'testimonial_2',
+        quote: "Het buitenschilderwerk van onze woning is perfect uitgevoerd. De voorbereiding was grondig en het eindresultaat is prachtig. Zeer tevreden over de service.",
+        name: "Jan De Smet",
+        rating: 5,
+        published: true
+      }
+    ],
+    blogTitle: "Laatste Projecten", blogSubtitle: "Een kijkje in onze recente werkzaamheden en verhalen.",
     servicesCtaTitle: "Bekijk Ons Werk", servicesCtaSubtitle: "Een foto zegt meer dan duizend woorden. Ontdek onze projecten in de galerij.", servicesCtaButtonText: "Open Galerij",
     galleryTitle: "Galerij", gallerySubtitle: "Een selectie van onze voltooide projecten.",
     contactTitle: "Neem Contact Op", contactSubtitle: "Heeft u vragen of wilt u een vrijblijvende offerte? Wij staan voor u klaar.",
@@ -113,7 +131,7 @@ const DEFAULT_CONTENT = {
     contactAddressTitle: "Adres", contactAddress: "Hazenstraat 65\n2500 Lier\nBelgië",
     contactEmailTitle: "Email", contactEmail: "info.andries.serviceplus@gmail.com",
     contactPhoneTitle: "Telefoon", contactPhone: "+32 494 39 92 86",
-    contactFormNameLabel: "Naam", contactFormEmailLabel: "Emailadres", contactFormMessageLabel: "Uw bericht", contactFormSubmitButtonText: "Verstuur Bericht",
+    contactFormNameLabel: "Naam", contactFormEmailLabel: "Emailadres", contactFormMessageLabel: "Uw bericht", contactFormSubmitButtonText: "Stel een Vraag",
     contactFormSuccessTitle: "Bericht Verzonden!", contactFormSuccessText: "Bedankt voor uw bericht. We nemen zo spoedielijk mogelijk contact met u op.", contactFormSuccessAgainButtonText: "Nog een bericht sturen",
     contactMapEnabled: true, contactMapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2503.491333794334!2d4.57099631583015!3d51.1357909795757!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47c3f0e0f0e0f0e1%3A0x8e0e0e0e0e0e0e0e!2sHazenstraat%2065%2C%202500%20Lier%2C%20Belgium!5e0!3m2!1sen!2sus!4v1620000000000",
     facebookUrl: "https://www.facebook.com/", footerCopyrightText: "Andries Service+. Alle rechten voorbehouden.",
@@ -126,6 +144,18 @@ const DEFAULT_CONTENT = {
     ogImage: { url: 'https://i.postimg.cc/431ktwwb/Hero.jpg', alt: 'Andries Service+ Tuinonderhoud' },
   },
   galleryImages: [],
+  blogPosts: [
+      {
+        _id: 'post_1',
+        title: 'Project: Volledige Tuinmetamorfose in Lier',
+        slug: 'project-tuinmetamorfose-lier',
+        excerpt: 'Ontdek hoe we een overwoekerde achtertuin hebben omgetoverd tot een moderne, onderhoudsvriendelijke oase met een strak terras en nieuwe beplanting.',
+        mainImage: { url: 'https://i.postimg.cc/j5XbQ8cQ/after-image.jpg', alt: 'Een moderne tuin met een nieuw terras en perfecte beplanting.' },
+        content: '<p>Onlangs kregen we de uitdaging om een verwaarloosde tuin in Lier volledig te transformeren. De wens van de klant was duidelijk: een moderne, strakke tuin die toch groen aanvoelde en vooral onderhoudsvriendelijk was. Het project omvatte het volledig leeghalen van de bestaande tuin, het aanleggen van een nieuw terras en het creëren van een doordacht beplantingsplan.</p><p><br></p><p>We zijn gestart met het verwijderen van de oude, verzakte tegels en de overwoekerde beplanting. Na het egaliseren van de ondergrond hebben we een ruim terras aangelegd met grote, keramische tegels in een antracietkleur. Dit vormt de basis voor de moderne uitstraling. Om het geheel te breken en een warmere sfeer te creëren, hebben we verhoogde plantenborders van cortenstaal geplaatst.</p><p><br></p><img src="https://i.postimg.cc/431ktwwb/Hero.jpg" alt="Close-up van de nieuwe, moderne beplanting in de tuin." style="max-width: 100%; height: auto; border-radius: 8px;"><p><br></p><p>De keuze van de beplanting was cruciaal voor het onderhoudsvriendelijke aspect. We hebben gekozen voor een mix van groenblijvende siergrassen, winterharde vaste planten en enkele bloeiende heesters die weinig snoeiwerk vereisen. Het resultaat is een tuin die het hele jaar door interessant is, met minimale inspanning van de eigenaars. Het eindresultaat is een perfecte balans tussen design en natuur, een plek waar de bewoners weer volop kunnen genieten van hun buitenruimte.</p>',
+        published: true,
+        publishedAt: new Date().toISOString()
+      }
+  ],
 };
 // --- END: DEFAULT CONTENT ---
 
@@ -178,9 +208,68 @@ async function handleContact(req, res) {
   }
 }
 
+async function handleQuote(req, res) {
+  const { name, email, services, details, imageUrl } = req.body;
+  
+  // Basic validation
+  if (!name || !email || !services || services.length === 0 || !details) {
+    return res.status(400).json({ error: 'Alle velden zijn verplicht.' });
+  }
+
+  try {
+    const [settings, pageContent] = await Promise.all([kv.get('settings'), kv.get('pageContent')]);
+    const emailUser = settings?.emailUser || process.env.EMAIL_USER;
+    const emailPass = settings?.emailPass || process.env.EMAIL_PASS;
+    const emailTo = settings?.emailTo || process.env.EMAIL_TO;
+
+    if (!emailUser || !emailPass || !emailTo) {
+      throw new Error('E-mailconfiguratie ontbreekt.');
+    }
+
+    const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: emailUser, pass: emailPass } });
+
+    const servicesList = services.join(', ');
+    const formattedDetails = details.replace(/(?:\r\n|\r|\n)/g, '<br>');
+
+    const adminSubject = `Nieuwe Offerteaanvraag van ${name}`;
+    const adminBody = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>body{font-family:sans-serif;}</style>
+      </head>
+      <body>
+        <h2>Nieuwe Offerteaanvraag</h2>
+        <p><strong>Naam:</strong> ${name}</p>
+        <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+        <p><strong>Gekozen Diensten:</strong> ${servicesList}</p>
+        <p><strong>Details:</strong></p>
+        <div style="background-color:#f4f4f4;border:1px solid #ddd;padding:10px;border-radius:5px;">${formattedDetails}</div>
+        ${imageUrl ? `<p><strong>Bijgevoegde foto:</strong></p><a href="${imageUrl}"><img src="${imageUrl}" alt="Bijlage" style="max-width:400px;height:auto;"/></a>` : ''}
+      </body>
+      </html>
+    `;
+    
+    const mailOptions = {
+        from: `"Andries Service+ Offertes" <${emailUser}>`,
+        to: emailTo,
+        replyTo: email,
+        subject: adminSubject,
+        html: adminBody,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({ success: true, message: 'Offerteaanvraag succesvol verzonden!' });
+  } catch (error) {
+    console.error('Error sending quote email:', error);
+    return res.status(500).json({ error: 'Sorry, uw offerteaanvraag kon niet worden verzonden.' });
+  }
+}
+
 async function handleGetContent(req, res) {
   try {
-    let [pageContent, galleryImages, settings] = await Promise.all([ kv.get('pageContent'), kv.get('galleryImages'), kv.get('settings') ]);
+    let [pageContent, galleryImages, blogPosts, settings] = await Promise.all([ kv.get('pageContent'), kv.get('galleryImages'), kv.get('blogPosts'), kv.get('settings') ]);
     
     // Use default if KV is empty
     if (!pageContent) {
@@ -189,24 +278,22 @@ async function handleGetContent(req, res) {
       // Data migration: ensure all services have the new page-related fields
       if (pageContent.servicesList && Array.isArray(pageContent.servicesList)) {
         pageContent.servicesList.forEach(service => {
-          if (typeof service.hasPage === 'undefined') {
-            service.hasPage = false;
-          }
-          if (typeof service.slug === 'undefined') {
-            service.slug = '';
-          }
-          if (typeof service.pageContent === 'undefined') {
-            service.pageContent = '';
-          }
+          if (typeof service.hasPage === 'undefined') service.hasPage = false;
+          if (typeof service.slug === 'undefined') service.slug = '';
+          if (typeof service.pageContent === 'undefined') service.pageContent = '';
         });
       }
+      if (typeof pageContent.testimonials === 'undefined') pageContent.testimonials = DEFAULT_CONTENT.pageContent.testimonials;
     }
 
     if (galleryImages === null || galleryImages === undefined) galleryImages = DEFAULT_CONTENT.galleryImages;
+    if (blogPosts === null || blogPosts === undefined) blogPosts = DEFAULT_CONTENT.blogPosts;
     if (!settings) settings = {};
+    if (typeof settings.showTestimonials === 'undefined') settings.showTestimonials = true;
+    if (typeof settings.showBlog === 'undefined') settings.showBlog = true;
     
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
-    return res.status(200).json({ pageContent, galleryImages, settings });
+    return res.status(200).json({ pageContent, galleryImages, blogPosts, settings });
   } catch (error) {
     console.error('Error fetching content:', error);
     return res.status(500).json({ error: 'Failed to fetch content.' });
@@ -216,16 +303,16 @@ async function handleGetContent(req, res) {
 async function handleUpdateContent(req, res) {
   try {
     await authorizeRequest(req, ['SuperAdmin', 'Admin', 'Editor']);
-    const { pageContent, galleryImages, settings } = req.body;
-    if (!pageContent || galleryImages === undefined || settings === undefined) return res.status(400).json({ error: 'Invalid payload.' });
-    const [currentContent, currentGallery, currentSettings] = await Promise.all([kv.get('pageContent'), kv.get('galleryImages'), kv.get('settings')]);
-    if (currentContent && (currentGallery !== null && currentGallery !== undefined) && currentSettings) {
+    const { pageContent, galleryImages, blogPosts, settings } = req.body;
+    if (!pageContent || galleryImages === undefined || blogPosts === undefined || settings === undefined) return res.status(400).json({ error: 'Invalid payload.' });
+    const [currentContent, currentGallery, currentBlog, currentSettings] = await Promise.all([kv.get('pageContent'), kv.get('galleryImages'), kv.get('blogPosts'), kv.get('settings')]);
+    if (currentContent && (currentGallery !== null && currentGallery !== undefined) && currentBlog && currentSettings) {
       const timestamp = new Date().toISOString();
-      await kv.set(`history:${timestamp}`, { pageContent: currentContent, galleryImages: currentGallery, settings: currentSettings }, { ex: 60 * 60 * 24 * 30 });
+      await kv.set(`history:${timestamp}`, { pageContent: currentContent, galleryImages: currentGallery, blogPosts: currentBlog, settings: currentSettings }, { ex: 60 * 60 * 24 * 30 });
       await kv.lpush('content_history', timestamp);
       await kv.ltrim('content_history', 0, 9);
     }
-    await Promise.all([ kv.set('pageContent', pageContent), kv.set('galleryImages', galleryImages), kv.set('settings', settings) ]);
+    await Promise.all([ kv.set('pageContent', pageContent), kv.set('galleryImages', galleryImages), kv.set('blogPosts', blogPosts), kv.set('settings', settings) ]);
     return res.status(200).json({ success: true, message: 'Content en instellingen succesvol opgeslagen!' });
   } catch (error) {
     return res.status(error.message === 'Access denied.' ? 403 : 500).json({ error: error.message });
@@ -357,7 +444,7 @@ async function handleRevertContent(req, res) {
     if (!timestamp) return res.status(400).json({ error: 'Timestamp is verplicht.' });
     const historicalContent = await kv.get(`history:${timestamp}`);
     if (!historicalContent) return res.status(404).json({ error: 'Historische versie niet gevonden.' });
-    await Promise.all([ kv.set('pageContent', historicalContent.pageContent), kv.set('galleryImages', historicalContent.galleryImages), kv.set('settings', historicalContent.settings) ]);
+    await Promise.all([ kv.set('pageContent', historicalContent.pageContent), kv.set('galleryImages', historicalContent.galleryImages), kv.set('blogPosts', historicalContent.blogPosts), kv.set('settings', historicalContent.settings) ]);
     return res.status(200).json({ success: true, message: `Content hersteld naar versie van ${timestamp}.` });
   } catch (error) {
     return res.status(error.message === 'Access denied.' ? 403 : 500).json({ error: error.message });
@@ -380,7 +467,10 @@ async function handleTestEmail(req, res) {
 
 async function handleSitemap(req, res) {
   try {
-    const pageContent = await kv.get('pageContent') || DEFAULT_CONTENT.pageContent;
+    const [pageContent, blogPosts] = await Promise.all([
+        kv.get('pageContent') || DEFAULT_CONTENT.pageContent,
+        kv.get('blogPosts') || DEFAULT_CONTENT.blogPosts
+    ]);
     const services = pageContent?.servicesList || [];
     
     const protocol = req.headers['x-forwarded-proto'] || 'http';
@@ -391,16 +481,24 @@ async function handleSitemap(req, res) {
 
     const urls = [
       { loc: baseUrl, lastmod: today, changefreq: 'weekly', priority: '1.0' },
+      { loc: `${baseUrl}/blog`, lastmod: today, changefreq: 'weekly', priority: '0.9' },
     ];
 
     services.forEach(service => {
       if (service.published && service.hasPage && service.slug) {
-        const safeSlug = encodeURIComponent(service.slug);
         urls.push({
-          loc: `${baseUrl}/diensten/${safeSlug}`,
-          lastmod: today,
-          changefreq: 'monthly',
-          priority: '0.8'
+          loc: `${baseUrl}/diensten/${encodeURIComponent(service.slug)}`,
+          lastmod: today, changefreq: 'monthly', priority: '0.8'
+        });
+      }
+    });
+
+    blogPosts.forEach(post => {
+      if (post.published && post.slug) {
+        urls.push({
+          loc: `${baseUrl}/blog/${encodeURIComponent(post.slug)}`,
+          lastmod: new Date(post.publishedAt).toISOString().split('T')[0],
+          changefreq: 'monthly', priority: '0.7'
         });
       }
     });
@@ -613,6 +711,7 @@ module.exports = async (req, res) => {
 
   // PUBLIC ROUTES
   if (path === '/api/contact' && req.method === 'POST') return handleContact(req, res);
+  if (path === '/api/quote' && req.method === 'POST') return handleQuote(req, res);
   if (path === '/api/content' && req.method === 'GET') return handleGetContent(req, res);
   if (path === '/api/event' && req.method === 'POST') return handleTrack(req, res);
   if (path === '/api/login' && req.method === 'POST') return handleLogin(req, res);

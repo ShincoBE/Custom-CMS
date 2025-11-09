@@ -374,7 +374,7 @@ function Contact({ content }: ContactProps) {
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="group inline-flex items-center justify-center py-3 px-8 border border-transparent shadow-sm text-base font-medium rounded-full text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-900 focus:ring-green-500 transition-all duration-300 transform hover:scale-105 disabled:bg-zinc-600 disabled:scale-100 disabled:cursor-not-allowed"
+                                    className="group inline-flex items-center justify-center py-3 px-8 border border-transparent shadow-sm text-base font-medium rounded-full text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500 transition-all duration-300 transform hover:scale-105 disabled:bg-zinc-600 disabled:scale-100 disabled:cursor-not-allowed"
                                 >
                                     {isLoading ? (
                                         <>
@@ -386,7 +386,7 @@ function Contact({ content }: ContactProps) {
                                         </>
                                     ) : (
                                         <>
-                                            {content?.contactFormSubmitButtonText || 'Verstuur Bericht'}
+                                            {content?.contactFormSubmitButtonText || 'Stel een Vraag'}
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                                             </svg>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import type { PageContent, GalleryImage, SiteSettings } from '../types';
+import type { PageContent, GalleryImage, SiteSettings, BlogPost, Testimonial } from '../types';
 import { Spinner, CheckCircle, SignOut, FloppyDisk, ArrowSquareOut } from 'phosphor-react';
 
 // Import tabs
@@ -9,6 +9,8 @@ import NavigationTab from '../components/admin/tabs/NavigationTab';
 import HeroTab from '../components/admin/tabs/HeroTab';
 import ServicesTab from '../components/admin/tabs/ServicesTab';
 import BeforeAfterTab from '../components/admin/tabs/BeforeAfterTab';
+import TestimonialsTab from '../components/admin/tabs/TestimonialsTab';
+import BlogTab from '../components/admin/tabs/BlogTab';
 import CtaGalleryTab from '../components/admin/tabs/CtaGalleryTab';
 import GalleryTab from '../components/admin/tabs/GalleryTab';
 import ContactTab from '../components/admin/tabs/ContactTab';
@@ -21,6 +23,7 @@ import HelpTab from '../components/admin/tabs/HelpTab';
 
 // Import UI components
 import GalleryEditModal from '../components/admin/ui/GalleryEditModal';
+import BlogEditModal from '../components/admin/ui/BlogEditModal';
 import NotificationPopup from '../components/admin/ui/NotificationPopup';
 import ConfirmationModal from '../components/admin/ui/ConfirmationModal';
 import AdminDropdownMenu from '../components/admin/ui/AdminDropdownMenu';
@@ -30,6 +33,7 @@ function AdminDashboard() {
   const { user, logout } = useAuth();
   const [content, setContent] = useState<PageContent | null>(null);
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [originalContent, setOriginalContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +41,10 @@ function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
+  
   const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null);
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+
   const [confirmation, setConfirmation] = useState<{
     isOpen: boolean;
     title: string;
@@ -54,6 +61,8 @@ function AdminDashboard() {
     { id: 'hero', label: 'Hero & SEO', roles: ['SuperAdmin', 'Admin', 'Editor'] },
     { id: 'diensten', label: 'Diensten', roles: ['SuperAdmin', 'Admin', 'Editor'] },
     { id: 'voor-na', label: 'Voor & Na', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'reviews', label: 'Reviews', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'blog', label: 'Blog', roles: ['SuperAdmin', 'Admin', 'Editor'] },
     { id: 'galerij-cta', label: 'Galerij CTA', roles: ['SuperAdmin', 'Admin', 'Editor'] },
     { id: 'galerij', label: 'Galerij', roles: ['SuperAdmin', 'Admin', 'Editor'] },
     { id: 'contact', label: 'Contact', roles: ['SuperAdmin', 'Admin', 'Editor'] },
@@ -79,8 +88,14 @@ function AdminDashboard() {
       const data = await response.json();
       setContent(data.pageContent);
       setGallery(data.galleryImages);
+      setBlogPosts(data.blogPosts);
       setSettings(data.settings || {});
-      setOriginalContent(JSON.stringify({ pageContent: data.pageContent, galleryImages: data.galleryImages, settings: data.settings || {} }));
+      setOriginalContent(JSON.stringify({ 
+        pageContent: data.pageContent, 
+        galleryImages: data.galleryImages, 
+        blogPosts: data.blogPosts,
+        settings: data.settings || {} 
+      }));
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -94,8 +109,8 @@ function AdminDashboard() {
 
   const hasChanges = useMemo(() => {
     if (!content || !settings) return false;
-    return JSON.stringify({ pageContent: content, galleryImages: gallery, settings: settings }) !== originalContent;
-  }, [content, gallery, settings, originalContent]);
+    return JSON.stringify({ pageContent: content, galleryImages: gallery, blogPosts, settings: settings }) !== originalContent;
+  }, [content, gallery, blogPosts, settings, originalContent]);
   
   const showNotification = useCallback((type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
@@ -170,7 +185,12 @@ function AdminDashboard() {
           const response = await fetch('/api/update-content', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ pageContent: content, galleryImages: gallery.filter(img => img.image.url), settings }),
+              body: JSON.stringify({ 
+                pageContent: content, 
+                galleryImages: gallery.filter(img => img.image.url), 
+                blogPosts, 
+                settings 
+              }),
           });
           if (!response.ok) {
               const errData = await response.json();
@@ -179,7 +199,7 @@ function AdminDashboard() {
           const data = await response.json();
           const validGallery = gallery.filter(img => img.image.url);
           setGallery(validGallery);
-          setOriginalContent(JSON.stringify({ pageContent: content, galleryImages: validGallery, settings }));
+          setOriginalContent(JSON.stringify({ pageContent: content, galleryImages: validGallery, blogPosts, settings }));
           showNotification('success', data.message);
       } catch (err: any) {
           showNotification('error', err.message);
@@ -188,7 +208,7 @@ function AdminDashboard() {
       }
   };
 
-  const handleCloseModal = () => {
+  const handleCloseImageModal = () => {
       if (editingImageIndex !== null) {
           const image = gallery[editingImageIndex];
           if (image && image._id.startsWith('new-') && !image.image.url) {
@@ -197,6 +217,29 @@ function AdminDashboard() {
       }
       setEditingImageIndex(null);
   };
+  
+  const handleSavePost = (postToSave: BlogPost) => {
+      setBlogPosts(prev => {
+          const index = prev.findIndex(p => p._id === postToSave._id);
+          if (index > -1) {
+              return prev.map((p, i) => i === index ? postToSave : p);
+          }
+          return [...prev, postToSave];
+      });
+      setEditingPost(null);
+  };
+  
+  const handleDeletePost = (postId: string) => {
+       showConfirmation(
+            'Blogpost Verwijderen',
+            `Weet u zeker dat u deze post wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`,
+            () => {
+                setBlogPosts(prev => prev.filter(p => p._id !== postId));
+                showNotification('success', 'Blogpost succesvol verwijderd.');
+            }
+        );
+  };
+
 
   if (isLoading) return <div className="min-h-screen bg-zinc-900 text-white flex items-center justify-center"><Spinner size={32} className="animate-spin" /></div>;
   if (error) return <div className="min-h-screen bg-zinc-900 text-white flex items-center justify-center text-red-400">{error}</div>;
@@ -217,6 +260,8 @@ function AdminDashboard() {
       case 'hero': return <HeroTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
       case 'diensten': return <ServicesTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} handleModalImageUpload={handleModalImageUpload} />;
       case 'voor-na': return <BeforeAfterTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
+      case 'reviews': return <TestimonialsTab content={content} handleContentChange={handleContentChange} />;
+      case 'blog': return <BlogTab blogPosts={blogPosts} setEditingPost={setEditingPost} handleDeletePost={handleDeletePost} />;
       case 'galerij-cta': return <CtaGalleryTab content={content} handleContentChange={handleContentChange} />;
       case 'galerij': return <GalleryTab content={content} gallery={gallery} handleContentChange={handleContentChange} setGallery={setGallery} setEditingImageIndex={setEditingImageIndex} />;
       case 'contact': return <ContactTab content={content} handleContentChange={handleContentChange} handleModalImageUpload={handleModalImageUpload} />;
@@ -300,7 +345,10 @@ function AdminDashboard() {
       </main>
       
       {editingImageIndex !== null && gallery[editingImageIndex] && (
-        <GalleryEditModal isOpen={editingImageIndex !== null} onClose={handleCloseModal} image={gallery[editingImageIndex]} onSave={(updatedImage) => { setGallery(g => g.map((item, i) => (i === editingImageIndex ? updatedImage : item))); setEditingImageIndex(null); }} onImageUpload={handleModalImageUpload} />
+        <GalleryEditModal isOpen={editingImageIndex !== null} onClose={handleCloseImageModal} image={gallery[editingImageIndex]} onSave={(updatedImage) => { setGallery(g => g.map((item, i) => (i === editingImageIndex ? updatedImage : item))); setEditingImageIndex(null); }} onImageUpload={handleModalImageUpload} />
+      )}
+      {editingPost && (
+        <BlogEditModal isOpen={!!editingPost} onClose={() => setEditingPost(null)} post={editingPost} onSave={handleSavePost} onImageUpload={handleModalImageUpload} />
       )}
       <ConfirmationModal isOpen={confirmation.isOpen} onClose={() => setConfirmation(prev => ({ ...prev, isOpen: false }))} onConfirm={confirmation.onConfirm} title={confirmation.title} message={confirmation.message} />
       <NotificationPopup notification={notification} />
