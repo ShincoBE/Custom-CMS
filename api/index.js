@@ -266,7 +266,10 @@ async function handleGetContent(req, res) {
     if (!pageContent) {
       pageContent = DEFAULT_CONTENT.pageContent;
     } else {
-      // Data migration: ensure all services have the new page-related fields
+      // --- START: DATA MIGRATION BLOCK ---
+      // This block ensures backward compatibility for content saved before new features were added.
+
+      // Migrate: Services page-related fields
       if (pageContent.servicesList && Array.isArray(pageContent.servicesList)) {
         pageContent.servicesList.forEach(service => {
           if (typeof service.hasPage === 'undefined') service.hasPage = false;
@@ -274,7 +277,25 @@ async function handleGetContent(req, res) {
           if (typeof service.pageContent === 'undefined') service.pageContent = '';
         });
       }
-      if (typeof pageContent.testimonials === 'undefined') pageContent.testimonials = DEFAULT_CONTENT.pageContent.testimonials;
+      
+      // Migrate: Testimonials array
+      if (typeof pageContent.testimonials === 'undefined') {
+          pageContent.testimonials = DEFAULT_CONTENT.pageContent.testimonials;
+      }
+      
+      // Migrate: New Contact section fields
+      const contactFieldsToMigrate = [
+        'contactQuoteCardTitle', 'contactQuoteCardText', 'contactQuoteCardButtonText',
+        'contactDirectCardTitle', 'contactDirectCardText', 'contactAddress',
+        'contactEmail', 'contactPhone', 'contactMapEnabled', 'contactMapUrl',
+        'quoteAdminEmailSubject', 'quoteAdminEmailBody', 'quoteUserEmailSubject', 'quoteUserEmailBody'
+      ];
+      contactFieldsToMigrate.forEach(field => {
+        if (pageContent[field] === undefined) {
+            pageContent[field] = DEFAULT_CONTENT.pageContent[field];
+        }
+      });
+      // --- END: DATA MIGRATION BLOCK ---
     }
 
     if (galleryImages === null || galleryImages === undefined) galleryImages = DEFAULT_CONTENT.galleryImages;

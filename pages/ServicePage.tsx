@@ -100,9 +100,9 @@ function ServicePage() {
               );
           case 'success':
               return service && (
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
                     <StructuredData pageContent={pageContent} service={service} />
-                    <div className="bg-zinc-900/60 backdrop-blur-sm border border-zinc-700/50 rounded-2xl shadow-2xl my-12 sm:my-16 overflow-hidden">
+                    <div className="bg-zinc-900/60 backdrop-blur-sm border border-zinc-700/50 rounded-2xl shadow-2xl overflow-hidden">
                         <div className="p-6 sm:p-10 lg:p-12">
                             <header className="text-center mb-10">
                                 {service.customIcon?.url && (
