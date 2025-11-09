@@ -170,7 +170,7 @@ const QuotePage = () => {
             
             <div className="mt-4">
                 <label className="block text-sm font-medium text-zinc-300 mb-2">Voeg een foto toe (optioneel)</label>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-start sm:items-center flex-col sm:flex-row gap-4">
                     <button type="button" onClick={() => fileInputRef.current?.click()} className="inline-flex items-center px-4 py-2 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600">
                         <UploadSimple size={16} className="mr-2" /> Foto kiezen
                     </button>
@@ -184,6 +184,7 @@ const QuotePage = () => {
                         </div>
                     )}
                 </div>
+                <p className="text-xs text-zinc-400 mt-2">Max. bestandsgrootte: 5MB. Toegestane types: JPG, PNG, WEBP.</p>
                 {errors.image && <p className="text-red-400 text-xs mt-1">{errors.image}</p>}
             </div>
           </div>

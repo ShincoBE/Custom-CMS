@@ -132,6 +132,27 @@ const DEFAULT_CONTENT = {
     contactEmailTitle: "Email", contactEmail: "info.andries.serviceplus@gmail.com",
     contactPhoneTitle: "Telefoon", contactPhone: "+32 494 39 92 86",
     contactMapEnabled: false, contactMapUrl: "",
+    quoteAdminEmailSubject: "Nieuwe Offerteaanvraag van {name}",
+    quoteAdminEmailBody: `
+      <p>Er is een nieuwe offerteaanvraag binnengekomen via de website.</p>
+      <p><strong>Naam:</strong> {name}<br>
+      <strong>Email:</strong> <a href="mailto:{email}">{email}</a></p>
+      <hr>
+      <p><strong>Gekozen Diensten:</strong></p>
+      <p>{services}</p>
+      <hr>
+      <p><strong>Details van de aanvraag:</strong></p>
+      <div>{details}</div>
+      <p>{imageUrl}</p>
+    `,
+    quoteUserEmailSubject: "Bedankt voor uw offerteaanvraag!",
+    quoteUserEmailBody: `
+      <p>Beste {name},</p>
+      <p>Bedankt voor uw interesse in Andries Service+! We hebben uw offerteaanvraag goed ontvangen en zullen deze zo spoedig mogelijk bekijken.</p>
+      <p>We nemen binnen 2 werkdagen contact met u op om de details verder te bespreken.</p>
+      <p>Met vriendelijke groeten,</p>
+      <p>Het team van Andries Service+</p>
+    `,
     facebookUrl: "https://www.facebook.com/", footerCopyrightText: "Andries Service+. Alle rechten voorbehouden.",
     logo: { url: '/favicon.svg', alt: 'Andries Service+ Logo' }, heroImage: { url: 'https://i.postimg.cc/431ktwwb/Hero.jpg', alt: 'Mooi onderhouden tuin' },
     beforeImage: { url: 'https://i.postimg.cc/L8gP8SYb/before-image.jpg', alt: 'Tuin voor onderhoud' }, afterImage: { url: 'https://i.postimg.cc/j5XbQ8cQ/after-image.jpg', alt: 'Tuin na onderhoud' },
@@ -158,13 +179,15 @@ const DEFAULT_CONTENT = {
 async function handleQuote(req, res) {
   const { name, email, services, details, imageUrl } = req.body;
   
-  // Basic validation
   if (!name || !email || !services || services.length === 0 || !details) {
     return res.status(400).json({ error: 'Alle velden zijn verplicht.' });
   }
 
   try {
-    const [settings, pageContent] = await Promise.all([kv.get('settings'), kv.get('pageContent')]);
+    const [settings, pageContent] = await Promise.all([
+      kv.get('settings'), 
+      kv.get('pageContent').then(pc => pc || DEFAULT_CONTENT.pageContent)
+    ]);
     const emailUser = settings?.emailUser || process.env.EMAIL_USER;
     const emailPass = settings?.emailPass || process.env.EMAIL_PASS;
     const emailTo = settings?.emailTo || process.env.EMAIL_TO;
@@ -177,35 +200,46 @@ async function handleQuote(req, res) {
 
     const servicesList = services.join(', ');
     const formattedDetails = details.replace(/(?:\r\n|\r|\n)/g, '<br>');
+    const imageHtml = imageUrl ? `<p><strong>Bijgevoegde foto:</strong></p><a href="${imageUrl}"><img src="${imageUrl}" alt="Bijlage" style="max-width:400px;height:auto;"/></a>` : '';
 
-    const adminSubject = `Nieuwe Offerteaanvraag van ${name}`;
-    const adminBody = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <style>body{font-family:sans-serif;}</style>
-      </head>
-      <body>
-        <h2>Nieuwe Offerteaanvraag</h2>
-        <p><strong>Naam:</strong> ${name}</p>
-        <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
-        <p><strong>Gekozen Diensten:</strong> ${servicesList}</p>
-        <p><strong>Details:</strong></p>
-        <div style="background-color:#f4f4f4;border:1px solid #ddd;padding:10px;border-radius:5px;">${formattedDetails}</div>
-        ${imageUrl ? `<p><strong>Bijgevoegde foto:</strong></p><a href="${imageUrl}"><img src="${imageUrl}" alt="Bijlage" style="max-width:400px;height:auto;"/></a>` : ''}
-      </body>
-      </html>
-    `;
+    const placeholders = {
+        '{name}': name,
+        '{email}': email,
+        '{services}': servicesList,
+        '{details}': formattedDetails,
+        '{imageUrl}': imageHtml,
+    };
     
-    const mailOptions = {
-        from: `"Andries Service+ Offertes" <${emailUser}>`,
+    const replacePlaceholders = (template) => {
+        let result = template;
+        for (const [key, value] of Object.entries(placeholders)) {
+            result = result.replace(new RegExp(key, 'g'), value);
+        }
+        return result;
+    }
+
+    // Email to Admin
+    const adminSubject = replacePlaceholders(pageContent.quoteAdminEmailSubject || "Nieuwe Offerteaanvraag van {name}");
+    const adminBody = replacePlaceholders(pageContent.quoteAdminEmailBody || "");
+    
+    await transporter.sendMail({
+        from: `"${pageContent.companyName || 'Website Offertes'}" <${emailUser}>`,
         to: emailTo,
         replyTo: email,
         subject: adminSubject,
         html: adminBody,
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
+    
+    // Confirmation Email to User
+    const userSubject = replacePlaceholders(pageContent.quoteUserEmailSubject || "Bedankt voor uw aanvraag");
+    const userBody = replacePlaceholders(pageContent.quoteUserEmailBody || "");
+    
+    await transporter.sendMail({
+        from: `"${pageContent.companyName || 'Klantenservice'}" <${emailUser}>`,
+        to: email,
+        subject: userSubject,
+        html: userBody
+    });
 
     return res.status(200).json({ success: true, message: 'Offerteaanvraag succesvol verzonden!' });
   } catch (error) {

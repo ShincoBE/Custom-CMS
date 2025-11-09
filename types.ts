@@ -97,20 +97,15 @@ export interface PageContent {
   contactEmail?: string;
   contactPhoneTitle?: string;
   contactPhone?: string;
-  contactFormNameLabel?: string;
-  contactFormEmailLabel?: string;
-  contactFormMessageLabel?: string;
-  contactFormSubmitButtonText?: string;
-  contactFormSuccessTitle?: string;
-  contactFormSuccessText?: string;
-  contactFormSuccessAgainButtonText?: string;
   contactMapEnabled?: boolean; 
   contactMapUrl?: string; 
-  // New: Email template fields
-  contactAdminEmailSubject?: string;
-  contactAdminEmailBody?: string;
-  contactUserEmailSubject?: string;
-  contactUserEmailBody?: string;
+
+  // New: Quote Form Email Templates
+  quoteAdminEmailSubject?: string;
+  quoteAdminEmailBody?: string;
+  quoteUserEmailSubject?: string;
+  quoteUserEmailBody?: string;
+  
 
   // SEO & Social Media
   ogImage?: AppImage;
