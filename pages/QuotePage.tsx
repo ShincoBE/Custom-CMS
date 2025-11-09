@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PageContent, Service, SiteSettings } from '@/types';
-import { Spinner, ArrowLeft, ArrowRight, UploadSimple, PaperPlaneTilt, CheckCircle } from 'phosphor-react';
+import { Spinner, ArrowLeft, ArrowRight, UploadSimple, PaperPlaneTilt, CheckCircle, Trash } from 'phosphor-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -78,6 +78,15 @@ const QuotePage = () => {
       setErrors(prev => ({ ...prev, image: '' }));
     }
   };
+  
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+        fileInputRef.current.value = ''; // Reset file input
+    }
+  };
+
 
   const handleSubmit = async () => {
     if (!validateStep()) return;
@@ -166,7 +175,14 @@ const QuotePage = () => {
                         <UploadSimple size={16} className="mr-2" /> Foto kiezen
                     </button>
                     <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
-                    {imagePreview && <img src={imagePreview} alt="Preview" className="w-16 h-16 object-cover rounded-md"/>}
+                    {imagePreview && (
+                        <div className="flex items-center space-x-2">
+                             <img src={imagePreview} alt="Preview" className="w-16 h-16 object-cover rounded-md"/>
+                             <button onClick={removeImage} className="p-2 text-zinc-400 hover:text-red-400 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors" aria-label="Verwijder afbeelding">
+                                <Trash size={20} />
+                             </button>
+                        </div>
+                    )}
                 </div>
                 {errors.image && <p className="text-red-400 text-xs mt-1">{errors.image}</p>}
             </div>

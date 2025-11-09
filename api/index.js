@@ -656,16 +656,14 @@ module.exports = async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const path = url.pathname;
   
-  // Middleware to parse JSON body for POST requests
-  if (req.method === 'POST') {
+  // Middleware to parse JSON body for POST requests, EXCEPT for file uploads.
+  // The stream can only be consumed once.
+  if (req.method === 'POST' && path !== '/api/upload') {
     try {
       const bodyBuffer = await streamToBuffer(req);
       req.body = JSON.parse(bodyBuffer.toString() || '{}');
     } catch (e) {
-      // Ignore parsing errors for routes that don't expect JSON (like /upload)
-      if (!(path === '/api/upload')) {
-        return res.status(400).json({ error: 'Invalid JSON body' });
-      }
+      return res.status(400).json({ error: 'Invalid JSON body' });
     }
   }
 
