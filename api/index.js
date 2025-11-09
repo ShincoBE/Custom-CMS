@@ -80,9 +80,9 @@ const DEFAULT_CONTENT = {
         description: 'Droomt u van een nieuwe tuin? Wij realiseren uw visie, van een compleet nieuw ontwerp tot de volledige aanleg. Creëer de buitenruimte die bij u past.',
         customIcon: { url: 'https://i.postimg.cc/sXyW1Z0b/landscape-design-icon.png', alt: 'Icoon van een landschapsontwerp' },
         published: true,
-        hasPage: false,
-        slug: '',
-        pageContent: ''
+        hasPage: true,
+        slug: 'tuinaanleg-en-herinrichting',
+        pageContent: `<p>Een tuin aanleggen of herinrichten is het omzetten van een droom naar een levende, groene realiteit. Het gaat verder dan enkel planten in de grond steken; het is het creëren van een buitenruimte die naadloos aansluit bij uw levensstijl, de architectuur van uw woning en uw persoonlijke smaak. Of u nu droomt van een strakke, moderne tuin, een weelderige bloemenzee of een praktische, kindvriendelijke speelplek, wij vertalen uw visie naar een concreet en haalbaar plan.</p><p>Ons proces begint altijd met een persoonlijk gesprek. We luisteren aandachtig naar uw wensen, ideeën en de functionele eisen die u aan de tuin stelt. Op basis daarvan maken we een schetsontwerp waarin we de indeling, looproutes, terrassen en beplantingszones visualiseren. Samen bespreken we de materiaalkeuzes, van duurzaam hout en natuursteen voor terrassen en paden tot de selectie van planten die gedijen in uw specifieke omgeving.</p><p><br></p><img src="https://i.postimg.cc/k47vYvBw/garden-design-sample.jpg" alt="Een net aangelegde tuin met nieuwe bestrating, een houten vlonder en jonge beplanting." style="max-width: 100%; height: auto; border-radius: 8px;"><p><br></p><p>De daadwerkelijke aanleg is een zorgvuldig proces dat we van A tot Z coördineren. Dit omvat alle grondwerken, de aanleg van bestrating, de bouw van structuren zoals pergola’s of tuinhuizen, en de installatie van verlichting en eventuele waterpartijen. De finishing touch is het beplantingsplan: we selecteren bomen, heesters, vaste planten en bloembollen die zorgen voor kleur en structuur gedurende alle seizoenen, en planten deze met vakkennis en zorg.</p><p>Een professioneel aangelegde tuin is een waardevolle investering in uw woning en uw levenskwaliteit. Het is een plek om te ontspannen, te entertainen en te genieten van de natuur, direct vanuit uw eigen huis. Wij zorgen voor een duurzaam resultaat waar u jarenlang plezier van zult hebben, met aandacht voor detail en een hoogwaardige afwerking in elke fase van het project.</p><p>Heeft u plannen voor een nieuwe tuin of wilt u uw huidige tuin een complete make-over geven? Neem contact met ons op om de mogelijkheden te bespreken. We komen graag bij u langs om uw droomtuin vorm te geven.</p>`
       }
     ],
     beforeAfterTitle: "Voor & Na", beforeAfterSubtitle: "Zie het verschil dat professioneel onderhoud maakt.",
@@ -94,7 +94,7 @@ const DEFAULT_CONTENT = {
     contactEmailTitle: "Email", contactEmail: "info.andries.serviceplus@gmail.com",
     contactPhoneTitle: "Telefoon", contactPhone: "+32 494 39 92 86",
     contactFormNameLabel: "Naam", contactFormEmailLabel: "Emailadres", contactFormMessageLabel: "Uw bericht", contactFormSubmitButtonText: "Verstuur Bericht",
-    contactFormSuccessTitle: "Bericht Verzonden!", contactFormSuccessText: "Bedankt voor uw bericht. We nemen zo spoedielijk mogelijk contact met u op.", contactFormSuccessAgainButtonText: "Nog een bericht sturen",
+    contactFormSuccessTitle: "Bericht Verzonden!", contactFormSuccessText: "Bedankt voor uw bericht. We nemen zo spoedig mogelijk contact met u op.", contactFormSuccessAgainButtonText: "Nog een bericht sturen",
     contactMapEnabled: true, contactMapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2503.491333794334!2d4.57099631583015!3d51.1357909795757!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47c3f0e0f0e0f0e1%3A0x8e0e0e0e0e0e0e0e!2sHazenstraat%2065%2C%202500%20Lier%2C%20Belgium!5e0!3m2!1sen!2sus!4v1620000000000",
     facebookUrl: "https://www.facebook.com/", footerCopyrightText: "Andries Service+. Alle rechten voorbehouden.",
     contactAdminEmailSubject: 'Nieuw bericht van {{name}} via Andries Service+',
@@ -161,9 +161,30 @@ async function handleContact(req, res) {
 async function handleGetContent(req, res) {
   try {
     let [pageContent, galleryImages, settings] = await Promise.all([ kv.get('pageContent'), kv.get('galleryImages'), kv.get('settings') ]);
-    if (!pageContent) pageContent = DEFAULT_CONTENT.pageContent;
+    
+    // Use default if KV is empty
+    if (!pageContent) {
+      pageContent = DEFAULT_CONTENT.pageContent;
+    } else {
+      // Data migration: ensure all services have the new page-related fields
+      if (pageContent.servicesList && Array.isArray(pageContent.servicesList)) {
+        pageContent.servicesList.forEach(service => {
+          if (typeof service.hasPage === 'undefined') {
+            service.hasPage = false;
+          }
+          if (typeof service.slug === 'undefined') {
+            service.slug = '';
+          }
+          if (typeof service.pageContent === 'undefined') {
+            service.pageContent = '';
+          }
+        });
+      }
+    }
+
     if (galleryImages === null || galleryImages === undefined) galleryImages = DEFAULT_CONTENT.galleryImages;
     if (!settings) settings = {};
+    
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
     return res.status(200).json({ pageContent, galleryImages, settings });
   } catch (error) {
