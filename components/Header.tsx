@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import type { PageContent } from '../types';
 import { trackEvent } from '../hooks/useAnalytics';
 
@@ -33,6 +34,8 @@ interface HeaderProps {
 function Header({ onOpenGallery, content, status }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -65,20 +68,26 @@ function Header({ onOpenGallery, content, status }: HeaderProps) {
   const companyName = content?.companyName || 'Andries Service+';
   const logoUrl = logo?.url || '';
 
-  const renderNavLinks = (isMobile: boolean) => navLinks.map((item) => (
-    item.type === 'link' ? (
-      <a
-        key={item.label}
-        href={item.href}
-        onClick={(e) => {
-          handleSmoothScroll(e);
-          if (isMobile) setIsMenuOpen(false);
-        }}
-        className={isMobile ? "text-gray-300 hover:bg-zinc-800 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors" : "text-gray-300 hover:bg-zinc-800 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"}
-      >
-        {item.label}
-      </a>
-    ) : (
+  const renderNavLinks = (isMobile: boolean) => navLinks.map((item) => {
+    if (item.type === 'link') {
+      const finalHref = isHomePage ? item.href : `/${item.href}`;
+      return (
+        <a
+          key={item.label}
+          href={finalHref}
+          onClick={(e) => {
+            if (isHomePage) {
+              handleSmoothScroll(e);
+            }
+            if (isMobile) setIsMenuOpen(false);
+          }}
+          className={isMobile ? "text-gray-300 hover:bg-zinc-800 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors" : "text-gray-300 hover:bg-zinc-800 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"}
+        >
+          {item.label}
+        </a>
+      );
+    }
+    return (
       <button
         key={item.label}
         onClick={() => {
@@ -90,8 +99,8 @@ function Header({ onOpenGallery, content, status }: HeaderProps) {
       >
         {item.label}
       </button>
-    )
-  ));
+    );
+  });
 
   return (
     <>
@@ -99,7 +108,7 @@ function Header({ onOpenGallery, content, status }: HeaderProps) {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex-shrink-0">
-              <a href="#home" onClick={handleSmoothScroll} className="flex items-center text-xl font-bold tracking-tight text-white" aria-label="Home">
+              <a href={isHomePage ? "#home" : "/"} onClick={isHomePage ? handleSmoothScroll : undefined} className="flex items-center text-xl font-bold tracking-tight text-white" aria-label="Home">
                 {status === 'loading' ? (
                   <div className="h-10 w-10 rounded-full mr-3 bg-zinc-800 animate-pulse"></div>
                 ) : logoUrl ? (

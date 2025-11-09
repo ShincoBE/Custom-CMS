@@ -62,7 +62,29 @@ const DEFAULT_CONTENT = {
     _id: "singleton-content",
     navHome: "Home", navServices: "Diensten", navBeforeAfter: "Voor & Na", navGallery: "Galerij", navContact: "Contact",
     companyName: "Andries Service+", heroTitle: "Uw tuin, onze passie.", heroTagline: "Professioneel onderhoud voor een onberispelijke tuin.", heroButtonText: "Vraag Offerte Aan",
-    servicesTitle: "Onze Diensten", servicesSubtitle: "Wij bieden een breed scala aan diensten om uw tuin en woning in topconditie te houden.", servicesList: [],
+    servicesTitle: "Onze Diensten", servicesSubtitle: "Wij bieden een breed scala aan diensten om uw tuin en woning in topconditie te houden.", 
+    servicesList: [
+      {
+        _key: 'service_1721234567890',
+        title: 'Professioneel Tuinonderhoud',
+        description: 'Van wekelijks maaien tot seizoensgebonden snoeiwerk, wij zorgen ervoor dat uw tuin er het hele jaar door onberispelijk uitziet. Geniet van een gezonde, bloeiende tuin zonder zorgen.',
+        customIcon: { url: 'https://i.postimg.cc/W4y742AR/gardening-icon.png', alt: 'Icoon van tuingereedschap' },
+        published: true,
+        hasPage: true,
+        slug: 'professioneel-tuinonderhoud',
+        pageContent: `<p>Professioneel tuinonderhoud is essentieel om uw tuin het hele jaar door in topconditie te houden. Het is meer dan alleen het gras maaien; het omvat een totaalaanpak die zorgt voor gezonde planten, een strak gazon en een verzorgde uitstraling. Bij Andries Service+ begrijpen we dat elke tuin uniek is. Daarom bieden we op maat gemaakte onderhoudsplannen die perfect aansluiten bij de specifieke behoeften van uw buitenruimte, of het nu gaat om een kleine stadstuin of een groot landelijk perceel.</p><p><br></p><img src="https://i.postimg.cc/T3j2C7K8/garden-maintenance-sample.jpg" alt="Een prachtig onderhouden tuin met bloeiende borders en een groen gazon" style="max-width: 100%; height: auto; border-radius: 8px;"><p><br></p><p>Ons uitgebreide tuinonderhoud omvat een breed scala aan diensten. Denk hierbij aan het vakkundig snoeien van heesters, hagen en bomen op het juiste moment van het jaar om de groei en bloei te stimuleren. We verzorgen uw gazon met precisie, van regelmatig maaien en verticuteren tot bemesten en onkruidbestrijding. Ook het onderhoud van borders, het verwijderen van onkruid en het bemesten van planten behoren tot onze kerntaken. Wij zorgen ervoor dat uw tuin er niet alleen vandaag, maar ook in de toekomst prachtig uitziet.</p><p>Elk seizoen vraagt om een andere aanpak. In het voorjaar bereiden we de tuin voor op het groeiseizoen door te verticuteren, bemesten en de eerste snoeiwerkzaamheden uit te voeren. Gedurende de zomer focussen we op het onderhouden van het gazon, het in toom houden van onkruid en het zorgen voor voldoende water. In het najaar maken we de tuin winterklaar door blad te ruimen, vaste planten af te knippen en vorstgevoelige planten te beschermen. Zelfs in de winter kunnen wij snoeiwerkzaamheden uitvoeren om de tuin voor te bereiden op een nieuwe lente.</p><p>Door het tuinonderhoud aan ons over te laten, bespaart u niet alleen kostbare tijd en moeite, maar investeert u ook in de gezondheid en waarde van uw tuin. Een goed onderhouden tuin is een verlengstuk van uw woning, een plek waar u kunt ontspannen en genieten. Met onze expertise en professionele gereedschappen garanderen we een efficiënte en kwalitatieve service, zodat u zorgeloos van uw prachtige buitenruimte kunt genieten.</p><p>Bent u klaar om uw tuin de zorg te geven die het verdient? Neem vandaag nog contact met ons op voor een vrijblijvend gesprek. We bespreken graag uw wensen en stellen een onderhoudsplan op dat perfect bij u en uw tuin past.</p>`
+      },
+      {
+        _key: 'service_1721234567891',
+        title: 'Tuinaanleg & Herinrichting',
+        description: 'Droomt u van een nieuwe tuin? Wij realiseren uw visie, van een compleet nieuw ontwerp tot de volledige aanleg. Creëer de buitenruimte die bij u past.',
+        customIcon: { url: 'https://i.postimg.cc/sXyW1Z0b/landscape-design-icon.png', alt: 'Icoon van een landschapsontwerp' },
+        published: true,
+        hasPage: false,
+        slug: '',
+        pageContent: ''
+      }
+    ],
     beforeAfterTitle: "Voor & Na", beforeAfterSubtitle: "Zie het verschil dat professioneel onderhoud maakt.",
     servicesCtaTitle: "Bekijk Ons Werk", servicesCtaSubtitle: "Een foto zegt meer dan duizend woorden. Ontdek onze projecten in de galerij.", servicesCtaButtonText: "Open Galerij",
     galleryTitle: "Galerij", gallerySubtitle: "Een selectie van onze voltooide projecten.",

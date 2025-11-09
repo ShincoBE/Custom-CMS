@@ -4,14 +4,17 @@ import { Plus, Trash, Image, CaretDown, MagnifyingGlass, CheckCircle, Prohibit }
 import InputWithCounter from '../ui/InputWithCounter';
 import ImageUpload from '../ui/ImageUpload';
 import ToggleSwitch from '../ui/ToggleSwitch.tsx';
+import RichTextEditor from '../ui/RichTextEditor';
+import HelpTooltip from '../ui/HelpTooltip.tsx';
 
 interface ServicesTabProps {
     content: PageContent;
     handleContentChange: (path: string, value: any) => void;
     handleImageUpload: (file: File, path: string) => Promise<void>;
+    handleModalImageUpload: (file: File) => Promise<string>;
 }
 
-const ServicesTab = ({ content, handleContentChange, handleImageUpload }: ServicesTabProps) => {
+const ServicesTab = ({ content, handleContentChange, handleImageUpload, handleModalImageUpload }: ServicesTabProps) => {
     const [openedService, setOpenedService] = useState<number | null>(null);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
@@ -155,15 +158,17 @@ const ServicesTab = ({ content, handleContentChange, handleImageUpload }: Servic
                                                     onChange={e => handleContentChange(`servicesList.${originalIndex}.slug`, e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} 
                                                     required 
                                                 />
-                                                <InputWithCounter 
-                                                    as="textarea"
-                                                    name={`service-pageContent-${originalIndex}`} 
-                                                    label="Pagina Inhoud" 
-                                                    help="De volledige inhoud voor de aparte dienstpagina. HTML is toegestaan."
-                                                    value={service.pageContent || ''} 
-                                                    onChange={e => handleContentChange(`servicesList.${originalIndex}.pageContent`, e.target.value)} 
-                                                    showStyler
-                                                />
+                                                <div className="mb-6">
+                                                    <div className="flex items-center space-x-2 mb-1">
+                                                        <label className="block text-sm font-medium text-zinc-300">Pagina Inhoud</label>
+                                                        <HelpTooltip text="De volledige inhoud voor de aparte dienstpagina. U kunt tekst opmaken en afbeeldingen toevoegen." />
+                                                    </div>
+                                                    <RichTextEditor
+                                                        value={service.pageContent || ''}
+                                                        onChange={value => handleContentChange(`servicesList.${originalIndex}.pageContent`, value)}
+                                                        onImageUpload={handleModalImageUpload}
+                                                    />
+                                                </div>
                                             </div>
                                         )}
                                     </div>

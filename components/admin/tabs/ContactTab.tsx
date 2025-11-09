@@ -2,13 +2,16 @@ import React from 'react';
 import type { PageContent } from '../../../types';
 import InputWithCounter from '../ui/InputWithCounter';
 import ToggleSwitch from '../ui/ToggleSwitch.tsx';
+import RichTextEditor from '../ui/RichTextEditor.tsx';
+import HelpTooltip from '../ui/HelpTooltip.tsx';
 
 interface ContactTabProps {
     content: PageContent;
     handleContentChange: (path: string, value: any) => void;
+    handleModalImageUpload: (file: File) => Promise<string>;
 }
 
-const ContactTab = ({ content, handleContentChange }: ContactTabProps) => {
+const ContactTab = ({ content, handleContentChange, handleModalImageUpload }: ContactTabProps) => {
     return (
         <>
             <h2 className="text-2xl font-bold mb-4 text-zinc-100">Contact Sectie</h2>
@@ -60,7 +63,7 @@ const ContactTab = ({ content, handleContentChange }: ContactTabProps) => {
             <div className="mt-6 p-4 border-t border-zinc-700">
                 <h3 className="text-lg font-semibold mb-2 mt-4 text-white">E-mail Sjablonen</h3>
                 <p className="text-sm text-zinc-400 mb-4">
-                    Pas hier de e-mails aan die verzonden worden. Gebruik placeholders:
+                    Pas hier de e-mails aan die verzonden worden. Gebruik placeholders: 
                     <code className="text-xs bg-zinc-700 p-1 rounded mx-1">{`{{name}}`}</code>
                     <code className="text-xs bg-zinc-700 p-1 rounded mx-1">{`{{email}}`}</code>
                     <code className="text-xs bg-zinc-700 p-1 rounded mx-1">{`{{message}}`}</code>
@@ -75,15 +78,17 @@ const ContactTab = ({ content, handleContentChange }: ContactTabProps) => {
                     onChange={e => handleContentChange('contactAdminEmailSubject', e.target.value)} 
                     required
                 />
-                <InputWithCounter 
-                    as="textarea"
-                    name="contactAdminEmailBody" 
-                    label="Bericht (Admin) - HTML toegestaan"
-                    help="De HTML body van de e-mail die naar u wordt gestuurd."
-                    value={content.contactAdminEmailBody!} 
-                    onChange={e => handleContentChange('contactAdminEmailBody', e.target.value)} 
-                    required
-                />
+                 <div className="mb-6">
+                    <div className="flex items-center space-x-2 mb-1">
+                        <label className="block text-sm font-medium text-zinc-300">Bericht (Admin)</label>
+                        <HelpTooltip text="De HTML body van de e-mail die naar u wordt gestuurd." />
+                    </div>
+                    <RichTextEditor
+                        value={content.contactAdminEmailBody!}
+                        onChange={value => handleContentChange('contactAdminEmailBody', value)}
+                        onImageUpload={handleModalImageUpload}
+                    />
+                </div>
 
                 <h4 className="font-semibold mb-2 mt-6 text-zinc-200">Bevestiging aan Gebruiker</h4>
                 <InputWithCounter 
@@ -93,15 +98,17 @@ const ContactTab = ({ content, handleContentChange }: ContactTabProps) => {
                     onChange={e => handleContentChange('contactUserEmailSubject', e.target.value)} 
                     required
                 />
-                <InputWithCounter 
-                    as="textarea"
-                    name="contactUserEmailBody" 
-                    label="Bericht (Gebruiker) - HTML toegestaan"
-                    help="De HTML body van de e-mail die naar de gebruiker wordt gestuurd."
-                    value={content.contactUserEmailBody!} 
-                    onChange={e => handleContentChange('contactUserEmailBody', e.target.value)} 
-                    required
-                />
+                 <div className="mb-6">
+                    <div className="flex items-center space-x-2 mb-1">
+                        <label className="block text-sm font-medium text-zinc-300">Bericht (Gebruiker)</label>
+                        <HelpTooltip text="De HTML body van de e-mail die naar de gebruiker wordt gestuurd." />
+                    </div>
+                    <RichTextEditor
+                        value={content.contactUserEmailBody!}
+                        onChange={value => handleContentChange('contactUserEmailBody', value)}
+                        onImageUpload={handleModalImageUpload}
+                    />
+                </div>
             </div>
         </>
     );
