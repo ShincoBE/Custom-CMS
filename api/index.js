@@ -127,18 +127,12 @@ const DEFAULT_CONTENT = {
     servicesCtaTitle: "Bekijk Ons Werk", servicesCtaSubtitle: "Een foto zegt meer dan duizend woorden. Ontdek onze projecten in de galerij.", servicesCtaButtonText: "Open Galerij",
     galleryTitle: "Galerij", gallerySubtitle: "Een selectie van onze voltooide projecten.",
     contactTitle: "Neem Contact Op", contactSubtitle: "Heeft u vragen of wilt u een vrijblijvende offerte? Wij staan voor u klaar.",
-    contactInfoTitle: "Contactgegevens", contactInfoText: "U kunt ons bereiken via de onderstaande gegevens, of door het formulier in te vullen.",
+    contactInfoTitle: "Contactgegevens", contactInfoText: "U kunt ons bereiken via de onderstaande gegevens.",
     contactAddressTitle: "Adres", contactAddress: "Hazenstraat 65\n2500 Lier\nBelgië",
     contactEmailTitle: "Email", contactEmail: "info.andries.serviceplus@gmail.com",
     contactPhoneTitle: "Telefoon", contactPhone: "+32 494 39 92 86",
-    contactFormNameLabel: "Naam", contactFormEmailLabel: "Emailadres", contactFormMessageLabel: "Uw bericht", contactFormSubmitButtonText: "Stel een Vraag",
-    contactFormSuccessTitle: "Bericht Verzonden!", contactFormSuccessText: "Bedankt voor uw bericht. We nemen zo spoedielijk mogelijk contact met u op.", contactFormSuccessAgainButtonText: "Nog een bericht sturen",
-    contactMapEnabled: true, contactMapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2503.491333794334!2d4.57099631583015!3d51.1357909795757!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47c3f0e0f0e0f0e1%3A0x8e0e0e0e0e0e0e0e!2sHazenstraat%2065%2C%202500%20Lier%2C%20Belgium!5e0!3m2!1sen!2sus!4v1620000000000",
+    contactMapEnabled: false, contactMapUrl: "",
     facebookUrl: "https://www.facebook.com/", footerCopyrightText: "Andries Service+. Alle rechten voorbehouden.",
-    contactAdminEmailSubject: 'Nieuw bericht van {{name}} via Andries Service+',
-    contactAdminEmailBody: `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Nieuw bericht via Andries Service+</title><style>body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background-color:#f4f4f7;color:#333333}.container{max-width:600px;margin:0 auto;background-color:#ffffff;border-top:4px solid #16a34a}.content{padding:30px}.content-block{background-color:#f9f9f9;border:1px solid #eeeeee;border-radius:4px;padding:20px;margin-top:20px}.info-label{color:#666666;font-size:14px;margin:0 0 5px 0}.info-data{font-size:16px;margin:0;word-break:break-word}.info-data a{color:#16a34a;text-decoration:none}.message-block{white-space:pre-wrap}.footer{padding:20px;text-align:center;font-size:12px;color:#888888}.footer a{color:#16a34a;text-decoration:none}</style></head><body style="margin:0;padding:0;font-family:-apple-system,sans-serif;background-color:#f4f4f7;color:#333333"><table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#f4f4f7"><tr><td align="center" style="padding:20px"><div class="container" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-top:4px solid #16a34a"><div class="content" style="padding:30px"><h1 style="font-size:24px">Nieuw Website Bericht</h1><p style="font-size:16px;line-height:1.5">U heeft een nieuw bericht ontvangen via het contactformulier.</p><div class="content-block" style="background-color:#f9f9f9;border:1px solid #eeeeee;border-radius:4px;padding:20px;margin-top:20px"><div style="padding-bottom:15px;margin-bottom:15px;border-bottom:1px solid #eeeeee"><p class="info-label" style="color:#666666;font-size:14px;margin:0 0 5px 0">Naam:</p><p class="info-data" style="font-size:16px;margin:0">{{name}}</p></div><div style="padding-bottom:15px;margin-bottom:15px;border-bottom:1px solid #eeeeee"><p class="info-label" style="color:#666666;font-size:14px;margin:0 0 5px 0">E-mailadres:</p><p class="info-data"><a href="mailto:{{email}}" style="color:#16a34a;text-decoration:none">{{email}}</a></p></div><div><p class="info-label" style="color:#666666;font-size:14px;margin:0 0 5px 0">Bericht:</p><p class="info-data message-block" style="font-size:16px;margin:0;white-space:pre-wrap">{{message}}</p></div></div></div><div class="footer" style="padding:20px;text-align:center;font-size:12px;color:#888888"><p style="margin:0 0 5px 0">Andries Service+ | Hazenstraat 65, 2500 Lier, België</p><a href="https://www.andriesserviceplus.be" style="color:#16a34a;text-decoration:none">Bezoek de website</a></div></div></td></tr></table></body></html>`,
-    contactUserEmailSubject: 'Bedankt voor uw bericht, {{name}}!',
-    contactUserEmailBody: `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Bedankt voor uw bericht</title><style>body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background-color:#f4f4f7;color:#333333}.container{max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:8px;overflow:hidden}.header{background-color:#16a34a;padding:40px 20px;text-align:center}.header h1{color:#ffffff;margin:0;font-size:28px}.content{padding:30px}.content p{font-size:16px;line-height:1.6}.salutation{font-weight:bold}.signature-name{font-weight:bold;color:#16a34a;margin:0}.footer{padding:20px;text-align:center;font-size:12px;color:#888888;border-top:1px solid #eeeeee}.footer a{color:#16a34a;text-decoration:none}</style></head><body style="margin:0;padding:0;font-family:-apple-system,sans-serif;background-color:#f4f4f7;color:#333333"><table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#f4f4f7"><tr><td align="center" style="padding:20px"><div class="container" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:8px;overflow:hidden"><div class="header" style="background-color:#16a34a;padding:40px 20px;text-align:center"><h1 style="color:#ffffff;margin:0;font-size:28px">Bericht Ontvangen!</h1></div><div class="content" style="padding:30px"><p class="salutation" style="font-weight:bold">Beste {{name}},</p><p>Bedankt voor uw interesse in Andries Service+. We hebben uw bericht in goede orde ontvangen en waarderen het dat u contact met ons opneemt.</p><p>We streven ernaar om zo spoedig mogelijk te reageren. U kunt binnen enkele werkdagen een antwoord van ons verwachten.</p><div style="margin-top:30px"><p>Met vriendelijke groeten,</p><p class="signature-name" style="font-weight:bold;color:#16a34a;margin:0">Het Andries Service+ Team</p></div></div><div class="footer" style="padding:20px;text-align:center;font-size:12px;color:#888888;border-top:1px solid #eeeeee"><p style="margin:0 0 5px 0">Andries Service+ | Hazenstraat 65, 2500 Lier, België</p><a href="https://www.andriesserviceplus.be" style="color:#16a34a;text-decoration:none">Bezoek de website</a></div></div></td></tr></table></body></html>`,
     logo: { url: '/favicon.svg', alt: 'Andries Service+ Logo' }, heroImage: { url: 'https://i.postimg.cc/431ktwwb/Hero.jpg', alt: 'Mooi onderhouden tuin' },
     beforeImage: { url: 'https://i.postimg.cc/L8gP8SYb/before-image.jpg', alt: 'Tuin voor onderhoud' }, afterImage: { url: 'https://i.postimg.cc/j5XbQ8cQ/after-image.jpg', alt: 'Tuin na onderhoud' },
     ogImage: { url: 'https://i.postimg.cc/431ktwwb/Hero.jpg', alt: 'Andries Service+ Tuinonderhoud' },
@@ -160,53 +154,6 @@ const DEFAULT_CONTENT = {
 // --- END: DEFAULT CONTENT ---
 
 // --- START: API HANDLERS ---
-
-async function handleContact(req, res) {
-  const { name, email, message, fax } = req.body;
-  if (fax) return res.status(200).json({ success: true, message: 'Message sent successfully!' });
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!name || !email || !message) return res.status(400).json({ error: 'Alle velden zijn verplicht.' });
-  if (!emailRegex.test(email)) return res.status(400).json({ error: 'Voer een geldig emailadres in.' });
-  if (message.length < 10 || message.length > 500) return res.status(400).json({ error: 'Bericht moet tussen 10 en 500 tekens lang zijn.' });
-  try {
-    const [settings, pageContent] = await Promise.all([kv.get('settings'), kv.get('pageContent')]);
-    const emailUser = settings?.emailUser || process.env.EMAIL_USER;
-    const emailPass = settings?.emailPass || process.env.EMAIL_PASS;
-    const emailTo = settings?.emailTo || process.env.EMAIL_TO;
-    if (!emailUser || !emailPass || !emailTo) throw new Error('E-mailconfiguratie ontbreekt.');
-    
-    const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: emailUser, pass: emailPass } });
-    const year = new Date().getFullYear();
-    const content = pageContent || DEFAULT_CONTENT.pageContent;
-
-    // Fix: Convert newlines to <br> tags for proper HTML email formatting.
-    const formattedMessage = message.replace(/(?:\r\n|\r|\n)/g, '<br>');
-
-    const replacePlaceholders = (template, data) => {
-        if (!template) return '';
-        return template
-            .replace(/{{name}}/g, data.name)
-            .replace(/{{email}}/g, data.email)
-            .replace(/{{message}}/g, data.message)
-            .replace(/{{year}}/g, data.year);
-    };
-
-    // Admin Notification Email
-    const adminSubject = replacePlaceholders(content.contactAdminEmailSubject || DEFAULT_CONTENT.pageContent.contactAdminEmailSubject, { name });
-    const adminBody = replacePlaceholders(content.contactAdminEmailBody || DEFAULT_CONTENT.pageContent.contactAdminEmailBody, { name, email, message: formattedMessage, year });
-    await transporter.sendMail({ from: `"Andries Service+ Website" <${emailUser}>`, to: emailTo, replyTo: email, subject: adminSubject, html: adminBody });
-
-    // User Confirmation Email
-    const userSubject = replacePlaceholders(content.contactUserEmailSubject || DEFAULT_CONTENT.pageContent.contactUserEmailSubject, { name });
-    const userBody = replacePlaceholders(content.contactUserEmailBody || DEFAULT_CONTENT.pageContent.contactUserEmailBody, { name, email, message: formattedMessage, year });
-    await transporter.sendMail({ from: `"Andries Service+" <${emailUser}>`, to: email, subject: userSubject, html: userBody });
-
-    return res.status(200).json({ success: true });
-  } catch (error) {
-    console.error('Error sending email:', error);
-    return res.status(500).json({ error: 'Sorry, uw bericht kon niet worden verzonden.' });
-  }
-}
 
 async function handleQuote(req, res) {
   const { name, email, services, details, imageUrl } = req.body;
@@ -726,7 +673,6 @@ module.exports = async (req, res) => {
   if (path === '/sitemap.xml' && req.method === 'GET') return handleSitemap(req, res);
 
   // PUBLIC ROUTES
-  if (path === '/api/contact' && req.method === 'POST') return handleContact(req, res);
   if (path === '/api/quote' && req.method === 'POST') return handleQuote(req, res);
   if (path === '/api/content' && req.method === 'GET') return handleGetContent(req, res);
   if (path === '/api/event' && req.method === 'POST') return handleTrack(req, res);
