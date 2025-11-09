@@ -321,16 +321,32 @@ async function handleUpdateContent(req, res) {
 
 async function handleUpload(req, res) {
     try {
-        await authorizeRequest(req, ['SuperAdmin', 'Admin', 'Editor']);
+        // Authorization removed to allow public uploads for the quote form.
         const filename = req.headers['x-vercel-filename'];
-        if (!filename || typeof filename !== 'string') return res.status(400).json({ error: 'Filename is missing.' });
+        if (!filename || typeof filename !== 'string') {
+            return res.status(400).json({ error: 'Filename is missing.' });
+        }
+
         const imageBuffer = await streamToBuffer(req);
-        const finalBuffer = await sharp(imageBuffer).resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
+
+        // Process image with Sharp: resize and convert to webp for optimization.
+        const finalBuffer = await sharp(imageBuffer)
+            .resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true })
+            .webp({ quality: 80 })
+            .toBuffer();
+        
         const finalFilename = `${filename.split('.').slice(0, -1).join('.')}.webp`;
-        const blob = await put(finalFilename, finalBuffer, { access: 'public', cacheControl: 'public, max-age=0, must-revalidate', contentType: 'image/webp' });
+
+        const blob = await put(finalFilename, finalBuffer, {
+            access: 'public',
+            cacheControl: 'public, max-age=0, must-revalidate', // Tell browsers to revalidate cache.
+            contentType: 'image/webp'
+        });
+        
         return res.status(200).json(blob);
     } catch (error) {
-        return res.status(error.message === 'Access denied.' ? 403 : 500).json({ error: 'Upload failed.' });
+        console.error("Upload error:", error);
+        return res.status(500).json({ error: 'Upload failed.' });
     }
 }
 
@@ -715,10 +731,10 @@ module.exports = async (req, res) => {
   if (path === '/api/content' && req.method === 'GET') return handleGetContent(req, res);
   if (path === '/api/event' && req.method === 'POST') return handleTrack(req, res);
   if (path === '/api/login' && req.method === 'POST') return handleLogin(req, res);
+  if (path === '/api/upload' && req.method === 'POST') return handleUpload(req, res);
   
   // PROTECTED ADMIN ROUTES
   if (path === '/api/update-content' && req.method === 'POST') return handleUpdateContent(req, res);
-  if (path === '/api/upload' && req.method === 'POST') return handleUpload(req, res);
   if (path === '/api/logout' && req.method === 'POST') return handleLogout(req, res);
   if (path === '/api/verify-auth' && req.method === 'GET') return handleVerifyAuth(req, res);
   if (path === '/api/users' && req.method === 'GET') return handleListUsers(req, res);
