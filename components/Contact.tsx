@@ -31,16 +31,16 @@ function Contact({ content }: ContactProps) {
             <div className="p-4 bg-green-900/50 rounded-full border border-green-700/50 mb-4">
               <PaperPlaneTilt size={32} className="text-green-400" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">Vraag een Offerte Aan</h3>
+            <h3 className="text-2xl font-bold text-white mb-3">{content?.contactQuoteCardTitle || 'Vraag een Offerte Aan'}</h3>
             <p className="text-gray-400 mb-6 flex-grow">
-              Heeft u een specifiek project in gedachten? Gebruik ons gedetailleerde formulier om ons alle info te bezorgen voor een accurate offerte.
+              {content?.contactQuoteCardText || 'Heeft u een specifiek project in gedachten? Gebruik ons gedetailleerde formulier om ons alle info te bezorgen voor een accurate offerte.'}
             </p>
             <Link 
               to="/offerte"
               onClick={() => trackEvent('Click', 'CTA Quote Card')}
               className="group inline-flex items-center justify-center py-3 px-8 border border-transparent shadow-sm text-base font-medium rounded-full text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500 transition-all duration-300 transform hover:scale-105"
             >
-              Start Offerteaanvraag
+              {content?.contactQuoteCardButtonText || 'Start Offerteaanvraag'}
             </Link>
           </div>
 
@@ -49,9 +49,9 @@ function Contact({ content }: ContactProps) {
             <div className="p-4 bg-zinc-700/50 rounded-full border border-zinc-600/50 mb-4">
               <EnvelopeSimple size={32} className="text-zinc-300" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">Stel een Vraag</h3>
+            <h3 className="text-2xl font-bold text-white mb-3">{content?.contactDirectCardTitle || 'Stel een Vraag'}</h3>
             <p className="text-gray-400 mb-6 flex-grow">
-              Voor algemene vragen, opmerkingen of een snel overleg kunt u ons het beste direct bereiken via e-mail of telefoon.
+             {content?.contactDirectCardText || 'Voor algemene vragen, opmerkingen of een snel overleg kunt u ons het beste direct bereiken via e-mail of telefoon.'}
             </p>
             <div className="space-y-4">
                <a 
@@ -75,6 +75,22 @@ function Contact({ content }: ContactProps) {
             </div>
           </div>
         </div>
+
+        {content?.contactMapEnabled && content?.contactMapUrl && (
+          <div className="mt-16 animate-fade-in">
+            <iframe
+              title="Locatie op Google Maps"
+              src={content.contactMapUrl}
+              width="100%"
+              height="450"
+              style={{ border: 0 }}
+              allowFullScreen={true}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="rounded-2xl shadow-2xl border border-zinc-700/50"
+            ></iframe>
+          </div>
+        )}
 
       </div>
     </section>

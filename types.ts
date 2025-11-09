@@ -89,13 +89,13 @@ export interface PageContent {
   // Contact Section
   contactTitle?: string;
   contactSubtitle?: string;
-  contactInfoTitle?: string;
-  contactInfoText?: string;
-  contactAddressTitle?: string;
+  contactQuoteCardTitle?: string;
+  contactQuoteCardText?: string;
+  contactQuoteCardButtonText?: string;
+  contactDirectCardTitle?: string;
+  contactDirectCardText?: string;
   contactAddress?: string;
-  contactEmailTitle?: string;
   contactEmail?: string;
-  contactPhoneTitle?: string;
   contactPhone?: string;
   contactMapEnabled?: boolean; 
   contactMapUrl?: string; 
