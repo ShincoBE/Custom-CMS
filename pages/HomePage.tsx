@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import type { PageContent, GalleryImage, Service, SiteSettings } from '@/types';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
@@ -25,8 +26,37 @@ function HomePage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const location = useLocation();
 
   useAnalytics();
+  
+  // Effect to handle scrolling to anchor links when navigating from another page.
+  useEffect(() => {
+    const scrollToAnchor = () => {
+      if (location.hash) {
+        const id = location.hash.substring(1);
+        const element = document.getElementById(id);
+        if (element) {
+          const headerOffset = id === 'home' ? 0 : 64; // Match header height
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.scrollY - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth',
+          });
+        }
+      }
+    };
+
+    // Only scroll after content has successfully loaded to ensure sections exist.
+    // A small timeout allows the browser to paint the layout first.
+    if (status === 'success') {
+      const timer = setTimeout(scrollToAnchor, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [location.hash, status]);
+
 
   useEffect(() => {
     const fetchContent = async () => {

@@ -98,22 +98,38 @@ function ServicePage() {
               );
           case 'success':
               return service && (
-                <article className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-                    <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-b from-white to-zinc-300 bg-clip-text text-transparent text-center"
-                        dangerouslySetInnerHTML={{ __html: service.title }}
-                    />
-                     <div className="w-24 h-1 bg-green-600 mx-auto mt-4 mb-12 rounded"></div>
-                     <div className="prose prose-invert prose-lg max-w-none text-zinc-300"
-                        dangerouslySetInnerHTML={{ __html: service.pageContent || service.description }}
-                     />
-                </article>
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="bg-zinc-900/60 backdrop-blur-sm border border-zinc-700/50 rounded-2xl shadow-2xl my-12 sm:my-16 overflow-hidden">
+                        <div className="p-6 sm:p-10 lg:p-12">
+                            <header className="text-center mb-10">
+                                {service.customIcon?.url && (
+                                    <div className="flex items-center justify-center h-20 w-20 rounded-full bg-green-900/50 border border-green-700/50 mb-6 mx-auto transition-transform duration-300 hover:scale-110">
+                                        <img 
+                                            src={service.customIcon.url} 
+                                            alt={service.customIcon.alt || `Icoon voor ${service.title}`} 
+                                            className="h-12 w-12 object-contain"
+                                        />
+                                    </div>
+                                )}
+                                <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-b from-white to-zinc-300 bg-clip-text text-transparent pb-2"
+                                    dangerouslySetInnerHTML={{ __html: service.title }}
+                                />
+                                <div className="w-24 h-1 bg-green-600 mx-auto mt-4 rounded"></div>
+                            </header>
+                            <article 
+                                className="prose prose-invert prose-lg max-w-none text-zinc-300"
+                                dangerouslySetInnerHTML={{ __html: service.pageContent || service.description }}
+                            />
+                        </div>
+                    </div>
+                </div>
               );
       }
   };
 
   return (
     <ErrorBoundary>
-      <div className="bg-zinc-950 text-white font-sans antialiased flex flex-col min-h-screen">
+      <div className="text-white font-sans antialiased flex flex-col min-h-screen bg-zinc-950 bg-[radial-gradient(circle_at_top,_rgba(10,40,20,0.3),_transparent_40%)]">
         <Header onOpenGallery={handleOpenGallery} content={pageContent} status={status === 'loading' ? 'loading' : 'success'} />
         <main className="flex-grow pt-16">
           {renderContent()}
