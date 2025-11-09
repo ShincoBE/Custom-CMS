@@ -4,6 +4,7 @@ import InputWithCounter from '../ui/InputWithCounter';
 import ToggleSwitch from '../ui/ToggleSwitch.tsx';
 import HelpTooltip from '../ui/HelpTooltip.tsx';
 import RichTextEditor from '../ui/RichTextEditor.tsx';
+import { Info } from 'phosphor-react';
 
 interface ContactTabProps {
     content: PageContent;
@@ -12,7 +13,6 @@ interface ContactTabProps {
 }
 
 const ContactTab = ({ content, handleContentChange, handleModalImageUpload }: ContactTabProps) => {
-    const emailPlaceholders = 'Beschikbare placeholders: {name}, {email}, {services}, {details}, {imageUrl}';
     
     return (
         <>
@@ -50,13 +50,29 @@ const ContactTab = ({ content, handleContentChange, handleModalImageUpload }: Co
             
             <div className="mt-6 p-4 border-t border-zinc-700">
                  <h3 className="text-lg font-semibold mb-2 mt-4 text-white">Offerteformulier E-mails</h3>
+
+                 <div className="mb-6 p-4 bg-zinc-900/50 border border-zinc-700 rounded-lg text-sm text-zinc-300">
+                    <div className="flex items-start">
+                        <Info size={20} className="text-green-500 mr-3 mt-1 flex-shrink-0" />
+                        <div>
+                            <h4 className="font-semibold text-white mb-2">Beschikbare Placeholders</h4>
+                            <p className="mb-3">Gebruik de volgende placeholders. Ze worden automatisch vervangen door de ingevulde gegevens van de klant.</p>
+                            <ul className="list-disc list-inside space-y-1 text-zinc-400">
+                                <li><code>{'{name}'}</code> - De naam van de klant.</li>
+                                <li><code>{'{email}'}</code> - Het e-mailadres van de klant.</li>
+                                <li><code>{'{services}'}</code> - Een lijst van de geselecteerde diensten.</li>
+                                <li><code>{'{details}'}</code> - De projectomschrijving.</li>
+                                <li><code>{'{imageUrl}'}</code> - De geüploade afbeelding (als HTML). Wordt leeg gelaten indien geen afbeelding.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
                  
                  <div className="p-4 border border-zinc-600 rounded-lg bg-zinc-900/50 mb-6">
                     <h4 className="text-md font-semibold mb-2 text-zinc-100">Notificatie aan Admin</h4>
                     <InputWithCounter 
                         name="quoteAdminEmailSubject" 
                         label="Onderwerp (Admin)" 
-                        help={emailPlaceholders} 
                         value={content.quoteAdminEmailSubject || ''} 
                         onChange={e => handleContentChange('quoteAdminEmailSubject', e.target.value)} 
                         required 
@@ -64,7 +80,7 @@ const ContactTab = ({ content, handleContentChange, handleModalImageUpload }: Co
                     <div className="mb-2">
                       <div className="flex items-center space-x-2 mb-1">
                           <label className="block text-sm font-medium text-zinc-300">Bericht (Admin)</label>
-                          <HelpTooltip text={`De inhoud van de e-mail die u ontvangt. ${emailPlaceholders}`} />
+                          <HelpTooltip text={`De inhoud van de e-mail die u ontvangt.`} />
                       </div>
                       <RichTextEditor
                           value={content.quoteAdminEmailBody || ''}
@@ -79,7 +95,6 @@ const ContactTab = ({ content, handleContentChange, handleModalImageUpload }: Co
                      <InputWithCounter 
                         name="quoteUserEmailSubject" 
                         label="Onderwerp (Klant)" 
-                        help={emailPlaceholders} 
                         value={content.quoteUserEmailSubject || ''} 
                         onChange={e => handleContentChange('quoteUserEmailSubject', e.target.value)} 
                         required 
@@ -87,7 +102,7 @@ const ContactTab = ({ content, handleContentChange, handleModalImageUpload }: Co
                     <div className="mb-2">
                       <div className="flex items-center space-x-2 mb-1">
                           <label className="block text-sm font-medium text-zinc-300">Bericht (Klant)</label>
-                          <HelpTooltip text={`De automatische bevestiging die de klant ontvangt. ${emailPlaceholders}`} />
+                          <HelpTooltip text={`De automatische bevestiging die de klant ontvangt.`} />
                       </div>
                       <RichTextEditor
                           value={content.quoteUserEmailBody || ''}

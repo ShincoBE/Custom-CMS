@@ -218,12 +218,17 @@ async function handleQuote(req, res) {
         return result;
     }
 
+    // Utility to strip HTML for the 'From' field.
+    const stripHtml = (html) => (html || '').replace(/<[^>]*>?/gm, '');
+    const fromNameAdmin = stripHtml(pageContent.companyName) || 'Website Offertes';
+    const fromNameUser = stripHtml(pageContent.companyName) || 'Klantenservice';
+
     // Email to Admin
     const adminSubject = replacePlaceholders(pageContent.quoteAdminEmailSubject || "Nieuwe Offerteaanvraag van {name}");
     const adminBody = replacePlaceholders(pageContent.quoteAdminEmailBody || "");
     
     await transporter.sendMail({
-        from: `"${pageContent.companyName || 'Website Offertes'}" <${emailUser}>`,
+        from: `"${fromNameAdmin}" <${emailUser}>`,
         to: emailTo,
         replyTo: email,
         subject: adminSubject,
@@ -235,7 +240,7 @@ async function handleQuote(req, res) {
     const userBody = replacePlaceholders(pageContent.quoteUserEmailBody || "");
     
     await transporter.sendMail({
-        from: `"${pageContent.companyName || 'Klantenservice'}" <${emailUser}>`,
+        from: `"${fromNameUser}" <${emailUser}>`,
         to: email,
         subject: userSubject,
         html: userBody
