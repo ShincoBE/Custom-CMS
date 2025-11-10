@@ -41,99 +41,204 @@ const StatCard = ({ title, value, icon }: { title: string, value: string | numbe
     </div>
 );
 
-const DailyVisitsChart = ({ data, period }: { data: { date: string, visits: number, uniques: number }[], period: number }) => {
-    const svgRef = useRef<SVGSVGElement>(null);
-    const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
+const DonutChart = ({ data }: { data: { type: string; visits: number }[] }) => {
+    const total = data.reduce((acc, item) => acc + item.visits, 0);
+    if (total === 0) return <div className="flex items-center justify-center h-full text-zinc-400">Geen apparaatdata.</div>;
 
-    if (!data || data.length < 2) {
-        return <div className="flex items-center justify-center h-64 text-zinc-400">Niet genoeg data voor een grafiek.</div>;
-    }
+    let cumulativePercent = 0;
+    const segments = data.map(item => {
+        const percent = (item.visits / total) * 100;
+        const offset = cumulativePercent;
+        cumulativePercent += percent;
+        return { ...item, percent, offset };
+    });
 
-    const width = Math.max(600, data.length * 20);
-    const height = 256;
-    const padding = { top: 20, right: 20, bottom: 30, left: 50 };
-
-    const maxVisits = Math.max(...data.map(d => d.visits), 1);
-    
-    const xScale = (index: number) => padding.left + (index / (data.length - 1)) * (width - padding.left - padding.right);
-    const yScale = (visits: number) => height - padding.bottom - (visits / maxVisits) * (height - padding.top - padding.bottom);
-    
-    const points = data.map((d, i) => `${xScale(i)},${yScale(d.visits)}`).join(' ');
-    const areaPoints = `${padding.left},${height - padding.bottom} ${points} ${width - padding.right},${height - padding.bottom}`;
-    
-    const isWeekly = period > 60;
-    const yAxisTicks = [1/4, 2/4, 3/4];
-
-    const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
-        const svg = svgRef.current;
-        if (!svg) return;
-        
-        const rect = svg.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        
-        const index = Math.round(((x - padding.left) / (width - padding.left - padding.right)) * (data.length - 1));
-
-        if (index >= 0 && index < data.length) {
-            const pointData = data[index];
-            const dateObj = new Date(pointData.date);
-            const formattedDate = dateObj.toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' });
-            const tooltipTitle = isWeekly ? `Week van ${formattedDate}` : formattedDate;
-
-            const content = `
-                <div class="font-semibold">${tooltipTitle}</div>
-                <strong>${pointData.visits}</strong> ${pointData.visits === 1 ? 'bezoek' : 'bezoeken'}<br/>
-                <strong>${pointData.uniques}</strong> ${pointData.uniques === 1 ? 'unieke' : 'unieke'}
-            `;
-            
-            const tooltipX = xScale(index);
-            const tooltipY = yScale(pointData.visits);
-
-            setTooltip({ x: tooltipX, y: tooltipY, content });
-        }
-    };
-
-    const handleMouseLeave = () => {
-        setTooltip(null);
-    };
-
-    let tooltipJsx = null;
-    if (tooltip) {
-        const tooltipWidth = 120;
-        const tooltipHeight = 60;
-        const tooltipOffset = 20;
-
-        let tooltipX = tooltip.x + tooltipOffset;
-        if (tooltipX + tooltipWidth > width - padding.right) {
-            tooltipX = tooltip.x - tooltipWidth - tooltipOffset;
-        }
-        if (tooltipX < padding.left) {
-            tooltipX = padding.left;
-        }
-
-        let tooltipY = tooltip.y - (tooltipHeight / 2);
-        if (tooltipY < padding.top) {
-            tooltipY = padding.top;
-        }
-        if (tooltipY + tooltipHeight > height - padding.bottom) {
-            tooltipY = height - padding.bottom - tooltipHeight;
-        }
-
-        tooltipJsx = (
-            <g pointerEvents="none">
-                <line x1={tooltip.x} y1={padding.top} x2={tooltip.x} y2={height - padding.bottom} stroke="#a1a1aa" strokeWidth="1" strokeDasharray="4" />
-                <circle cx={tooltip.x} cy={tooltip.y} r="5" fill="#16a34a" stroke="#1f2937" strokeWidth="2" />
-                <foreignObject x={tooltipX} y={tooltipY} width={tooltipWidth} height={tooltipHeight}>
-                     <div
-                        className="px-2 py-1 text-xs text-white bg-zinc-900/80 backdrop-blur-sm rounded-md border border-zinc-700 shadow-lg text-center"
-                        dangerouslySetInnerHTML={{ __html: tooltip.content }}
-                    />
-                </foreignObject>
-            </g>
-        );
-    }
+    const colors = ['#16a34a', '#15803d', '#166534'];
 
     return (
-        <div className="relative bg-zinc-900/50 rounded-lg p-2">
+        <div className="flex flex-col sm:flex-row items-center justify-center sm:space-x-6 gap-4 sm:gap-0 p-4 h-full">
+            <svg width="120" height="120" viewBox="0 0 36 36" className="-rotate-90">
+                {segments.map((segment, i) => (
+                    <circle
+                        key={segment.type}
+                        cx="18" cy="18" r="15.915"
+                        fill="transparent"
+                        stroke={colors[i % colors.length]}
+                        strokeWidth="4"
+                        strokeDasharray={`${segment.percent} ${100 - segment.percent}`}
+                        strokeDashoffset={-segment.offset}
+                    />
+                ))}
+            </svg>
+            <div className="text-sm">
+                {segments.map((segment, i) => (
+                    <div key={segment.type} className="flex items-center mb-1">
+                        <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors[i % colors.length] }}></span>
+                        <span>{segment.type}: <strong>{segment.visits}</strong></span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const DataTable = ({ title, icon, data, columns }: { title: string, icon: React.ReactNode, data: any[], columns: { header: string, accessor: (row: any) => any, isNumeric?: boolean }[] }) => (
+    <div>
+        <h3 className="text-lg font-semibold mb-3 text-white flex items-center">{icon}{title}</h3>
+        <div className="bg-zinc-800/50 p-2 rounded-lg border border-zinc-700">
+            <ul className="divide-y divide-zinc-700/50">
+                {data.map((item, index) => (
+                    <li key={index} className="flex justify-between items-center py-2 px-2">
+                        {columns.map((col, colIndex) => (
+                           <span key={colIndex} className={`text-sm ${colIndex === 0 ? 'truncate pr-4 flex-grow' : 'font-bold'} ${item.placeholder ? 'text-zinc-500' : (colIndex === 0 ? 'text-zinc-300' : 'text-white')}`}>
+                                {col.accessor(item)}
+                           </span>
+                        ))}
+                    </li>
+                ))}
+            </ul>
+        </div>
+    </div>
+);
+
+
+const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
+    const [data, setData] = useState<AnalyticsData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [days, setDays] = useState(30);
+    const chartContainerRef = useRef<HTMLDivElement>(null);
+    const [containerWidth, setContainerWidth] = useState(0);
+
+    useEffect(() => {
+        const observer = new ResizeObserver(entries => {
+            if (entries[0]) {
+                setContainerWidth(entries[0].contentRect.width);
+            }
+        });
+        const currentRef = chartContainerRef.current;
+        if (currentRef) {
+            observer.observe(currentRef);
+        }
+        return () => {
+            if (currentRef) {
+                observer.unobserve(currentRef);
+            }
+        };
+    }, []);
+
+    const fetchAnalytics = useCallback(async (period: number) => {
+        setIsLoading(true);
+        try {
+            const res = await fetch(`/api/analytics?days=${period}`);
+            if (!res.ok) {
+                 const errData = await res.json();
+                 throw new Error(errData.error || "Kon statistieken niet laden.");
+            }
+            const analyticsData = await res.json();
+            setData(analyticsData);
+        } catch (error: any) {
+            showNotification('error', error.message);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [showNotification]);
+
+    useEffect(() => {
+        fetchAnalytics(days);
+    }, [days, fetchAnalytics]);
+    
+    const DailyVisitsChart = ({ data, period }: { data: { date: string, visits: number, uniques: number }[], period: number }) => {
+        const svgRef = useRef<SVGSVGElement>(null);
+        const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
+    
+        if (!data || data.length < 2) {
+            return <div className="flex items-center justify-center h-64 text-zinc-400">Niet genoeg data voor een grafiek.</div>;
+        }
+    
+        const width = period >= 90 ? Math.max(containerWidth, data.length * 20) : containerWidth;
+        const height = 256;
+        const padding = { top: 20, right: 20, bottom: 30, left: 50 };
+    
+        const maxVisits = Math.max(...data.map(d => d.visits), 1);
+        
+        const xScale = (index: number) => padding.left + (index / (data.length - 1)) * (width - padding.left - padding.right);
+        const yScale = (visits: number) => height - padding.bottom - (visits / maxVisits) * (height - padding.top - padding.bottom);
+        
+        const points = data.map((d, i) => `${xScale(i)},${yScale(d.visits)}`).join(' ');
+        const areaPoints = `${padding.left},${height - padding.bottom} ${points} ${width - padding.right},${height - padding.bottom}`;
+        
+        const isWeekly = period > 60;
+        const yAxisTicks = [1/4, 2/4, 3/4];
+    
+        const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+            const svg = svgRef.current;
+            if (!svg) return;
+            
+            const rect = svg.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            
+            const index = Math.round(((x - padding.left) / (width - padding.left - padding.right)) * (data.length - 1));
+    
+            if (index >= 0 && index < data.length) {
+                const pointData = data[index];
+                const dateObj = new Date(pointData.date);
+                const formattedDate = dateObj.toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' });
+                const tooltipTitle = isWeekly ? `Week van ${formattedDate}` : formattedDate;
+    
+                const content = `
+                    <div class="font-semibold">${tooltipTitle}</div>
+                    <strong>${pointData.visits}</strong> ${pointData.visits === 1 ? 'bezoek' : 'bezoeken'}<br/>
+                    <strong>${pointData.uniques}</strong> ${pointData.uniques === 1 ? 'unieke' : 'unieke'}
+                `;
+                
+                const tooltipX = xScale(index);
+                const tooltipY = yScale(pointData.visits);
+    
+                setTooltip({ x: tooltipX, y: tooltipY, content });
+            }
+        };
+    
+        const handleMouseLeave = () => {
+            setTooltip(null);
+        };
+    
+        let tooltipJsx = null;
+        if (tooltip) {
+            const tooltipWidth = 120;
+            const tooltipHeight = 60;
+            const tooltipOffset = 20;
+    
+            let tooltipX = tooltip.x + tooltipOffset;
+            if (tooltipX + tooltipWidth > width - padding.right) {
+                tooltipX = tooltip.x - tooltipWidth - tooltipOffset;
+            }
+            if (tooltipX < padding.left) {
+                tooltipX = padding.left;
+            }
+    
+            let tooltipY = tooltip.y - (tooltipHeight / 2);
+            if (tooltipY < padding.top) {
+                tooltipY = padding.top;
+            }
+            if (tooltipY + tooltipHeight > height - padding.bottom) {
+                tooltipY = height - padding.bottom - tooltipHeight;
+            }
+    
+            tooltipJsx = (
+                <g pointerEvents="none">
+                    <line x1={tooltip.x} y1={padding.top} x2={tooltip.x} y2={height - padding.bottom} stroke="#a1a1aa" strokeWidth="1" strokeDasharray="4" />
+                    <circle cx={tooltip.x} cy={tooltip.y} r="5" fill="#16a34a" stroke="#1f2937" strokeWidth="2" />
+                    <foreignObject x={tooltipX} y={tooltipY} width={tooltipWidth} height={tooltipHeight}>
+                         <div
+                            className="px-2 py-1 text-xs text-white bg-zinc-900/80 backdrop-blur-sm rounded-md border border-zinc-700 shadow-lg text-center"
+                            dangerouslySetInnerHTML={{ __html: tooltip.content }}
+                        />
+                    </foreignObject>
+                </g>
+            );
+        }
+    
+        return (
             <svg
                 ref={svgRef}
                 width={width}
@@ -188,98 +293,9 @@ const DailyVisitsChart = ({ data, period }: { data: { date: string, visits: numb
 
                 {tooltipJsx}
             </svg>
-        </div>
-    );
-};
+        );
+    };
 
-
-const DonutChart = ({ data }: { data: { type: string; visits: number }[] }) => {
-    const total = data.reduce((acc, item) => acc + item.visits, 0);
-    if (total === 0) return <div className="flex items-center justify-center h-full text-zinc-400">Geen apparaatdata.</div>;
-
-    let cumulativePercent = 0;
-    const segments = data.map(item => {
-        const percent = (item.visits / total) * 100;
-        const offset = cumulativePercent;
-        cumulativePercent += percent;
-        return { ...item, percent, offset };
-    });
-
-    const colors = ['#16a34a', '#15803d', '#166534'];
-
-    return (
-        <div className="flex items-center justify-center space-x-6 p-4 h-full">
-            <svg width="120" height="120" viewBox="0 0 36 36" className="-rotate-90">
-                {segments.map((segment, i) => (
-                    <circle
-                        key={segment.type}
-                        cx="18" cy="18" r="15.915"
-                        fill="transparent"
-                        stroke={colors[i % colors.length]}
-                        strokeWidth="4"
-                        strokeDasharray={`${segment.percent} ${100 - segment.percent}`}
-                        strokeDashoffset={-segment.offset}
-                    />
-                ))}
-            </svg>
-            <div className="text-sm">
-                {segments.map((segment, i) => (
-                    <div key={segment.type} className="flex items-center mb-1">
-                        <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: colors[i % colors.length] }}></span>
-                        <span>{segment.type}: <strong>{segment.visits}</strong></span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};
-
-const DataTable = ({ title, icon, data, columns }: { title: string, icon: React.ReactNode, data: any[], columns: { header: string, accessor: (row: any) => any, isNumeric?: boolean }[] }) => (
-    <div>
-        <h3 className="text-lg font-semibold mb-3 text-white flex items-center">{icon}{title}</h3>
-        <div className="bg-zinc-800/50 p-2 rounded-lg border border-zinc-700">
-            <ul className="divide-y divide-zinc-700/50">
-                {data.map((item, index) => (
-                    <li key={index} className="flex justify-between items-center py-2 px-2">
-                        {columns.map((col, colIndex) => (
-                           <span key={colIndex} className={`text-sm ${colIndex === 0 ? 'truncate pr-4 flex-grow' : 'font-bold'} ${item.placeholder ? 'text-zinc-500' : (colIndex === 0 ? 'text-zinc-300' : 'text-white')}`}>
-                                {col.accessor(item)}
-                           </span>
-                        ))}
-                    </li>
-                ))}
-            </ul>
-        </div>
-    </div>
-);
-
-
-const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
-    const [data, setData] = useState<AnalyticsData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [days, setDays] = useState(30);
-
-    const fetchAnalytics = useCallback(async (period: number) => {
-        setIsLoading(true);
-        try {
-            const res = await fetch(`/api/analytics?days=${period}`);
-            if (!res.ok) {
-                 const errData = await res.json();
-                 throw new Error(errData.error || "Kon statistieken niet laden.");
-            }
-            const analyticsData = await res.json();
-            setData(analyticsData);
-        } catch (error: any) {
-            showNotification('error', error.message);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [showNotification]);
-
-    useEffect(() => {
-        fetchAnalytics(days);
-    }, [days, fetchAnalytics]);
-    
     const renderContent = () => {
         if (isLoading) {
             return <div className="flex justify-center items-center h-64"><Spinner size={32} className="animate-spin" /></div>;
@@ -310,8 +326,10 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                 </div>
                 <div>
                     <h3 className="text-lg font-semibold mb-3 text-white">Bezoeken Per Dag</h3>
-                    <div className="overflow-x-auto">
-                        <DailyVisitsChart data={data.daily} period={days} />
+                    <div ref={chartContainerRef} className="overflow-x-auto relative bg-zinc-900/50 rounded-lg p-2">
+                       {containerWidth > 0 && data.daily && (
+                            <DailyVisitsChart data={data.daily} period={days} />
+                       )}
                     </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

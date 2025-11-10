@@ -42,15 +42,15 @@ const ImageUpload = ({ label, help, currentUrl, alt, onAltChange, onImageChange,
                 </label>
                 {help && <HelpTooltip text={help} />}
             </div>
-            <div className="flex items-start space-x-4">
+            <div className="flex flex-col sm:flex-row items-start gap-4">
                 {currentUrl ? (
-                    <img src={currentUrl} alt={alt || 'Preview'} className="w-24 h-24 object-contain rounded-md bg-zinc-700" />
+                    <img src={currentUrl} alt={alt || 'Preview'} className="w-32 h-32 object-contain rounded-md bg-zinc-700 flex-shrink-0" />
                 ) : (
-                    <div className="w-24 h-24 bg-zinc-700 rounded-md flex items-center justify-center text-zinc-400">
+                    <div className="w-32 h-32 bg-zinc-700 rounded-md flex items-center justify-center text-zinc-400 flex-shrink-0">
                         Geen afbeelding
                     </div>
                 )}
-                <div className="flex-1">
+                <div className="flex-1 w-full">
                     <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="inline-flex items-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50">
                         {isUploading ? <Spinner size={16} className="animate-spin mr-2" /> : <UploadSimple size={16} className="mr-2" />}
                         {isUploading ? 'Uploaden...' : 'Afbeelding wijzigen'}

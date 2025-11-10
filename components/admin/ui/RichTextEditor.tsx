@@ -110,7 +110,7 @@ const RichTextEditor = ({ value, onChange, onImageUpload }: RichTextEditorProps)
                     dangerouslySetInnerHTML={{ __html: value }}
                     onInput={e => onChange(e.currentTarget.innerHTML)}
                     onPaste={handlePaste}
-                    className="prose prose-invert max-w-none w-full bg-zinc-700 rounded-b-md p-3 min-h-[250px] text-zinc-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500"
+                    className="prose prose-invert max-w-none w-full bg-zinc-700 rounded-b-md p-3 min-h-[250px] text-zinc-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500 overflow-x-auto"
                 />
             )}
         </div>
