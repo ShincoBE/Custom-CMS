@@ -314,12 +314,13 @@ function AdminDashboard() {
       </header>
       
       <main>
-        <div className="max-w-screen-2xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="max-w-screen-2xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           {isAdminTabActive ? (
             <h2 className="text-3xl font-bold mb-6 px-4 sm:px-0">{activeAdminTab?.label}</h2>
           ) : (
             <div className="border-b border-zinc-700 mb-6">
-                <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+                {/* Desktop Tabs */}
+                <nav className="hidden md:flex -mb-px space-x-6 overflow-x-auto" aria-label="Tabs">
                     {contentTabs.map(tab => (
                         <button
                             key={tab.id}
@@ -336,9 +337,24 @@ function AdminDashboard() {
                         </button>
                     ))}
                 </nav>
+                 {/* Mobile Dropdown */}
+                <div className="md:hidden">
+                  <label htmlFor="tabs" className="sr-only">Selecteer een tab</label>
+                  <select
+                    id="tabs"
+                    name="tabs"
+                    className="block w-full rounded-md border-zinc-600 bg-zinc-700 py-2 pl-3 pr-10 text-base text-white focus:border-green-500 focus:outline-none focus:ring-green-500 sm:text-sm"
+                    onChange={(e) => setActiveTab(e.target.value)}
+                    value={activeTab}
+                  >
+                    {contentTabs.map((tab) => (
+                      <option key={tab.id} value={tab.id}>{tab.label}</option>
+                    ))}
+                  </select>
+                </div>
             </div>
           )}
-          <div className="bg-zinc-800/50 p-6 rounded-lg border border-zinc-700">
+          <div className="bg-zinc-800/50 p-4 sm:p-6 rounded-lg border border-zinc-700">
               {renderTabContent()}
           </div>
         </div>

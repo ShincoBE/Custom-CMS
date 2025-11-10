@@ -46,7 +46,7 @@ const BlogEditModal = ({ isOpen, onClose, post, onSave, onImageUpload }: BlogEdi
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="bg-zinc-800 rounded-lg shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col border border-zinc-700 animate-slide-up" onClick={e => e.stopPropagation()}>
+      <div className="bg-zinc-800 w-full h-full sm:rounded-lg sm:shadow-2xl sm:max-w-4xl sm:h-[90vh] flex flex-col sm:border sm:border-zinc-700 animate-slide-up" onClick={e => e.stopPropagation()}>
         <header className="p-4 border-b border-zinc-700 flex-shrink-0">
           <h3 className="text-xl font-bold text-white">Blogpost Bewerken</h3>
         </header>

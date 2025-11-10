@@ -53,7 +53,7 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: Gal
   
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="gallery-modal-title">
-      <div className="bg-zinc-800 rounded-lg shadow-2xl w-full max-w-2xl p-6 border border-zinc-700 animate-slide-up" onClick={e => e.stopPropagation()}>
+      <div className="bg-zinc-800 rounded-lg shadow-2xl w-full max-w-2xl p-4 sm:p-6 border border-zinc-700 animate-slide-up" onClick={e => e.stopPropagation()}>
         <h3 id="gallery-modal-title" className="text-xl font-bold mb-4 text-white">Galerij Afbeelding Bewerken</h3>
         <div className="flex flex-col sm:flex-row items-start sm:space-x-6">
             <div className="w-full sm:w-1/3 mb-4 sm:mb-0">

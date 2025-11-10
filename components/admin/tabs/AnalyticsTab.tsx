@@ -47,7 +47,7 @@ const DailyBarChart = ({ data, period }: { data: { date: string, visits: number,
     const maxVisits = Math.max(...data.map(d => d.visits), 0);
     const isWeekly = period > 60;
     return (
-        <div className="flex items-end h-64 space-x-2 p-4 bg-zinc-900/50 rounded-lg">
+        <div className="flex items-end h-64 space-x-2 p-4 bg-zinc-900/50 rounded-lg min-w-[600px]">
             {data.map(({ date, visits, uniques }) => {
                 const height = maxVisits > 0 ? (visits / maxVisits) * 100 : 0;
                 const dateObj = new Date(date);
@@ -189,7 +189,9 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                 </div>
                 <div>
                     <h3 className="text-lg font-semibold mb-3 text-white">Bezoeken Per Dag</h3>
-                    <DailyBarChart data={data.daily} period={days} />
+                    <div className="overflow-x-auto">
+                        <DailyBarChart data={data.daily} period={days} />
+                    </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-1">

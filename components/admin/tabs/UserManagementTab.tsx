@@ -129,15 +129,15 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
                     <div className="border border-zinc-700 rounded-lg overflow-hidden">
                         <ul className="divide-y divide-zinc-700">
                             {users.map(user => (
-                                <li key={user.username} className="flex items-center justify-between p-3 bg-zinc-800/50">
+                                <li key={user.username} className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between p-3 bg-zinc-800/50">
                                     <div className="flex flex-col">
                                         <span className="text-zinc-200 font-medium">{user.username}</span>
                                         <span className="text-xs text-zinc-400">{user.role}</span>
                                     </div>
                                     {user.username === currentUser?.username ? (
-                                        <span className="text-xs text-zinc-400 italic">Dit bent u</span>
+                                        <span className="text-xs text-zinc-400 italic self-center sm:self-auto">Dit bent u</span>
                                     ) : (
-                                      <div className="flex items-center space-x-2">
+                                      <div className="flex items-center space-x-2 self-end sm:self-auto">
                                         <select 
                                             value={user.role} 
                                             onChange={(e) => handleRoleChange(user.username, e.target.value as UserRole)}

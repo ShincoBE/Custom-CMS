@@ -55,10 +55,16 @@ function Contact({ content }: ContactProps) {
             </p>
             <div className="space-y-4 flex flex-col items-center">
                {content?.contactAddress && (
-                <div className="flex items-start text-zinc-300">
-                  <MapPin size={20} className="mr-2 mt-1 text-green-500 flex-shrink-0" />
-                  <p className="text-left whitespace-pre-line">{content.contactAddress}</p>
-                </div>
+                <a 
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((content.contactAddress || '').replace(/\n/g, ' '))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-start group text-green-500 hover:underline"
+                  onClick={() => trackEvent('Click', 'Address')}
+                >
+                  <MapPin size={20} className="mr-2 mt-1 flex-shrink-0" />
+                  <span className="text-left whitespace-pre-line">{content.contactAddress}</span>
+                </a>
                )}
                <a 
                   href={`mailto:${content?.contactEmail || 'info.andries.serviceplus@gmail.com'}`} 
