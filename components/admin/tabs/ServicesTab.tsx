@@ -125,7 +125,7 @@ const ServicesTab = ({ content, handleContentChange, handleImageUpload, handleMo
                                     <span className="font-medium">{service.title}</span>
                                 </div>
                                 <div className="flex items-center">
-                                    <button type="button" onClick={(e) => { e.stopPropagation(); handleContentChange('servicesList', content.servicesList?.filter((_, i) => i !== originalIndex)) }} className="p-1 text-zinc-400 hover:text-red-400"><Trash size={20} /></button>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); handleContentChange('servicesList', content.servicesList?.filter((_, i) => i !== originalIndex)) }} className="p-2 text-zinc-400 hover:text-red-400"><Trash size={20} /></button>
                                     <CaretDown size={20} className={`ml-2 transform transition-transform ${openedService === originalIndex ? 'rotate-180' : ''}`} />
                                 </div>
                             </div>

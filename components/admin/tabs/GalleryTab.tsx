@@ -163,7 +163,7 @@ const GalleryTab = ({ content, gallery, handleContentChange, setGallery, setEdit
                                 <Pencil size={32} className="text-white" />
                             </div>
                         </button>
-                        <button type="button" onClick={() => setGallery(g => g.filter((_, i) => i !== index))} className="absolute top-1 right-1 z-10 text-white bg-red-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Verwijder afbeelding">
+                        <button type="button" onClick={() => setGallery(g => g.filter((_, i) => i !== index))} className="absolute top-1 right-1 z-10 text-white bg-red-600 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Verwijder afbeelding">
                             <Trash size={16} />
                         </button>
                          <div className="absolute top-1 left-1 z-10">

@@ -56,8 +56,8 @@ const BlogTab = ({ blogPosts, setEditingPost, handleDeletePost }: BlogTabProps) 
                 ) : (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-900 text-yellow-300"><Prohibit size={14} className="mr-1" /> Concept</span>
                 )}
-                <button onClick={() => setEditingPost(post)} className="p-1 text-zinc-400 hover:text-green-400"><Pencil size={20} /></button>
-                <button onClick={() => handleDeletePost(post._id)} className="p-1 text-zinc-400 hover:text-red-400"><Trash size={20} /></button>
+                <button onClick={() => setEditingPost(post)} className="p-2 text-zinc-400 hover:text-green-400"><Pencil size={20} /></button>
+                <button onClick={() => handleDeletePost(post._id)} className="p-2 text-zinc-400 hover:text-red-400"><Trash size={20} /></button>
               </div>
             </li>
           )) : (

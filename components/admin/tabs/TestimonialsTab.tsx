@@ -84,7 +84,7 @@ const TestimonialsTab = ({ content, handleContentChange }: TestimonialsTabProps)
                                 <span className="font-medium">{testimonial.name}</span>
                             </div>
                             <div className="flex items-center">
-                                <button type="button" onClick={(e) => { e.stopPropagation(); handleContentChange('testimonials', testimonials.filter((_, i) => i !== index)) }} className="p-1 text-zinc-400 hover:text-red-400"><Trash size={20} /></button>
+                                <button type="button" onClick={(e) => { e.stopPropagation(); handleContentChange('testimonials', testimonials.filter((_, i) => i !== index)) }} className="p-2 text-zinc-400 hover:text-red-400"><Trash size={20} /></button>
                                 <CaretDown size={20} className={`ml-2 transform transition-transform ${opened === index ? 'rotate-180' : ''}`} />
                             </div>
                         </div>

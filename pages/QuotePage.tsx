@@ -240,20 +240,20 @@ const QuotePage = () => {
                          {errors.submit && <p className="text-red-400 mt-4 text-center">{errors.submit}</p>}
                          
                          {/* Navigation */}
-                         <div className="flex justify-between items-center mt-8">
-                             <button onClick={prevStep} disabled={step === 1 || isLoading} className="inline-flex items-center px-4 py-2 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50">
-                                 <ArrowLeft size={16} className="mr-2" /> Vorige
-                             </button>
-                             {step < 3 ? (
-                                <button onClick={nextStep} disabled={isLoading} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
-                                 Volgende <ArrowRight size={16} className="ml-2" />
+                         <div className="flex flex-col-reverse sm:flex-row sm:justify-between items-center mt-8 gap-4 sm:gap-0">
+                            <button onClick={prevStep} disabled={step === 1 || isLoading} className="w-full sm:w-auto justify-center inline-flex items-center px-4 py-2 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50">
+                                <ArrowLeft size={16} className="mr-2" /> Vorige
+                            </button>
+                            {step < 3 ? (
+                                <button onClick={nextStep} disabled={isLoading} className="w-full sm:w-auto justify-center inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+                                Volgende <ArrowRight size={16} className="ml-2" />
                                 </button>
-                             ) : (
-                                <button onClick={handleSubmit} disabled={isLoading} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
-                                 {isLoading ? <Spinner size={16} className="animate-spin mr-2" /> : <PaperPlaneTilt size={16} className="mr-2" />}
-                                 {isLoading ? 'Verzenden...' : 'Verstuur Aanvraag'}
+                            ) : (
+                                <button onClick={handleSubmit} disabled={isLoading} className="w-full sm:w-auto justify-center inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+                                {isLoading ? <Spinner size={16} className="animate-spin mr-2" /> : <PaperPlaneTilt size={16} className="mr-2" />}
+                                {isLoading ? 'Verzenden...' : 'Verstuur Aanvraag'}
                                 </button>
-                             )}
+                            )}
                          </div>
                         </>
                     ) : (

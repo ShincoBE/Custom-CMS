@@ -10,11 +10,13 @@ import ServicePage from './pages/ServicePage';
 import QuotePage from './pages/QuotePage';
 import BlogListPage from './pages/BlogListPage';
 import BlogPostPage from './pages/BlogPostPage';
+import ScrollToTop from './components/ScrollToTop';
 
 
 function App() {
   return (
     <>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/diensten/:slug" element={<ServicePage />} />
