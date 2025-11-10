@@ -300,7 +300,7 @@ const QuotePage = () => {
                                         <li key={s.name} className="relative">
                                             {/* Connecting Line (but not for the first element) */}
                                             {index > 0 && (
-                                                <div className="absolute inset-0 right-1/2 top-4 h-0.5 w-full -translate-y-1/2" aria-hidden="true">
+                                                <div className="absolute inset-0 right-1/2 top-4 -translate-y-1/2 h-0.5 w-full" aria-hidden="true">
                                                     <div className={`h-full w-full transition-colors duration-500 ${step > index ? 'bg-green-600' : 'bg-zinc-700'}`} />
                                                 </div>
                                             )}
