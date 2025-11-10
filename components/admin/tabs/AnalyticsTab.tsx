@@ -1,6 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
-// Fix: Replaced non-existent 'CursorClick' and 'HandTap' icons with 'HandPointing' to resolve module export errors.
-// Add ArrowClockwise for refresh button
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChartBar, Spinner, Users, Link as LinkIcon, Globe, DeviceMobile, HandPointing, MapPin, ArrowClockwise } from 'phosphor-react';
 import type { AnalyticsData } from '../../../types';
 
@@ -43,34 +41,121 @@ const StatCard = ({ title, value, icon }: { title: string, value: string | numbe
     </div>
 );
 
-const DailyBarChart = ({ data, period }: { data: { date: string, visits: number, uniques: number }[], period: number }) => {
-    const maxVisits = Math.max(...data.map(d => d.visits), 0);
-    const isWeekly = period > 60;
-    return (
-        <div className="flex items-end h-64 space-x-2 p-4 bg-zinc-900/50 rounded-lg min-w-[600px]">
-            {data.map(({ date, visits, uniques }) => {
-                const height = maxVisits > 0 ? (visits / maxVisits) * 100 : 0;
-                const dateObj = new Date(date);
-                const formattedDate = dateObj.toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' });
-                const tooltipTitle = isWeekly ? `Week van ${formattedDate}` : formattedDate;
+const DailyVisitsChart = ({ data, period }: { data: { date: string, visits: number, uniques: number }[], period: number }) => {
+    const svgRef = useRef<SVGSVGElement>(null);
+    const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
 
-                return (
-                    <div key={date} className="flex-1 flex flex-col items-center justify-end group relative">
-                        <div className="w-full h-full flex items-end">
-                            <div className="w-full bg-green-700/50 group-hover:bg-green-600 rounded-t-sm transition-all" style={{ height: `${height}%` }} />
-                        </div>
-                        <span className="text-xs text-zinc-400 mt-2">{formattedDate}</span>
-                        <div className="absolute bottom-full mb-2 hidden group-hover:block px-2 py-1 text-xs text-white bg-zinc-900 rounded-md border border-zinc-700 shadow-lg text-center whitespace-nowrap">
-                           <div className="font-semibold">{tooltipTitle}</div>
-                           <strong>{visits}</strong> {visits === 1 ? 'bezoek' : 'bezoeken'}<br/>
-                           <strong>{uniques}</strong> {uniques === 1 ? 'unieke' : 'unieke'}
-                        </div>
-                    </div>
-                );
-            })}
+    if (!data || data.length < 2) {
+        return <div className="flex items-center justify-center h-64 text-zinc-400">Niet genoeg data voor een grafiek.</div>;
+    }
+
+    const width = Math.max(600, data.length * 30);
+    const height = 256;
+    const padding = { top: 20, right: 20, bottom: 30, left: 40 };
+
+    const maxVisits = Math.max(...data.map(d => d.visits), 1); // Avoid division by zero
+    
+    const xScale = (index: number) => padding.left + (index / (data.length - 1)) * (width - padding.left - padding.right);
+    const yScale = (visits: number) => height - padding.bottom - (visits / maxVisits) * (height - padding.top - padding.bottom);
+    
+    const points = data.map((d, i) => `${xScale(i)},${yScale(d.visits)}`).join(' ');
+    const areaPoints = `${padding.left},${height - padding.bottom} ${points} ${width - padding.right},${height - padding.bottom}`;
+    
+    const isWeekly = period > 60;
+    
+    const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+        const svg = svgRef.current;
+        if (!svg) return;
+        
+        const point = svg.createSVGPoint();
+        point.x = e.clientX;
+        point.y = e.clientY;
+        const { x } = point.matrixTransform(svg.getScreenCTM()?.inverse());
+        
+        const index = Math.round(((x - padding.left) / (width - padding.left - padding.right)) * (data.length - 1));
+
+        if (index >= 0 && index < data.length) {
+            const pointData = data[index];
+            const dateObj = new Date(pointData.date);
+            const formattedDate = dateObj.toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' });
+            const tooltipTitle = isWeekly ? `Week van ${formattedDate}` : formattedDate;
+
+            const content = `
+                <div class="font-semibold">${tooltipTitle}</div>
+                <strong>${pointData.visits}</strong> ${pointData.visits === 1 ? 'bezoek' : 'bezoeken'}<br/>
+                <strong>${pointData.uniques}</strong> ${pointData.uniques === 1 ? 'unieke' : 'unieke'}
+            `;
+            
+            const tooltipX = xScale(index);
+            const tooltipY = yScale(pointData.visits);
+
+            setTooltip({ x: tooltipX, y: tooltipY, content });
+        }
+    };
+
+    const handleMouseLeave = () => {
+        setTooltip(null);
+    };
+
+    return (
+        <div className="relative bg-zinc-900/50 rounded-lg p-2">
+            <svg
+                ref={svgRef}
+                viewBox={`0 0 ${width} ${height}`}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                className="w-full"
+            >
+                {/* Y-axis labels */}
+                <text x={padding.left - 8} y={padding.top + 5} textAnchor="end" fill="#a1a1aa" fontSize="12">{maxVisits}</text>
+                <text x={padding.left - 8} y={height - padding.bottom} textAnchor="end" fill="#a1a1aa" fontSize="12">0</text>
+                
+                <defs>
+                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#16a34a" stopOpacity="0.4"/>
+                        <stop offset="100%" stopColor="#16a34a" stopOpacity="0"/>
+                    </linearGradient>
+                </defs>
+
+                <polygon points={areaPoints} fill="url(#areaGradient)" />
+
+                <polyline
+                    fill="none"
+                    stroke="#16a34a"
+                    strokeWidth="2"
+                    points={points}
+                />
+                
+                {data.map((d, i) => {
+                     const dateObj = new Date(d.date);
+                     const formattedDate = dateObj.toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' });
+                     const labelFrequency = Math.ceil(data.length / (width / 60));
+                     if (i % labelFrequency !== 0 && i !== data.length - 1) return null;
+                     return (
+                        <text key={d.date} x={xScale(i)} y={height - padding.bottom + 15} textAnchor="middle" fill="#a1a1aa" fontSize="12">
+                            {formattedDate}
+                        </text>
+                     )
+                })}
+
+                {tooltip && (
+                    <g pointerEvents="none">
+                        <line x1={tooltip.x} y1={padding.top} x2={tooltip.x} y2={height - padding.bottom} stroke="#a1a1aa" strokeWidth="1" strokeDasharray="4" />
+                        <circle cx={tooltip.x} cy={tooltip.y} r="5" fill="#16a34a" stroke="white" strokeWidth="2" />
+                        <foreignObject x={tooltip.x > (width / 2) ? tooltip.x - 120 : tooltip.x + 20} y={tooltip.y - 35} width="100" height="60">
+                            {/* Fix: Removed the `xmlns` attribute. It is not a valid React prop for a div element and was causing a TypeScript error. HTML content inside a foreignObject should render correctly without it in modern browsers. */}
+                             <div
+                                className="px-2 py-1 text-xs text-white bg-zinc-900 rounded-md border border-zinc-700 shadow-lg text-center whitespace-nowrap"
+                                dangerouslySetInnerHTML={{ __html: tooltip.content }}
+                            />
+                        </foreignObject>
+                    </g>
+                )}
+            </svg>
         </div>
     );
 };
+
 
 const DonutChart = ({ data }: { data: { type: string; visits: number }[] }) => {
     const total = data.reduce((acc, item) => acc + item.visits, 0);
@@ -190,7 +275,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                 <div>
                     <h3 className="text-lg font-semibold mb-3 text-white">Bezoeken Per Dag</h3>
                     <div className="overflow-x-auto">
-                        <DailyBarChart data={data.daily} period={days} />
+                        <DailyVisitsChart data={data.daily} period={days} />
                     </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
