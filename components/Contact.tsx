@@ -4,7 +4,7 @@ import SectionHeader from './SectionHeader';
 import { useOnScreen } from '../hooks/useOnScreen';
 import type { PageContent } from '../types';
 import { trackEvent } from '../hooks/useAnalytics';
-import { PaperPlaneTilt, EnvelopeSimple, Phone, MapPin } from 'phosphor-react';
+import { ClipboardText, EnvelopeSimple, Phone, MapPin } from 'phosphor-react';
 
 interface ContactProps {
   content: PageContent | null;
@@ -29,7 +29,7 @@ function Contact({ content }: ContactProps) {
           {/* Card for Quote Request */}
           <div className="bg-zinc-800/80 backdrop-blur-sm border border-zinc-700/50 rounded-2xl shadow-2xl p-8 flex flex-col items-center text-center">
             <div className="p-4 bg-green-900/50 rounded-full border border-green-700/50 mb-4">
-              <PaperPlaneTilt size={32} className="text-green-400" />
+              <ClipboardText size={32} className="text-green-400" />
             </div>
             <h3 className="text-2xl font-bold text-white mb-3">{content?.contactQuoteCardTitle || 'Vraag een Offerte Aan'}</h3>
             <p className="text-gray-400 mb-6 flex-grow">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { PageContent, Service, SiteSettings } from '@/types';
-import { Spinner, ArrowLeft, ArrowRight, UploadSimple, PaperPlaneTilt, CheckCircle, Trash } from 'phosphor-react';
+import { Spinner, ArrowLeft, ArrowRight, UploadSimple, ClipboardText, CheckCircle, Trash, Check } from 'phosphor-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -124,92 +124,120 @@ const QuotePage = () => {
     } finally {
         setIsLoading(false);
     }
-};
+  };
+  
+  const steps = [
+      { number: 1, name: 'Diensten' },
+      { number: 2, name: 'Details' },
+      { number: 3, name: 'Contact' }
+  ];
 
-
-  const renderStep = () => {
+  const renderStepContent = () => {
     switch (step) {
       case 1:
         return (
           <div>
-            <h2 className="text-2xl font-bold mb-4">Welke diensten interesseren u?</h2>
+            <h2 className="text-2xl font-bold mb-1 text-white">Welke diensten interesseren u?</h2>
+            <p className="text-zinc-400 mb-6">U kunt meerdere diensten selecteren.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {services.map(s => (
-                <label key={s._key} className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-colors ${selectedServices.includes(s.title) ? 'bg-green-900/50 border-green-500' : 'bg-zinc-800 border-zinc-700 hover:border-zinc-500'}`}>
-                  <input
-                    type="checkbox"
-                    checked={selectedServices.includes(s.title)}
-                    onChange={() => {
-                      setSelectedServices(prev =>
-                        prev.includes(s.title)
-                          ? prev.filter(item => item !== s.title)
-                          : [...prev, s.title]
-                      );
-                    }}
-                    className="h-5 w-5 rounded bg-zinc-700 border-zinc-500 text-green-600 focus:ring-green-500"
-                  />
-                  <span className="ml-3 font-medium">{s.title}</span>
-                </label>
-              ))}
+              {services.map(s => {
+                  const isSelected = selectedServices.includes(s.title);
+                  return (
+                    <div 
+                        key={s._key} 
+                        onClick={() => {
+                          setSelectedServices(prev =>
+                            prev.includes(s.title)
+                              ? prev.filter(item => item !== s.title)
+                              : [...prev, s.title]
+                          );
+                        }}
+                        className={`relative flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${isSelected ? 'bg-green-900/50 border-green-500' : 'bg-zinc-900 border-zinc-700 hover:border-zinc-500'}`}
+                    >
+                      {isSelected && (
+                          <div className="absolute top-2 right-2 p-1 bg-green-500 rounded-full text-white">
+                            <Check size={12} weight="bold" />
+                          </div>
+                      )}
+                      {s.customIcon?.url && <img src={s.customIcon.url} alt={s.customIcon.alt || ''} className="w-8 h-8 mr-4 object-contain" />}
+                      <span className="font-medium text-white">{s.title}</span>
+                    </div>
+                  );
+              })}
             </div>
-            {errors.services && <p className="text-red-400 mt-2">{errors.services}</p>}
+            {errors.services && <p className="text-red-400 mt-4">{errors.services}</p>}
           </div>
         );
       case 2:
         return (
           <div>
-            <h2 className="text-2xl font-bold mb-4">Vertel ons meer over uw project</h2>
+            <h2 className="text-2xl font-bold mb-1 text-white">Vertel ons meer over uw project</h2>
+            <p className="text-zinc-400 mb-6">Hoe meer details, hoe beter we u kunnen helpen.</p>
             <textarea
               value={details}
               onChange={e => setDetails(e.target.value)}
               rows={6}
               className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500"
-              placeholder="Beschrijf hier wat u wilt laten doen. Hoe meer details, hoe beter we u kunnen helpen."
+              placeholder="Beschrijf hier wat u wilt laten doen..."
             />
             {errors.details && <p className="text-red-400 text-xs mt-1">{errors.details}</p>}
             
-            <div className="mt-4">
+            <div className="mt-6">
                 <label className="block text-sm font-medium text-zinc-300 mb-2">Voeg een foto toe (optioneel)</label>
-                <div className="flex items-start sm:items-center flex-col sm:flex-row gap-4">
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="inline-flex items-center px-4 py-2 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600">
-                        <UploadSimple size={16} className="mr-2" /> Foto kiezen
-                    </button>
-                    <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
-                    {imagePreview && (
-                        <div className="flex items-center space-x-2">
-                             <img src={imagePreview} alt="Preview" className="w-16 h-16 object-cover rounded-md"/>
-                             <button onClick={removeImage} className="p-2 text-zinc-400 hover:text-red-400 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors" aria-label="Verwijder afbeelding">
-                                <Trash size={20} />
-                             </button>
+                {!imagePreview ? (
+                     <div 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex justify-center items-center w-full h-32 px-6 py-10 border-2 border-zinc-600 border-dashed rounded-md cursor-pointer hover:bg-zinc-700/50"
+                     >
+                        <div className="text-center">
+                            <UploadSimple size={24} className="mx-auto text-zinc-400" />
+                            <p className="mt-2 text-sm text-zinc-400"><span className="font-semibold text-green-500">Klik om te uploaden</span></p>
+                            <p className="text-xs text-zinc-500">PNG, JPG, WEBP (MAX. 5MB)</p>
                         </div>
-                    )}
-                </div>
-                <p className="text-xs text-zinc-400 mt-2">Max. bestandsgrootte: 5MB. Toegestane types: JPG, PNG, WEBP.</p>
-                {errors.image && <p className="text-red-400 text-xs mt-1">{errors.image}</p>}
+                     </div>
+                ): (
+                    <div className="relative w-40 h-40">
+                         <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-md"/>
+                         <button onClick={removeImage} className="absolute -top-2 -right-2 p-1.5 text-white bg-red-600 rounded-full shadow-lg hover:bg-red-700 transition-colors" aria-label="Verwijder afbeelding">
+                            <Trash size={16} />
+                         </button>
+                    </div>
+                )}
+                <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
+                {errors.image && <p className="text-red-400 text-xs mt-2">{errors.image}</p>}
             </div>
           </div>
         );
       case 3:
         return (
           <div>
-            <h2 className="text-2xl font-bold mb-4">Bijna klaar! Hoe kunnen we u bereiken?</h2>
+            <h2 className="text-2xl font-bold mb-1 text-white">Bijna klaar! Hoe kunnen we u bereiken?</h2>
+            <p className="text-zinc-400 mb-6">We gebruiken deze gegevens enkel om op uw aanvraag te reageren.</p>
             <div className="space-y-4">
-                <input
-                    type="text"
-                    value={contactInfo.name}
-                    onChange={e => setContactInfo({ ...contactInfo, name: e.target.value })}
-                    placeholder="Uw naam"
-                    className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500"
-                />
-                 {errors.name && <p className="text-red-400 text-xs">{errors.name}</p>}
-                <input
-                    type="email"
-                    value={contactInfo.email}
-                    onChange={e => setContactInfo({ ...contactInfo, email: e.target.value })}
-                    placeholder="Uw emailadres"
-                    className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500"
-                />
-                 {errors.email && <p className="text-red-400 text-xs">{errors.email}</p>}
+                <div>
+                  <label htmlFor="name" className="sr-only">Naam</label>
+                  <input
+                      id="name"
+                      type="text"
+                      value={contactInfo.name}
+                      onChange={e => setContactInfo({ ...contactInfo, name: e.target.value })}
+                      placeholder="Uw naam"
+                      className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500"
+                  />
+                  {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
+                </div>
+                <div>
+                  <label htmlFor="email" className="sr-only">Emailadres</label>
+                  <input
+                      id="email"
+                      type="email"
+                      value={contactInfo.email}
+                      onChange={e => setContactInfo({ ...contactInfo, email: e.target.value })}
+                      placeholder="Uw emailadres"
+                      className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500"
+                  />
+                  {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+                </div>
             </div>
           </div>
         );
@@ -220,53 +248,114 @@ const QuotePage = () => {
   return (
     <div className="text-white font-sans antialiased flex flex-col min-h-screen bg-zinc-950">
         <Header onOpenGallery={() => {}} content={pageContent} settings={settings} status={pageContent ? 'success' : 'loading'} />
-        <main className="flex-grow pt-16 flex items-center justify-center">
-            <div className="max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                 <div className="bg-zinc-900/60 backdrop-blur-sm border border-zinc-700/50 rounded-2xl shadow-2xl p-6 sm:p-10">
-                    {!isSubmitted ? (
-                        <>
-                         <h1 className="text-3xl font-bold text-center mb-2">Vraag een vrijblijvende offerte aan</h1>
-                         <p className="text-zinc-400 text-center mb-8">Voltooi de stappen om ons de details van uw project te bezorgen.</p>
+        <main className="flex-grow pt-16">
+            <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
+                {!isSubmitted ? (
+                <>
+                    <div className="text-center mb-12">
+                        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">Vraag een Vrijblijvende Offerte Aan</h1>
+                        <p className="mt-4 max-w-2xl mx-auto text-lg text-zinc-400">Voltooi de 3 stappen om ons alle details voor uw project te bezorgen.</p>
+                    </div>
 
-                         {/* Progress Bar */}
-                         <div className="w-full bg-zinc-700 rounded-full h-2.5 mb-8">
-                            <div className="bg-green-600 h-2.5 rounded-full transition-all duration-500" style={{ width: `${(step / 3) * 100}%` }}></div>
-                         </div>
-                        
-                         <div className="min-h-[250px]">
-                            {renderStep()}
-                         </div>
-                         
-                         {errors.submit && <p className="text-red-400 mt-4 text-center">{errors.submit}</p>}
-                         
-                         {/* Navigation */}
-                         <div className="flex flex-col-reverse sm:flex-row sm:justify-between items-center mt-8 gap-4 sm:gap-0">
-                            <button onClick={prevStep} disabled={step === 1 || isLoading} className="w-full sm:w-auto justify-center inline-flex items-center px-4 py-2 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50">
-                                <ArrowLeft size={16} className="mr-2" /> Vorige
-                            </button>
-                            {step < 3 ? (
-                                <button onClick={nextStep} disabled={isLoading} className="w-full sm:w-auto justify-center inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
-                                Volgende <ArrowRight size={16} className="ml-2" />
-                                </button>
-                            ) : (
-                                <button onClick={handleSubmit} disabled={isLoading} className="w-full sm:w-auto justify-center inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
-                                {isLoading ? <Spinner size={16} className="animate-spin mr-2" /> : <PaperPlaneTilt size={16} className="mr-2" />}
-                                {isLoading ? 'Verzenden...' : 'Verstuur Aanvraag'}
-                                </button>
-                            )}
-                         </div>
-                        </>
-                    ) : (
-                         <div className="text-center py-12">
-                             <CheckCircle size={64} className="mx-auto text-green-500 mb-4" />
-                            <h1 className="text-3xl font-bold mb-2">Aanvraag Verzonden!</h1>
-                            <p className="text-zinc-400 mb-8">Bedankt! We hebben uw offerteaanvraag ontvangen en nemen zo snel mogelijk contact met u op.</p>
-                            <button onClick={() => navigate('/')} className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full transition-colors">
-                                Terug naar Home
-                            </button>
-                         </div>
-                    )}
-                 </div>
+                    <div className="lg:grid lg:grid-cols-3 lg:gap-12">
+                        <div className="lg:col-span-2">
+                           <nav aria-label="Progress">
+                                <ol role="list" className="flex items-center mb-8">
+                                    {steps.map((s, index) => (
+                                        <li key={s.name} className={`relative ${index !== steps.length - 1 ? 'pr-8 sm:pr-20 flex-1' : ''}`}>
+                                        {s.number < step ? (
+                                            <>
+                                            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                                                <div className="h-0.5 w-full bg-green-600" />
+                                            </div>
+                                            <button onClick={() => setStep(s.number)} className="relative flex h-8 w-8 items-center justify-center rounded-full bg-green-600 hover:bg-green-500">
+                                                <Check className="h-5 w-5 text-white" aria-hidden="true" />
+                                                <span className="sr-only">{s.name}</span>
+                                            </button>
+                                            </>
+                                        ) : s.number === step ? (
+                                            <>
+                                            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                                                <div className="h-0.5 w-full bg-zinc-700" />
+                                            </div>
+                                            <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-green-600 bg-zinc-800" aria-current="step">
+                                                <span className="h-2.5 w-2.5 rounded-full bg-green-600" aria-hidden="true" />
+                                                <span className="sr-only">{s.name}</span>
+                                            </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                                                <div className="h-0.5 w-full bg-zinc-700" />
+                                            </div>
+                                            <div className="group relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-zinc-600 bg-zinc-800">
+                                                <span className="h-2.5 w-2.5 rounded-full bg-transparent" aria-hidden="true" />
+                                                <span className="sr-only">{s.name}</span>
+                                            </div>
+                                            </>
+                                        )}
+                                        <p className="absolute -bottom-6 text-sm font-medium text-center w-full truncate" style={{left: '-50%'}}>
+                                          <span className={`${s.number <= step ? 'text-white' : 'text-zinc-500'}`}>{s.name}</span>
+                                        </p>
+                                        </li>
+                                    ))}
+                                </ol>
+                            </nav>
+                           
+                           <div className="bg-zinc-800/50 border border-zinc-700 rounded-xl p-8 min-h-[400px] flex flex-col justify-between">
+                                <div>
+                                    {renderStepContent()}
+                                </div>
+                                <div>
+                                    {errors.submit && <p className="text-red-400 mt-4 text-center">{errors.submit}</p>}
+                                    <div className="flex flex-col-reverse sm:flex-row sm:justify-between items-center mt-8 gap-4">
+                                        <button onClick={prevStep} disabled={step === 1 || isLoading} className="w-full sm:w-auto justify-center inline-flex items-center px-6 py-2 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50 transition-colors">
+                                            <ArrowLeft size={16} className="mr-2" /> Vorige
+                                        </button>
+                                        {step < 3 ? (
+                                            <button onClick={nextStep} disabled={isLoading} className="w-full sm:w-auto justify-center inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors">
+                                            Volgende <ArrowRight size={16} className="ml-2" />
+                                            </button>
+                                        ) : (
+                                            <button onClick={handleSubmit} disabled={isLoading} className="w-full sm:w-auto justify-center inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors">
+                                            {isLoading ? <Spinner size={20} className="animate-spin mr-2" /> : <ClipboardText size={20} className="mr-2" />}
+                                            {isLoading ? 'Verzenden...' : 'Verstuur Aanvraag'}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                           </div>
+                        </div>
+
+                        <div className="hidden lg:block">
+                            <div className="sticky top-24 bg-zinc-800/50 border border-zinc-700 rounded-xl p-6">
+                                <h3 className="text-lg font-semibold text-white mb-4">Uw Aanvraag</h3>
+                                {selectedServices.length > 0 ? (
+                                    <ul className="space-y-2">
+                                    {selectedServices.map(service => (
+                                        <li key={service} className="flex items-center text-zinc-300">
+                                        <CheckCircle size={16} className="text-green-500 mr-3 flex-shrink-0" />
+                                        <span>{service}</span>
+                                        </li>
+                                    ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-sm text-zinc-400">Selecteer diensten om ze hier te zien verschijnen.</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </>
+                ) : (
+                    <div className="text-center py-12 bg-zinc-800/50 border border-zinc-700 rounded-xl">
+                        <CheckCircle size={64} className="mx-auto text-green-500 mb-4" />
+                        <h1 className="text-3xl font-bold mb-2">Aanvraag Verzonden!</h1>
+                        <p className="text-zinc-400 mb-8 max-w-md mx-auto">Bedankt! We hebben uw offerteaanvraag ontvangen en nemen zo snel mogelijk contact met u op.</p>
+                        <button onClick={() => navigate('/')} className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition-colors">
+                            Terug naar Home
+                        </button>
+                    </div>
+                )}
             </div>
         </main>
         <Footer content={pageContent} />
