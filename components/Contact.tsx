@@ -4,7 +4,7 @@ import SectionHeader from './SectionHeader';
 import { useOnScreen } from '../hooks/useOnScreen';
 import type { PageContent } from '../types';
 import { trackEvent } from '../hooks/useAnalytics';
-import { PaperPlaneTilt, EnvelopeSimple, Phone } from 'phosphor-react';
+import { PaperPlaneTilt, EnvelopeSimple, Phone, MapPin } from 'phosphor-react';
 
 interface ContactProps {
   content: PageContent | null;
@@ -53,7 +53,13 @@ function Contact({ content }: ContactProps) {
             <p className="text-gray-400 mb-6 flex-grow">
              {content?.contactDirectCardText || 'Voor algemene vragen, opmerkingen of een snel overleg kunt u ons het beste direct bereiken via e-mail of telefoon.'}
             </p>
-            <div className="space-y-4">
+            <div className="space-y-4 flex flex-col items-center">
+               {content?.contactAddress && (
+                <div className="flex items-start text-zinc-300">
+                  <MapPin size={20} className="mr-2 mt-1 text-green-500 flex-shrink-0" />
+                  <p className="text-left whitespace-pre-line">{content.contactAddress}</p>
+                </div>
+               )}
                <a 
                   href={`mailto:${content?.contactEmail || 'info.andries.serviceplus@gmail.com'}`} 
                   className="inline-flex items-center group text-green-500 hover:underline"
@@ -62,16 +68,14 @@ function Contact({ content }: ContactProps) {
                   <EnvelopeSimple size={20} className="mr-2"/>
                   <span>{content?.contactEmail || 'info.andries.serviceplus@gmail.com'}</span>
                 </a>
-                <div className="w-full text-center">
-                   <a 
-                      href={`tel:${(content?.contactPhone || '+32494399286').replace(/\s/g, '')}`} 
-                      className="inline-flex items-center group text-green-500 hover:underline"
-                      onClick={() => trackEvent('Click', 'Phone')}
-                    >
-                      <Phone size={20} className="mr-2"/>
-                      <span>{content?.contactPhone || '+32 494 39 92 86'}</span>
-                    </a>
-                </div>
+                <a 
+                  href={`tel:${(content?.contactPhone || '+32494399286').replace(/\s/g, '')}`} 
+                  className="inline-flex items-center group text-green-500 hover:underline"
+                  onClick={() => trackEvent('Click', 'Phone')}
+                >
+                  <Phone size={20} className="mr-2"/>
+                  <span>{content?.contactPhone || '+32 494 39 92 86'}</span>
+                </a>
             </div>
           </div>
         </div>
