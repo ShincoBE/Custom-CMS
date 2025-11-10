@@ -21,6 +21,7 @@ const QuotePage = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [pageContent, setPageContent] = useState<PageContent | null>(null);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -87,6 +88,36 @@ const QuotePage = () => {
     }
   };
 
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation(); // Necessary to allow drop
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles && droppedFiles.length > 0) {
+      const mockEvent = {
+        target: { files: droppedFiles },
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
+      handleImageChange(mockEvent);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!validateStep()) return;
@@ -187,11 +218,15 @@ const QuotePage = () => {
                 {!imagePreview ? (
                      <div 
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex justify-center items-center w-full h-32 px-6 py-10 border-2 border-zinc-600 border-dashed rounded-md cursor-pointer hover:bg-zinc-700/50"
+                        onDragEnter={handleDragEnter}
+                        onDragLeave={handleDragLeave}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                        className={`flex justify-center items-center w-full h-32 px-6 py-10 border-2 border-dashed rounded-md cursor-pointer transition-colors ${isDraggingOver ? 'bg-green-900/50 border-green-500' : 'border-zinc-600 hover:bg-zinc-700/50'}`}
                      >
                         <div className="text-center">
                             <UploadSimple size={24} className="mx-auto text-zinc-400" />
-                            <p className="mt-2 text-sm text-zinc-400"><span className="font-semibold text-green-500">Klik om te uploaden</span></p>
+                            <p className="mt-2 text-sm text-zinc-400"><span className="font-semibold text-green-500">Klik om te uploaden</span> of sleep een bestand</p>
                             <p className="text-xs text-zinc-500">PNG, JPG, WEBP (MAX. 5MB)</p>
                         </div>
                      </div>
@@ -248,55 +283,41 @@ const QuotePage = () => {
   return (
     <div className="text-white font-sans antialiased flex flex-col min-h-screen bg-zinc-950">
         <Header onOpenGallery={() => {}} content={pageContent} settings={settings} status={pageContent ? 'success' : 'loading'} />
-        <main className="flex-grow pt-16">
+        <main className="flex-grow pt-16 bg-zinc-950 bg-[radial-gradient(circle_at_top,_rgba(10,40,20,0.3),_transparent_40%)]">
             <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
                 {!isSubmitted ? (
                 <>
                     <div className="text-center mb-12">
-                        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">Vraag een Vrijblijvende Offerte Aan</h1>
+                        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-b from-white to-zinc-300 bg-clip-text text-transparent pb-2">Vraag een Vrijblijvende Offerte Aan</h1>
                         <p className="mt-4 max-w-2xl mx-auto text-lg text-zinc-400">Voltooi de 3 stappen om ons alle details voor uw project te bezorgen.</p>
                     </div>
 
                     <div className="lg:grid lg:grid-cols-3 lg:gap-12">
                         <div className="lg:col-span-2">
-                           <nav aria-label="Progress">
-                                <ol role="list" className="flex items-center mb-8">
+                           <nav aria-label="Progress" className="mb-12">
+                                <ol role="list" className="grid" style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }}>
                                     {steps.map((s, index) => (
-                                        <li key={s.name} className={`relative ${index !== steps.length - 1 ? 'pr-8 sm:pr-20 flex-1' : ''}`}>
-                                        {s.number < step ? (
-                                            <>
-                                            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                                                <div className="h-0.5 w-full bg-green-600" />
+                                        <li key={s.name} className="relative">
+                                            {/* Connecting Line (but not for the first element) */}
+                                            {index > 0 && (
+                                                <div className="absolute inset-0 right-1/2 top-4 h-0.5 w-full -translate-y-1/2" aria-hidden="true">
+                                                    <div className={`h-full w-full transition-colors duration-500 ${step > index ? 'bg-green-600' : 'bg-zinc-700'}`} />
+                                                </div>
+                                            )}
+                                            
+                                            <div className="relative z-10 flex flex-col items-center">
+                                                <div
+                                                    onClick={() => step > s.number && setStep(s.number)}
+                                                    className={`flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 ${step > s.number ? 'cursor-pointer' : ''} ${s.number < step ? 'bg-green-600' : s.number === step ? 'border-2 border-green-600 bg-zinc-800' : 'border-2 border-zinc-600 bg-zinc-800'}`}
+                                                >
+                                                    {s.number < step ? (
+                                                        <Check className="h-5 w-5 text-white" aria-hidden="true" />
+                                                    ) : (
+                                                        <span className={`${s.number === step ? 'text-green-500' : 'text-zinc-400'}`}>{s.number}</span>
+                                                    )}
+                                                </div>
+                                                <p className={`mt-2 text-sm font-medium text-center ${s.number <= step ? 'text-white' : 'text-zinc-500'}`}>{s.name}</p>
                                             </div>
-                                            <button onClick={() => setStep(s.number)} className="relative flex h-8 w-8 items-center justify-center rounded-full bg-green-600 hover:bg-green-500">
-                                                <Check className="h-5 w-5 text-white" aria-hidden="true" />
-                                                <span className="sr-only">{s.name}</span>
-                                            </button>
-                                            </>
-                                        ) : s.number === step ? (
-                                            <>
-                                            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                                                <div className="h-0.5 w-full bg-zinc-700" />
-                                            </div>
-                                            <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-green-600 bg-zinc-800" aria-current="step">
-                                                <span className="h-2.5 w-2.5 rounded-full bg-green-600" aria-hidden="true" />
-                                                <span className="sr-only">{s.name}</span>
-                                            </div>
-                                            </>
-                                        ) : (
-                                            <>
-                                            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                                                <div className="h-0.5 w-full bg-zinc-700" />
-                                            </div>
-                                            <div className="group relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-zinc-600 bg-zinc-800">
-                                                <span className="h-2.5 w-2.5 rounded-full bg-transparent" aria-hidden="true" />
-                                                <span className="sr-only">{s.name}</span>
-                                            </div>
-                                            </>
-                                        )}
-                                        <p className="absolute -bottom-6 text-sm font-medium text-center w-full truncate" style={{left: '-50%'}}>
-                                          <span className={`${s.number <= step ? 'text-white' : 'text-zinc-500'}`}>{s.name}</span>
-                                        </p>
                                         </li>
                                     ))}
                                 </ol>
