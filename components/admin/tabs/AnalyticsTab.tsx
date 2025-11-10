@@ -150,26 +150,29 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
     const DailyVisitsChart = ({ data, period }: { data: { date: string, visits: number, uniques: number }[], period: number }) => {
         const svgRef = useRef<SVGSVGElement>(null);
         const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
-    
-        if (!data || data.length < 2) {
+
+        if (!data || data.length < 1) {
             return <div className="flex items-center justify-center h-64 text-zinc-400">Niet genoeg data voor een grafiek.</div>;
         }
-    
+
         const width = period >= 90 ? Math.max(containerWidth, data.length * 20) : containerWidth;
         const height = 256;
         const padding = { top: 20, right: 20, bottom: 30, left: 50 };
-    
+        const chartWidth = width - padding.left - padding.right;
+        const chartHeight = height - padding.top - padding.bottom;
+        const dataPoints = data.length;
+
         const maxVisits = Math.max(...data.map(d => d.visits), 1);
         
-        const xScale = (index: number) => padding.left + (index / (data.length - 1)) * (width - padding.left - padding.right);
-        const yScale = (visits: number) => height - padding.bottom - (visits / maxVisits) * (height - padding.top - padding.bottom);
-        
-        const points = data.map((d, i) => `${xScale(i)},${yScale(d.visits)}`).join(' ');
-        const areaPoints = `${padding.left},${height - padding.bottom} ${points} ${width - padding.right},${height - padding.bottom}`;
-        
+        const xScale = (index: number) => padding.left + index * (chartWidth / dataPoints);
+        const yScale = (value: number) => height - padding.bottom - (value / maxVisits) * chartHeight;
+        const barWidth = Math.max(1, (chartWidth / dataPoints) * 0.6);
+
+        const uniquePoints = data.map((d, i) => `${xScale(i) + (chartWidth / dataPoints / 2)},${yScale(d.uniques)}`).join(' ');
+
         const isWeekly = period > 60;
         const yAxisTicks = [1/4, 2/4, 3/4];
-    
+
         const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
             const svg = svgRef.current;
             if (!svg) return;
@@ -177,37 +180,37 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
             const rect = svg.getBoundingClientRect();
             const x = e.clientX - rect.left;
             
-            const index = Math.round(((x - padding.left) / (width - padding.left - padding.right)) * (data.length - 1));
-    
+            const index = Math.floor(((x - padding.left) / chartWidth) * dataPoints);
+
             if (index >= 0 && index < data.length) {
                 const pointData = data[index];
                 const dateObj = new Date(pointData.date);
                 const formattedDate = dateObj.toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' });
                 const tooltipTitle = isWeekly ? `Week van ${formattedDate}` : formattedDate;
-    
+
                 const content = `
                     <div class="font-semibold">${tooltipTitle}</div>
                     <strong>${pointData.visits}</strong> ${pointData.visits === 1 ? 'bezoek' : 'bezoeken'}<br/>
-                    <strong>${pointData.uniques}</strong> ${pointData.uniques === 1 ? 'unieke' : 'unieke'}
+                    <strong>${pointData.uniques}</strong> ${pointData.uniques === 1 ? 'unieke bezoeker' : 'unieke bezoekers'}
                 `;
                 
-                const tooltipX = xScale(index);
-                const tooltipY = yScale(pointData.visits);
-    
+                const tooltipX = xScale(index) + barWidth / 2;
+                const tooltipY = Math.min(yScale(pointData.visits), yScale(pointData.uniques));
+
                 setTooltip({ x: tooltipX, y: tooltipY, content });
             }
         };
-    
+
         const handleMouseLeave = () => {
             setTooltip(null);
         };
-    
+
         let tooltipJsx = null;
         if (tooltip) {
-            const tooltipWidth = 120;
+            const tooltipWidth = 140;
             const tooltipHeight = 60;
             const tooltipOffset = 20;
-    
+
             let tooltipX = tooltip.x + tooltipOffset;
             if (tooltipX + tooltipWidth > width - padding.right) {
                 tooltipX = tooltip.x - tooltipWidth - tooltipOffset;
@@ -215,7 +218,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
             if (tooltipX < padding.left) {
                 tooltipX = padding.left;
             }
-    
+
             let tooltipY = tooltip.y - (tooltipHeight / 2);
             if (tooltipY < padding.top) {
                 tooltipY = padding.top;
@@ -223,11 +226,10 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
             if (tooltipY + tooltipHeight > height - padding.bottom) {
                 tooltipY = height - padding.bottom - tooltipHeight;
             }
-    
+
             tooltipJsx = (
                 <g pointerEvents="none">
                     <line x1={tooltip.x} y1={padding.top} x2={tooltip.x} y2={height - padding.bottom} stroke="#a1a1aa" strokeWidth="1" strokeDasharray="4" />
-                    <circle cx={tooltip.x} cy={tooltip.y} r="5" fill="#16a34a" stroke="#1f2937" strokeWidth="2" />
                     <foreignObject x={tooltipX} y={tooltipY} width={tooltipWidth} height={tooltipHeight}>
                          <div
                             className="px-2 py-1 text-xs text-white bg-zinc-900/80 backdrop-blur-sm rounded-md border border-zinc-700 shadow-lg text-center"
@@ -237,7 +239,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                 </g>
             );
         }
-    
+
         return (
             <svg
                 ref={svgRef}
@@ -260,22 +262,27 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                 
                 {/* Y-axis top and bottom labels */}
                 <text x={padding.left - 8} y={padding.top + 5} textAnchor="end" fill="#a1a1aa" fontSize="12">{Math.ceil(maxVisits)}</text>
-                <text x={padding.left - 8} y={height - padding.bottom} textAnchor="end" fill="#a1a1aa" fontSize="12">0</text>
+                <text x={padding.left - 8} y={height - padding.bottom + 4} textAnchor="end" fill="#a1a1aa" fontSize="12">0</text>
                 
-                <defs>
-                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#16a34a" stopOpacity="0.4"/>
-                        <stop offset="100%" stopColor="#16a34a" stopOpacity="0"/>
-                    </linearGradient>
-                </defs>
+                {/* Bars for Total Visits */}
+                {data.map((d, i) => (
+                    <rect
+                        key={`bar-${d.date}`}
+                        x={xScale(i) + ((chartWidth / dataPoints - barWidth) / 2)}
+                        y={yScale(d.visits)}
+                        width={barWidth}
+                        height={height - padding.bottom - yScale(d.visits)}
+                        fill="#15803d"
+                        className="opacity-50"
+                    />
+                ))}
 
-                <polygon points={areaPoints} fill="url(#areaGradient)" />
-
+                {/* Line for Unique Visitors */}
                 <polyline
                     fill="none"
-                    stroke="#16a34a"
+                    stroke="#4ade80"
                     strokeWidth="2"
-                    points={points}
+                    points={uniquePoints}
                 />
                 
                 {/* X-axis labels */}
@@ -285,7 +292,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                      const labelFrequency = Math.ceil(data.length / (width / 70));
                      if (i % labelFrequency !== 0 && i !== data.length - 1) return null;
                      return (
-                        <text key={d.date} x={xScale(i)} y={height - padding.bottom + 15} textAnchor="middle" fill="#a1a1aa" fontSize="12">
+                        <text key={d.date} x={xScale(i) + (chartWidth / dataPoints / 2)} y={height - padding.bottom + 15} textAnchor="middle" fill="#a1a1aa" fontSize="12">
                             {formattedDate}
                         </text>
                      )
