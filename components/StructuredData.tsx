@@ -22,6 +22,28 @@ const StructuredData = ({ pageContent, service, blogPost }: StructuredDataProps)
 
   const websiteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.andriesserviceplus.be';
 
+  // Safely parse address to prevent crashes if format is unexpected
+  let addressSchema;
+  if (contactAddress) {
+    const lines = contactAddress.split('\n');
+    const street = lines[0];
+    const cityLine = lines[1] || ''; // Use empty string as fallback
+    const cityParts = cityLine.trim().split(' ');
+    const postalCode = cityParts[0];
+    const addressLocality = cityParts.slice(1).join(' ');
+
+    if (street && postalCode && addressLocality) {
+      addressSchema = {
+        '@type': 'PostalAddress',
+        streetAddress: street,
+        addressLocality: addressLocality,
+        postalCode: postalCode,
+        addressCountry: 'BE',
+      };
+    }
+  }
+
+
   // Base Schema for Local Business
   const localBusinessSchema = {
     '@context': 'https://schema.org',
@@ -32,13 +54,7 @@ const StructuredData = ({ pageContent, service, blogPost }: StructuredDataProps)
     url: websiteUrl,
     telephone: contactPhone,
     email: contactEmail,
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: contactAddress?.split('\n')[0],
-      addressLocality: contactAddress?.split('\n')[1].split(' ')[1],
-      postalCode: contactAddress?.split('\n')[1].split(' ')[0],
-      addressCountry: 'BE',
-    },
+    address: addressSchema,
     sameAs: facebookUrl ? [facebookUrl] : undefined,
     priceRange: '€€',
     openingHoursSpecification: [
