@@ -102,7 +102,7 @@ const BlogPostPage = () => {
     }
 
     return (
-        <div className="text-white font-sans antialiased flex flex-col min-h-screen bg-zinc-950">
+        <div className="text-white font-sans antialiased flex flex-col min-h-screen bg-zinc-950 bg-[radial-gradient(circle_at_top,_rgba(10,40,20,0.3),_transparent_40%)]">
             <StructuredData pageContent={pageContent} blogPost={post} />
             <Header onOpenGallery={handleOpenGallery} content={pageContent} settings={settings} status={status === 'loading' ? 'loading' : 'success'} />
             <main className="flex-grow pt-16">

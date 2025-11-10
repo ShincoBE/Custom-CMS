@@ -49,11 +49,11 @@ const DailyVisitsChart = ({ data, period }: { data: { date: string, visits: numb
         return <div className="flex items-center justify-center h-64 text-zinc-400">Niet genoeg data voor een grafiek.</div>;
     }
 
-    const width = Math.max(600, data.length * 30);
+    const width = Math.max(600, data.length * 20);
     const height = 256;
-    const padding = { top: 20, right: 20, bottom: 30, left: 40 };
+    const padding = { top: 20, right: 20, bottom: 30, left: 50 };
 
-    const maxVisits = Math.max(...data.map(d => d.visits), 1); // Avoid division by zero
+    const maxVisits = Math.max(...data.map(d => d.visits), 1);
     
     const xScale = (index: number) => padding.left + (index / (data.length - 1)) * (width - padding.left - padding.right);
     const yScale = (visits: number) => height - padding.bottom - (visits / maxVisits) * (height - padding.top - padding.bottom);
@@ -62,15 +62,14 @@ const DailyVisitsChart = ({ data, period }: { data: { date: string, visits: numb
     const areaPoints = `${padding.left},${height - padding.bottom} ${points} ${width - padding.right},${height - padding.bottom}`;
     
     const isWeekly = period > 60;
-    
+    const yAxisTicks = [1/4, 2/4, 3/4];
+
     const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
         const svg = svgRef.current;
         if (!svg) return;
         
-        const point = svg.createSVGPoint();
-        point.x = e.clientX;
-        point.y = e.clientY;
-        const { x } = point.matrixTransform(svg.getScreenCTM()?.inverse());
+        const rect = svg.getBoundingClientRect();
+        const x = e.clientX - rect.left;
         
         const index = Math.round(((x - padding.left) / (width - padding.left - padding.right)) * (data.length - 1));
 
@@ -97,17 +96,65 @@ const DailyVisitsChart = ({ data, period }: { data: { date: string, visits: numb
         setTooltip(null);
     };
 
+    let tooltipJsx = null;
+    if (tooltip) {
+        const tooltipWidth = 120;
+        const tooltipHeight = 60;
+        const tooltipOffset = 20;
+
+        let tooltipX = tooltip.x + tooltipOffset;
+        if (tooltipX + tooltipWidth > width - padding.right) {
+            tooltipX = tooltip.x - tooltipWidth - tooltipOffset;
+        }
+        if (tooltipX < padding.left) {
+            tooltipX = padding.left;
+        }
+
+        let tooltipY = tooltip.y - (tooltipHeight / 2);
+        if (tooltipY < padding.top) {
+            tooltipY = padding.top;
+        }
+        if (tooltipY + tooltipHeight > height - padding.bottom) {
+            tooltipY = height - padding.bottom - tooltipHeight;
+        }
+
+        tooltipJsx = (
+            <g pointerEvents="none">
+                <line x1={tooltip.x} y1={padding.top} x2={tooltip.x} y2={height - padding.bottom} stroke="#a1a1aa" strokeWidth="1" strokeDasharray="4" />
+                <circle cx={tooltip.x} cy={tooltip.y} r="5" fill="#16a34a" stroke="#1f2937" strokeWidth="2" />
+                <foreignObject x={tooltipX} y={tooltipY} width={tooltipWidth} height={tooltipHeight}>
+                     <div
+                        className="px-2 py-1 text-xs text-white bg-zinc-900/80 backdrop-blur-sm rounded-md border border-zinc-700 shadow-lg text-center"
+                        dangerouslySetInnerHTML={{ __html: tooltip.content }}
+                    />
+                </foreignObject>
+            </g>
+        );
+    }
+
     return (
         <div className="relative bg-zinc-900/50 rounded-lg p-2">
             <svg
                 ref={svgRef}
-                viewBox={`0 0 ${width} ${height}`}
+                width={width}
+                height={height}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
-                className="w-full"
             >
-                {/* Y-axis labels */}
-                <text x={padding.left - 8} y={padding.top + 5} textAnchor="end" fill="#a1a1aa" fontSize="12">{maxVisits}</text>
+                {/* Y-axis grid lines and labels */}
+                {yAxisTicks.map(tick => {
+                    const y = yScale(maxVisits * tick);
+                    const value = Math.round(maxVisits * tick);
+                    return (
+                        <g key={tick} className="text-zinc-500 text-xs">
+                            <line x1={padding.left} y1={y} x2={width - padding.right} y2={y} stroke="currentColor" strokeWidth="0.5" strokeDasharray="2" />
+                            <text x={padding.left - 8} y={y + 4} textAnchor="end" fill="currentColor">{value}</text>
+                        </g>
+                    )
+                })}
+                
+                {/* Y-axis top and bottom labels */}
+                <text x={padding.left - 8} y={padding.top + 5} textAnchor="end" fill="#a1a1aa" fontSize="12">{Math.ceil(maxVisits)}</text>
                 <text x={padding.left - 8} y={height - padding.bottom} textAnchor="end" fill="#a1a1aa" fontSize="12">0</text>
                 
                 <defs>
@@ -126,10 +173,11 @@ const DailyVisitsChart = ({ data, period }: { data: { date: string, visits: numb
                     points={points}
                 />
                 
+                {/* X-axis labels */}
                 {data.map((d, i) => {
                      const dateObj = new Date(d.date);
                      const formattedDate = dateObj.toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' });
-                     const labelFrequency = Math.ceil(data.length / (width / 60));
+                     const labelFrequency = Math.ceil(data.length / (width / 70));
                      if (i % labelFrequency !== 0 && i !== data.length - 1) return null;
                      return (
                         <text key={d.date} x={xScale(i)} y={height - padding.bottom + 15} textAnchor="middle" fill="#a1a1aa" fontSize="12">
@@ -138,19 +186,7 @@ const DailyVisitsChart = ({ data, period }: { data: { date: string, visits: numb
                      )
                 })}
 
-                {tooltip && (
-                    <g pointerEvents="none">
-                        <line x1={tooltip.x} y1={padding.top} x2={tooltip.x} y2={height - padding.bottom} stroke="#a1a1aa" strokeWidth="1" strokeDasharray="4" />
-                        <circle cx={tooltip.x} cy={tooltip.y} r="5" fill="#16a34a" stroke="white" strokeWidth="2" />
-                        <foreignObject x={tooltip.x > (width / 2) ? tooltip.x - 120 : tooltip.x + 20} y={tooltip.y - 35} width="100" height="60">
-                            {/* Fix: Removed the `xmlns` attribute. It is not a valid React prop for a div element and was causing a TypeScript error. HTML content inside a foreignObject should render correctly without it in modern browsers. */}
-                             <div
-                                className="px-2 py-1 text-xs text-white bg-zinc-900 rounded-md border border-zinc-700 shadow-lg text-center whitespace-nowrap"
-                                dangerouslySetInnerHTML={{ __html: tooltip.content }}
-                            />
-                        </foreignObject>
-                    </g>
-                )}
+                {tooltipJsx}
             </svg>
         </div>
     );

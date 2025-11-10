@@ -142,28 +142,6 @@ function HomePage() {
           {settings?.showTestimonials && pageContent?.testimonials && pageContent.testimonials.length > 0 && (
             <Testimonials content={pageContent} />
           )}
-          {settings?.showBlog && blogPosts.length > 0 && (
-            <section className="py-20 bg-zinc-900">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                     <SectionHeader 
-                        title={pageContent?.blogTitle || "Laatste Projecten"}
-                        subtitle={pageContent?.blogSubtitle || "Een kijkje in onze recente werkzaamheden en verhalen."}
-                     />
-                     <div className="mt-12 grid gap-8 lg:grid-cols-3">
-                        {blogPosts.slice(0, 3).map(post => (
-                           <BlogCard key={post._id} post={post} />
-                        ))}
-                     </div>
-                     {blogPosts.length > 3 && (
-                        <div className="mt-12 text-center">
-                            <Link to="/blog" className="text-green-500 font-semibold hover:underline">
-                                Bekijk alle projecten &rarr;
-                            </Link>
-                        </div>
-                     )}
-                </div>
-            </section>
-          )}
           <CtaGallery onOpenGallery={handleOpenGallery} content={pageContent} />
           <Contact content={pageContent} />
         </main>
