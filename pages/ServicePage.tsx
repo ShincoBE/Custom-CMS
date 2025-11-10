@@ -133,7 +133,8 @@ function ServicePage() {
   return (
     <ErrorBoundary>
       <div className="text-white font-sans antialiased flex flex-col min-h-screen bg-zinc-950 bg-[radial-gradient(circle_at_top,_rgba(10,40,20,0.3),_transparent_40%)]">
-        <Header onOpenGallery={handleOpenGallery} content={pageContent} settings={settings} status={status === 'loading' ? 'loading' : 'success'} />
+        {/* Fix: Correctly map 'notfound' and 'error' statuses to 'error' for the Header component. */}
+        <Header onOpenGallery={handleOpenGallery} content={pageContent} settings={settings} status={status === 'loading' ? 'loading' : status === 'success' ? 'success' : 'error'} />
         <main className="flex-grow pt-16">
           {renderContent()}
         </main>

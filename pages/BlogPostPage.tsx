@@ -8,6 +8,8 @@ import { Spinner, Calendar } from 'phosphor-react';
 import LazyImage from '@/components/ui/LazyImage';
 import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import MaintenancePage from '@/pages/MaintenancePage';
+import CookieConsent from '@/components/CookieConsent';
 
 type Status = 'loading' | 'success' | 'error' | 'notfound';
 
@@ -19,6 +21,7 @@ const BlogPostPage = () => {
     const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
     const [settings, setSettings] = useState<SiteSettings | null>(null);
     const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useAnalytics();
 
@@ -28,18 +31,35 @@ const BlogPostPage = () => {
                 const response = await fetch('/api/content');
                 if (!response.ok) throw new Error('API error');
                 const data = await response.json();
-                
-                const currentPost = data.blogPosts?.find((p: BlogPost) => p.slug === slug && p.published);
 
+                const blogEnabled = data.settings?.showBlog;
+                const userIsAdmin = await (async () => {
+                    try {
+                        const res = await fetch('/api/verify-auth');
+                        return res.ok;
+                    } catch { return false; }
+                })();
+
+                setIsAdmin(userIsAdmin);
+                
+                // Fetch all data first to avoid UI flicker
+                setPageContent(data.pageContent);
+                setGalleryImages(data.galleryImages?.filter((img: GalleryImage) => img.published) || []);
+                setSettings(data.settings);
+                
+                // Then check for access and content existence
+                if (!blogEnabled && !userIsAdmin) {
+                    setStatus('notfound');
+                    return;
+                }
+                
+                const currentPost = data.blogPosts?.find((p: BlogPost) => p.slug === slug && (p.published || userIsAdmin));
                 if (!currentPost) {
                     setStatus('notfound');
                     return;
                 }
 
                 setPost(currentPost);
-                setPageContent(data.pageContent);
-                setGalleryImages(data.galleryImages?.filter((img: GalleryImage) => img.published) || []);
-                setSettings(data.settings);
                 setStatus('success');
             } catch (error) {
                 console.error("Failed to fetch blog post:", error);
@@ -52,12 +72,27 @@ const BlogPostPage = () => {
     const handleOpenGallery = () => setIsGalleryOpen(true);
     const handleCloseGallery = () => setIsGalleryOpen(false);
     
+    // --- START: Page State Rendering Logic ---
+    if (status === 'loading') {
+        return (
+            <div className="text-white font-sans antialiased flex flex-col min-h-screen bg-zinc-950">
+                <Header onOpenGallery={handleOpenGallery} content={null} settings={null} status="loading" />
+                <main className="flex-grow pt-16 flex justify-center items-center">
+                    <Spinner size={48} className="animate-spin text-green-500" />
+                </main>
+                <Footer content={null} />
+            </div>
+        );
+    }
+    
+    if (settings?.maintenanceMode && !isAdmin) return <MaintenancePage />;
+    
+    // --- END: Page State Rendering Logic ---
+    
     const renderContent = () => {
         switch (status) {
-            case 'loading':
-                return <div className="flex justify-center items-center min-h-[60vh]"><Spinner size={48} className="animate-spin text-green-500" /></div>;
             case 'error':
-                return <div className="text-center text-red-400 p-8">Kon de post niet laden. Probeer het later opnieuw.</div>;
+                return <div className="text-center text-red-400 p-8 min-h-[60vh] flex items-center justify-center">Kon de post niet laden. Probeer het later opnieuw.</div>;
             case 'notfound':
                 return (
                     <div className="text-center p-8 min-h-[60vh] flex flex-col justify-center items-center">
@@ -104,12 +139,14 @@ const BlogPostPage = () => {
     return (
         <div className="text-white font-sans antialiased flex flex-col min-h-screen bg-zinc-950 bg-[radial-gradient(circle_at_top,_rgba(10,40,20,0.3),_transparent_40%)]">
             <StructuredData pageContent={pageContent} blogPost={post} />
-            <Header onOpenGallery={handleOpenGallery} content={pageContent} settings={settings} status={status === 'loading' ? 'loading' : 'success'} />
+            {/* Fix: Map the component's 'notfound' status to a status the Header component expects ('error'). */}
+            <Header onOpenGallery={handleOpenGallery} content={pageContent} settings={settings} status={status === 'loading' ? 'loading' : status === 'success' ? 'success' : 'error'} />
             <main className="flex-grow pt-16">
                {renderContent()}
             </main>
             <Footer content={pageContent} />
             {isGalleryOpen && <Gallery onClose={handleCloseGallery} content={pageContent} images={galleryImages} />}
+            <CookieConsent />
         </div>
     );
 };
