@@ -295,20 +295,28 @@ const QuotePage = () => {
                     <div className="lg:grid lg:grid-cols-3 lg:gap-12">
                         <div className="lg:col-span-2">
                            <nav aria-label="Progress" className="mb-12">
-                                <ol role="list" className="grid" style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }}>
-                                    {steps.map((s, index) => (
+                                <ol role="list" className="relative grid" style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }}>
+                                    
+                                    {/* Continuous line container */}
+                                    <div className="absolute top-4 left-0 w-full h-0.5" style={{ gridColumn: '1 / -1' }} aria-hidden="true">
+                                        <div 
+                                            className="relative h-full bg-zinc-700 mx-auto" 
+                                            style={{ width: `calc(100% * (${steps.length} - 1) / ${steps.length})` }}
+                                        >
+                                            {/* Progress bar */}
+                                            <div 
+                                                className="absolute top-0 left-0 h-full bg-green-600 transition-all duration-500"
+                                                style={{ width: `${(step - 1) / (steps.length - 1) * 100}%` }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {steps.map((s) => (
                                         <li key={s.name} className="relative">
-                                            {/* Connecting Line (but not for the first element) */}
-                                            {index > 0 && (
-                                                <div className="absolute inset-0 right-1/2 top-4 -translate-y-1/2 h-0.5 w-full" aria-hidden="true">
-                                                    <div className={`h-full w-full transition-colors duration-500 ${step > index ? 'bg-green-600' : 'bg-zinc-700'}`} />
-                                                </div>
-                                            )}
-                                            
-                                            <div className="relative z-10 flex flex-col items-center">
+                                            <div className="flex flex-col items-center">
                                                 <div
                                                     onClick={() => step > s.number && setStep(s.number)}
-                                                    className={`flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 ${step > s.number ? 'cursor-pointer' : ''} ${s.number < step ? 'bg-green-600' : s.number === step ? 'border-2 border-green-600 bg-zinc-800' : 'border-2 border-zinc-600 bg-zinc-800'}`}
+                                                    className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 ${step > s.number ? 'cursor-pointer' : ''} ${s.number < step ? 'bg-green-600' : s.number === step ? 'border-2 border-green-600 bg-zinc-800' : 'border-2 border-zinc-600 bg-zinc-800'}`}
                                                 >
                                                     {s.number < step ? (
                                                         <Check className="h-5 w-5 text-white" aria-hidden="true" />
