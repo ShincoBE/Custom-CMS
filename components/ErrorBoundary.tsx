@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 
 interface Props {
   children: ReactNode;
@@ -41,12 +42,20 @@ class ErrorBoundary extends Component<Props, State> {
                 <p className="text-zinc-400 mt-2 mb-6">
                     Dit onderdeel kon niet correct geladen worden. Dit kan een tijdelijk probleem zijn.
                 </p>
-                <button
-                    onClick={this.handleRefresh}
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full text-sm transition-all transform hover:scale-105 duration-300 ease-out"
-                >
-                    Probeer Opnieuw
-                </button>
+                <div className="flex justify-center space-x-4">
+                   <button
+                        onClick={this.handleRefresh}
+                        className="bg-zinc-600 hover:bg-zinc-700 text-white font-bold py-2 px-6 rounded-full text-sm transition-all transform hover:scale-105 duration-300 ease-out"
+                    >
+                        Probeer Opnieuw
+                    </button>
+                    <Link 
+                        to="/"
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full text-sm transition-all transform hover:scale-105 duration-300 ease-out inline-block"
+                    >
+                        Ga naar Home
+                    </Link>
+                </div>
             </div>
         </div>
       );

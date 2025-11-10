@@ -51,6 +51,11 @@ function AdminDashboard() {
     message: string;
     onConfirm: () => void;
   }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+  
+  const showNotification = useCallback((type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 5000);
+  }, []);
 
   // --- START: Tab Definitions & Role-Based Access ---
   const userRole = user?.role;
@@ -112,11 +117,6 @@ function AdminDashboard() {
     return JSON.stringify({ pageContent: content, galleryImages: gallery, blogPosts, settings: settings }) !== originalContent;
   }, [content, gallery, blogPosts, settings, originalContent]);
   
-  const showNotification = useCallback((type: 'success' | 'error', message: string) => {
-    setNotification({ type, message });
-    setTimeout(() => setNotification(null), 5000);
-  }, []);
-  
   const showConfirmation = (title: string, message: string, onConfirm: () => void) => {
     setConfirmation({ isOpen: true, title, message, onConfirm });
   };
@@ -124,20 +124,25 @@ function AdminDashboard() {
   const handleContentChange = useCallback((path: string, value: any) => {
     setContent(prev => {
         if (!prev) return null;
-        const newContent = JSON.parse(JSON.stringify(prev));
-        const keys = path.split('.');
-        let current = newContent;
-        for (let i = 0; i < keys.length - 1; i++) {
-            if (current[keys[i]] === undefined || current[keys[i]] === null) {
-              // If path is like 'servicesList.0.seo' and 'seo' doesn't exist, create it.
-              current[keys[i]] = {};
+        try {
+            const newContent = JSON.parse(JSON.stringify(prev));
+            const keys = path.split('.');
+            let current = newContent;
+            for (let i = 0; i < keys.length - 1; i++) {
+                if (current[keys[i]] === undefined || current[keys[i]] === null) {
+                  current[keys[i]] = {};
+                }
+                current = current[keys[i]];
             }
-            current = current[keys[i]];
+            current[keys[keys.length - 1]] = value;
+            return newContent;
+        } catch (error) {
+            console.error("Failed to update content state:", error);
+            showNotification('error', 'Kon de content niet aanpassen door een interne fout.');
+            return prev; // Return original state on error
         }
-        current[keys[keys.length - 1]] = value;
-        return newContent;
     });
-  }, []);
+  }, [showNotification]);
 
   const handleSettingsChange = useCallback((key: string, value: any) => {
       setSettings((prev: any) => ({

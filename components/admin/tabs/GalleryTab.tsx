@@ -96,8 +96,8 @@ const GalleryTab = ({ content, gallery, handleContentChange, setGallery, setEdit
     return (
         <>
             <h2 className="text-2xl font-bold mb-4 text-zinc-100">Galerij Instellingen</h2>
-            <InputWithCounter name="galleryTitle" label="Galerij Titel" help="De titel die bovenaan in de galerij popup verschijnt." value={content.galleryTitle!} onChange={e => handleContentChange('galleryTitle', e.target.value)} required showStyler />
-            <InputWithCounter as="textarea" name="gallerySubtitle" label="Galerij Subtitel" help="De subtitel in de galerij popup." value={content.gallerySubtitle!} onChange={e => handleContentChange('gallerySubtitle', e.target.value)} required showStyler />
+            <InputWithCounter name="galleryTitle" label="Galerij Titel" help="De titel die bovenaan in de galerij popup verschijnt." value={content?.galleryTitle || ''} onChange={e => handleContentChange('galleryTitle', e.target.value)} required showStyler />
+            <InputWithCounter as="textarea" name="gallerySubtitle" label="Galerij Subtitel" help="De subtitel in de galerij popup." value={content?.gallerySubtitle || ''} onChange={e => handleContentChange('gallerySubtitle', e.target.value)} required showStyler />
             
             <div className="flex justify-between items-center mt-6 mb-4">
                 <h3 className="text-lg font-semibold text-white">Galerij Afbeeldingen</h3>

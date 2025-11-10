@@ -60,8 +60,8 @@ const TestimonialsTab = ({ content, handleContentChange }: TestimonialsTabProps)
     return (
         <>
             <h2 className="text-2xl font-bold mb-4 text-zinc-100">Wat Klanten Zeggen Sectie</h2>
-            <InputWithCounter name="testimonialsTitle" label="Titel" value={content.testimonialsTitle!} onChange={e => handleContentChange('testimonialsTitle', e.target.value)} required showStyler />
-            <InputWithCounter as="textarea" name="testimonialsSubtitle" label="Subtitel" value={content.testimonialsSubtitle!} onChange={e => handleContentChange('testimonialsSubtitle', e.target.value)} required showStyler />
+            <InputWithCounter name="testimonialsTitle" label="Titel" value={content?.testimonialsTitle || ''} onChange={e => handleContentChange('testimonialsTitle', e.target.value)} required showStyler />
+            <InputWithCounter as="textarea" name="testimonialsSubtitle" label="Subtitel" value={content?.testimonialsSubtitle || ''} onChange={e => handleContentChange('testimonialsSubtitle', e.target.value)} required showStyler />
 
             <h3 className="text-lg font-semibold text-white mt-6 mb-4">Reviews</h3>
 

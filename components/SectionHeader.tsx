@@ -8,7 +8,7 @@ interface SectionHeaderProps {
 function SectionHeader({ title, subtitle }: SectionHeaderProps) {
   return (
     <div className="text-center mb-16">
-      <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-b from-white to-zinc-300 bg-clip-text text-transparent mb-2 pb-2"
+      <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-b from-white to-zinc-300 bg-clip-text text-transparent mb-2 pb-3"
           dangerouslySetInnerHTML={{ __html: title }}
       />
       <div className="w-24 h-1 bg-green-600 mx-auto rounded mb-4"></div>

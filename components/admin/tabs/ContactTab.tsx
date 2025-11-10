@@ -20,8 +20,8 @@ const ContactTab = ({ content, handleContentChange, handleModalImageUpload }: Co
 
             <div className="mb-6 p-4 border border-zinc-700 rounded-lg bg-zinc-800/50">
                 <h3 className="text-lg font-semibold mb-3 text-white">Algemene Titels</h3>
-                <InputWithCounter name="contactTitle" label="Hoofdtitel Sectie" help="Titel van de contact sectie." value={content.contactTitle!} onChange={e => handleContentChange('contactTitle', e.target.value)} required showStyler />
-                <InputWithCounter as="textarea" name="contactSubtitle" label="Hoofdsubtitel Sectie" help="Subtitel van de contact sectie." value={content.contactSubtitle!} onChange={e => handleContentChange('contactSubtitle', e.target.value)} required showStyler />
+                <InputWithCounter name="contactTitle" label="Hoofdtitel Sectie" help="Titel van de contact sectie." value={content?.contactTitle || ''} onChange={e => handleContentChange('contactTitle', e.target.value)} required showStyler />
+                <InputWithCounter as="textarea" name="contactSubtitle" label="Hoofdsubtitel Sectie" help="Subtitel van de contact sectie." value={content?.contactSubtitle || ''} onChange={e => handleContentChange('contactSubtitle', e.target.value)} required showStyler />
             </div>
 
             <div className="mb-6 p-4 border border-zinc-700 rounded-lg bg-zinc-800/50">
@@ -30,24 +30,24 @@ const ContactTab = ({ content, handleContentChange, handleModalImageUpload }: Co
                     {/* Quote Card */}
                     <div className="p-4 border border-zinc-600 rounded-lg bg-zinc-900/50">
                         <h4 className="text-md font-semibold mb-2 text-zinc-100">Offerte Kaart</h4>
-                        <InputWithCounter name="contactQuoteCardTitle" label="Titel" value={content.contactQuoteCardTitle!} onChange={e => handleContentChange('contactQuoteCardTitle', e.target.value)} required />
-                        <InputWithCounter as="textarea" name="contactQuoteCardText" label="Tekst" value={content.contactQuoteCardText!} onChange={e => handleContentChange('contactQuoteCardText', e.target.value)} required />
-                        <InputWithCounter name="contactQuoteCardButtonText" label="Knop Tekst" value={content.contactQuoteCardButtonText!} onChange={e => handleContentChange('contactQuoteCardButtonText', e.target.value)} required />
+                        <InputWithCounter name="contactQuoteCardTitle" label="Titel" value={content?.contactQuoteCardTitle || ''} onChange={e => handleContentChange('contactQuoteCardTitle', e.target.value)} required />
+                        <InputWithCounter as="textarea" name="contactQuoteCardText" label="Tekst" value={content?.contactQuoteCardText || ''} onChange={e => handleContentChange('contactQuoteCardText', e.target.value)} required />
+                        <InputWithCounter name="contactQuoteCardButtonText" label="Knop Tekst" value={content?.contactQuoteCardButtonText || ''} onChange={e => handleContentChange('contactQuoteCardButtonText', e.target.value)} required />
                     </div>
                     {/* Direct Contact Card */}
                     <div className="p-4 border border-zinc-600 rounded-lg bg-zinc-900/50">
                         <h4 className="text-md font-semibold mb-2 text-zinc-100">Direct Contact Kaart</h4>
-                        <InputWithCounter name="contactDirectCardTitle" label="Titel" value={content.contactDirectCardTitle!} onChange={e => handleContentChange('contactDirectCardTitle', e.target.value)} required />
-                        <InputWithCounter as="textarea" name="contactDirectCardText" label="Tekst" value={content.contactDirectCardText!} onChange={e => handleContentChange('contactDirectCardText', e.target.value)} required />
+                        <InputWithCounter name="contactDirectCardTitle" label="Titel" value={content?.contactDirectCardTitle || ''} onChange={e => handleContentChange('contactDirectCardTitle', e.target.value)} required />
+                        <InputWithCounter as="textarea" name="contactDirectCardText" label="Tekst" value={content?.contactDirectCardText || ''} onChange={e => handleContentChange('contactDirectCardText', e.target.value)} required />
                     </div>
                 </div>
             </div>
 
             <div className="mb-6 p-4 border border-zinc-700 rounded-lg bg-zinc-800/50">
                 <h3 className="text-lg font-semibold mb-3 text-white">Direct Contact & Kaart</h3>
-                <InputWithCounter as="textarea" name="contactAddress" label="Adres" help="Volledig adres. Gebruik enter voor nieuwe regels." value={content.contactAddress!} onChange={e => handleContentChange('contactAddress', e.target.value)} required />
-                <InputWithCounter name="contactEmail" label="Emailadres" help="Het emailadres voor contact." value={content.contactEmail!} onChange={e => handleContentChange('contactEmail', e.target.value)} required />
-                <InputWithCounter name="contactPhone" label="Telefoonnummer" help="Het telefoonnummer voor contact." value={content.contactPhone!} onChange={e => handleContentChange('contactPhone', e.target.value)} />
+                <InputWithCounter as="textarea" name="contactAddress" label="Adres" help="Volledig adres. Gebruik enter voor nieuwe regels." value={content?.contactAddress || ''} onChange={e => handleContentChange('contactAddress', e.target.value)} required />
+                <InputWithCounter name="contactEmail" label="Emailadres" help="Het emailadres voor contact." value={content?.contactEmail || ''} onChange={e => handleContentChange('contactEmail', e.target.value)} required />
+                <InputWithCounter name="contactPhone" label="Telefoonnummer" help="Het telefoonnummer voor contact." value={content?.contactPhone || ''} onChange={e => handleContentChange('contactPhone', e.target.value)} />
                 <div className="mt-4 pt-4 border-t border-zinc-600">
                     <ToggleSwitch
                         label="Kaart Weergeven"

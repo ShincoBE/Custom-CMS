@@ -324,7 +324,7 @@ const QuotePage = () => {
                                                         <span className={`${s.number === step ? 'text-green-500' : 'text-zinc-400'}`}>{s.number}</span>
                                                     )}
                                                 </div>
-                                                <p className={`mt-2 text-sm font-medium text-center ${s.number <= step ? 'text-white' : 'text-zinc-500'}`}>{s.name}</p>
+                                                <p className={`mt-2 text-sm font-medium text-center hidden sm:block ${s.number <= step ? 'text-white' : 'text-zinc-500'}`}>{s.name}</p>
                                             </div>
                                         </li>
                                     ))}

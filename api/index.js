@@ -223,10 +223,11 @@ async function handleQuote(req, res) {
         return result;
     }
 
-    // Utility to strip HTML for the 'From' field.
-    const stripHtml = (html) => (html || '').replace(/<[^>]*>?/gm, '');
-    const fromNameAdmin = stripHtml(pageContent.companyName) || 'Website Offertes';
-    const fromNameUser = stripHtml(pageContent.companyName) || 'Klantenservice';
+    // Utility to strip HTML and non-standard characters for the 'From' field.
+    const sanitizeForFromField = (str) => (str || '').replace(/<[^>]*>?/gm, '').replace(/[^a-zA-Z0-9 .+\-]/g, '').trim();
+    const fromNameAdmin = sanitizeForFromField(pageContent.companyName) || 'Website Offertes';
+    const fromNameUser = sanitizeForFromField(pageContent.companyName) || 'Klantenservice';
+
 
     // Email to Admin
     const adminSubject = replacePlaceholders(pageContent.quoteAdminEmailSubject || "Nieuwe Offerteaanvraag van {name}");
@@ -304,7 +305,7 @@ async function handleGetContent(req, res) {
     if (typeof settings.showTestimonials === 'undefined') settings.showTestimonials = true;
     if (typeof settings.showBlog === 'undefined') settings.showBlog = true;
     
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
     return res.status(200).json({ pageContent, galleryImages, blogPosts, settings });
   } catch (error) {
     console.error('Error fetching content:', error);
@@ -432,7 +433,12 @@ async function handleDeleteUser(req, res) {
     const { username } = req.body;
     if (!username) return res.status(400).json({ error: 'Gebruikersnaam is verplicht.' });
     if (username === currentUser.username) return res.status(403).json({ error: 'U kunt uw eigen account niet verwijderen.' });
-    if ((await kv.del(`user:${username}`)) === 0) return res.status(404).json({ error: `Gebruiker '${username}' niet gevonden.` });
+
+    const userToDelete = await kv.get(`user:${username}`);
+    if (!userToDelete) return res.status(404).json({ error: `Gebruiker '${username}' niet gevonden.` });
+    if (userToDelete.role === 'SuperAdmin') return res.status(403).json({ error: 'SuperAdmin accounts kunnen niet verwijderd worden.' });
+
+    await kv.del(`user:${username}`);
     return res.status(200).json({ success: true, message: `Gebruiker '${username}' verwijderd.` });
   } catch (error) {
     return res.status(error.message === 'Access denied.' ? 403 : 500).json({ error: error.message });
