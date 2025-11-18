@@ -85,18 +85,41 @@ const DonutChart = ({ data }: { data: { type: string; visits: number }[] }) => {
 const DataTable = ({ title, icon, data, columns }: { title: string, icon: React.ReactNode, data: any[], columns: { header: string, accessor: (row: any) => any, isNumeric?: boolean }[] }) => (
     <div>
         <h3 className="text-lg font-semibold mb-3 text-white flex items-center">{icon}{title}</h3>
-        <div className="bg-zinc-800/50 p-2 rounded-lg border border-zinc-700">
-            <ul className="divide-y divide-zinc-700/50">
+        <div className="bg-zinc-800/50 rounded-lg border border-zinc-700">
+            {/* Mobile Card View */}
+            <ul className="divide-y divide-zinc-700/50 sm:hidden">
                 {data.map((item, index) => (
-                    <li key={index} className="flex justify-between items-center py-2 px-2">
-                        {columns.map((col, colIndex) => (
-                           <span key={colIndex} className={`text-sm ${colIndex === 0 ? 'truncate pr-4 flex-grow' : 'font-bold'} ${item.placeholder ? 'text-zinc-500' : (colIndex === 0 ? 'text-zinc-300' : 'text-white')}`}>
-                                {col.accessor(item)}
-                           </span>
-                        ))}
+                    <li key={index} className="p-3">
+                        <div className="flex justify-between items-center mb-1">
+                            <span className="truncate pr-4 flex-grow text-zinc-300 font-medium">
+                                {columns[0].accessor(item)}
+                            </span>
+                             <span className="font-bold text-white">
+                                {columns[1].accessor(item)}
+                            </span>
+                        </div>
                     </li>
                 ))}
             </ul>
+             {/* Desktop Table View */}
+            <table className="hidden sm:table w-full text-sm">
+                <thead>
+                    <tr className="text-left text-zinc-400 font-semibold">
+                       {columns.map((col, i) => <th key={i} className={`p-2 ${col.isNumeric ? 'text-right' : ''}`}>{col.header}</th>)}
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-700/50">
+                    {data.map((item, index) => (
+                         <tr key={index}>
+                            {columns.map((col, i) => (
+                                <td key={i} className={`p-2 ${col.isNumeric ? 'text-right font-bold' : 'text-zinc-300'} ${item.placeholder ? 'text-zinc-500' : ''}`}>
+                                    {col.accessor(item)}
+                                </td>
+                            ))}
+                         </tr>
+                    ))}
+                </tbody>
+            </table>
         </div>
     </div>
 );
@@ -353,7 +376,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                            data={data.locations}
                            columns={[
                                { header: 'Locatie', accessor: (row) => `${row.city}, ${row.country}` },
-                               { header: 'Bezoeken', accessor: (row) => row.visits.toLocaleString('nl-BE') }
+                               { header: 'Bezoeken', accessor: (row) => row.visits.toLocaleString('nl-BE'), isNumeric: true }
                            ]}
                         />
                     </div>
@@ -365,7 +388,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                         data={topEvents}
                         columns={[
                             { header: 'Actie', accessor: (row) => row.placeholder ? 'Nog geen data' : formatEvent(row.name, row.detail) },
-                            { header: 'Aantal', accessor: (row) => row.placeholder ? '-' : row.count.toLocaleString('nl-BE') }
+                            { header: 'Aantal', accessor: (row) => row.placeholder ? '-' : row.count.toLocaleString('nl-BE'), isNumeric: true }
                         ]}
                      />
                      <DataTable 
@@ -374,7 +397,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                         data={topPages}
                         columns={[
                             { header: 'Pagina', accessor: (row) => row.placeholder ? 'Nog geen data' : formatPath(row.path) },
-                            { header: 'Bezoeken', accessor: (row) => row.placeholder ? '-' : row.visits.toLocaleString('nl-BE') }
+                            { header: 'Bezoeken', accessor: (row) => row.placeholder ? '-' : row.visits.toLocaleString('nl-BE'), isNumeric: true }
                         ]}
                      />
                 </div>
@@ -384,11 +407,11 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
 
     return (
         <>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h2 className="text-2xl font-bold text-zinc-100 flex items-center">
                     <ChartBar size={28} className="mr-3 text-green-500" />Statistieken
                 </h2>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 self-end">
                     {[7, 30, 90].map(period => (
                         <button
                             key={period}
@@ -400,7 +423,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                                 : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
                             } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
-                            {period} dagen
+                            {period}d
                         </button>
                     ))}
                     <button

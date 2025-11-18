@@ -12,8 +12,8 @@ interface GalleryTabProps {
 }
 
 const GalleryTab = ({ content, gallery, handleContentChange, setGallery, setEditingImageIndex }: GalleryTabProps) => {
-    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-    const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
+    const [draggedId, setDraggedId] = useState<string | null>(null);
+    const [dropTargetId, setDropTargetId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
     const [isBulkMenuOpen, setIsBulkMenuOpen] = useState(false);
@@ -59,40 +59,43 @@ const GalleryTab = ({ content, gallery, handleContentChange, setGallery, setEdit
     };
 
 
-    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
-        setDraggedIndex(index);
+    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, id: string) => {
+        setDraggedId(id);
         e.dataTransfer.effectAllowed = 'move';
     };
 
-    const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>, id: string) => {
         e.preventDefault();
-        if (draggedIndex !== null && draggedIndex !== index) {
-            setDropTargetIndex(index);
+        if (draggedId !== null && draggedId !== id) {
+            setDropTargetId(id);
         }
     };
 
     const handleDragLeave = () => {
-        setDropTargetIndex(null);
+        setDropTargetId(null);
     };
 
-    const handleDrop = (e: React.DragEvent<HTMLDivElement>, dropIndex: number) => {
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>, dropId: string) => {
         e.preventDefault();
-        if (draggedIndex === null || draggedIndex === dropIndex) return;
+        if (draggedId === null || draggedId === dropId) return;
 
         const list = [...gallery];
-        const draggedItem = list[draggedIndex];
-        list.splice(draggedIndex, 1);
+        const draggedIndex = list.findIndex(item => item._id === draggedId);
+        const dropIndex = list.findIndex(item => item._id === dropId);
+        
+        if (draggedIndex === -1 || dropIndex === -1) return;
+
+        const [draggedItem] = list.splice(draggedIndex, 1);
         list.splice(dropIndex, 0, draggedItem);
         
         setGallery(list);
     };
     
     const handleDragEnd = () => {
-        setDraggedIndex(null);
-        setDropTargetIndex(null);
+        setDraggedId(null);
+        setDropTargetId(null);
     };
-
-
+    
     return (
         <>
             <h2 className="text-2xl font-bold mb-4 text-zinc-100">Galerij Instellingen</h2>
@@ -136,44 +139,49 @@ const GalleryTab = ({ content, gallery, handleContentChange, setGallery, setEdit
                     <input type="checkbox" checked={selectedImages.size > 0 && selectedImages.size === filteredGallery.length} onChange={handleSelectAll} className="h-4 w-4 rounded bg-zinc-700 border-zinc-500 text-green-600 focus:ring-green-500" />
                     <label className="text-xs mt-2">Selecteer alles</label>
                 </div>
-                {filteredGallery.map((img, index) => (
-                    <div
-                        key={img._id}
-                        draggable
-                        onDragStart={e => handleDragStart(e, index)}
-                        onDragOver={e => handleDragOver(e, index)}
-                        onDragLeave={handleDragLeave}
-                        onDrop={e => handleDrop(e, index)}
-                        onDragEnd={handleDragEnd}
-                        className={`relative group aspect-square cursor-grab transition-all duration-300
-                            ${draggedIndex === index ? 'opacity-50' : ''}
-                            ${dropTargetIndex === index ? 'border-2 border-green-500 scale-105' : 'border-2 border-transparent'}
-                            ${selectedImages.has(img._id) ? 'ring-2 ring-green-500 ring-offset-2 ring-offset-zinc-800' : ''}
-                        `}
-                    >
-                        <button type="button" onClick={() => setEditingImageIndex(index)} className="w-full h-full rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500">
-                             {img.image.url ? (
-                              <img src={img.image.url} alt={img.image.alt || 'Galerij afbeelding'} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full bg-zinc-700 flex items-center justify-center text-zinc-400 text-center text-sm p-2">
-                                <span>Afbeelding instellen</span>
-                              </div>
-                            )}
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <Pencil size={32} className="text-white" />
+                {filteredGallery.map((img) => {
+                    return (
+                        <div
+                            key={img._id}
+                            draggable
+                            onDragStart={e => handleDragStart(e, img._id)}
+                            onDragOver={e => handleDragOver(e, img._id)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={e => handleDrop(e, img._id)}
+                            onDragEnd={handleDragEnd}
+                            className={`relative group aspect-square cursor-grab transition-all duration-300
+                                ${draggedId === img._id ? 'opacity-50' : ''}
+                                ${dropTargetId === img._id ? 'border-2 border-green-500 scale-105' : 'border-2 border-transparent'}
+                                ${selectedImages.has(img._id) ? 'ring-2 ring-green-500 ring-offset-2 ring-offset-zinc-800' : ''}
+                            `}
+                        >
+                            <button type="button" onClick={() => {
+                                const originalIndex = gallery.findIndex(item => item._id === img._id);
+                                if (originalIndex > -1) setEditingImageIndex(originalIndex);
+                            }} className="w-full h-full rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500">
+                                {img.image.url ? (
+                                <img src={img.image.url} alt={img.image.alt || 'Galerij afbeelding'} className="w-full h-full object-cover" />
+                                ) : (
+                                <div className="w-full h-full bg-zinc-700 flex items-center justify-center text-zinc-400 text-center text-sm p-2">
+                                    <span>Afbeelding instellen</span>
+                                </div>
+                                )}
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Pencil size={32} className="text-white" />
+                                </div>
+                            </button>
+                            <button type="button" onClick={() => setGallery(g => g.filter(item => item._id !== img._id))} className="absolute top-1 right-1 z-10 text-white bg-red-600 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Verwijder afbeelding">
+                                <Trash size={16} />
+                            </button>
+                            <div className="absolute top-1 left-1 z-10">
+                                <input type="checkbox" checked={selectedImages.has(img._id)} onChange={() => handleToggleSelection(img._id)} className="h-4 w-4 rounded bg-zinc-900/50 border-zinc-500 text-green-600 focus:ring-green-500"/>
                             </div>
-                        </button>
-                        <button type="button" onClick={() => setGallery(g => g.filter((_, i) => i !== index))} className="absolute top-1 right-1 z-10 text-white bg-red-600 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Verwijder afbeelding">
-                            <Trash size={16} />
-                        </button>
-                         <div className="absolute top-1 left-1 z-10">
-                            <input type="checkbox" checked={selectedImages.has(img._id)} onChange={() => handleToggleSelection(img._id)} className="h-4 w-4 rounded bg-zinc-900/50 border-zinc-500 text-green-600 focus:ring-green-500"/>
+                            <div className="absolute bottom-1 right-1 z-10" title={img.published ? 'Gepubliceerd' : 'Concept'}>
+                            {img.published ? <CheckCircle size={16} className="text-green-400 bg-black/50 rounded-full" /> : <Prohibit size={16} className="text-yellow-400 bg-black/50 rounded-full" />}
+                            </div>
                         </div>
-                        <div className="absolute bottom-1 right-1 z-10" title={img.published ? 'Gepubliceerd' : 'Concept'}>
-                          {img.published ? <CheckCircle size={16} className="text-green-400 bg-black/50 rounded-full" /> : <Prohibit size={16} className="text-yellow-400 bg-black/50 rounded-full" />}
-                        </div>
-                    </div>
-                ))}
+                    )
+                })}
                 <button type="button" onClick={() => { const newIndex = gallery.length; setGallery(g => [...g, { _id: `new-${Date.now()}`, image: { url: '', alt: '' }, published: false, category: '' }]); setEditingImageIndex(newIndex); }} className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-zinc-600 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:border-green-500 transition-colors">
                     <Plus size={32} />
                     <span>Toevoegen</span>

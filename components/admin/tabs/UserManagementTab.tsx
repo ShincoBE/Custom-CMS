@@ -107,17 +107,17 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
             
             <div className="mb-8 p-4 border border-zinc-700 rounded-lg bg-zinc-800/50">
                 <h3 className="text-lg font-semibold mb-3 text-white">Nieuwe Gebruiker Toevoegen</h3>
-                <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                     <AdminInput name="username" label="Gebruikersnaam" value={newUser.username} onChange={handleNewUserChange} required autoComplete="off" />
                     <AdminInput name="password" label="Wachtwoord" type="password" value={newUser.password} onChange={handleNewUserChange} required autoComplete="new-password" />
-                    <div className="mb-6">
+                    <div>
                         <label htmlFor="role" className="block text-sm font-medium text-zinc-300 mb-1">Rol</label>
-                        <select id="role" name="role" value={newUser.role} onChange={handleNewUserChange} className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500">
+                        <select id="role" name="role" value={newUser.role} onChange={handleNewUserChange} className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500 h-[42px]">
                             <option value="Editor">Editor</option>
                             <option value="Admin">Admin</option>
                         </select>
                     </div>
-                    <button type="submit" disabled={isSubmitting} className="w-full md:w-auto self-end mb-6 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-zinc-600">
+                    <button type="submit" disabled={isSubmitting} className="w-full lg:w-auto self-end inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-zinc-600 h-[42px]">
                        {isSubmitting ? <Spinner size={20} className="animate-spin" /> : 'Aanmaken'}
                     </button>
                 </form>

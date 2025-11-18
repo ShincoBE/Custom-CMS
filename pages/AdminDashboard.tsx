@@ -281,12 +281,12 @@ function AdminDashboard() {
 
   const getSaveButtonState = () => {
     if (isSaving) {
-      return { text: 'Opslaan...', icon: <Spinner size={20} className="animate-spin mr-2" />, className: 'bg-yellow-600', disabled: true };
+      return { text: 'Opslaan...', icon: <Spinner size={20} className="animate-spin" />, className: 'bg-yellow-600', disabled: true };
     }
     if (hasChanges) {
-      return { text: 'Wijzigingen Opslaan', icon: <FloppyDisk size={20} className="mr-2" />, className: 'bg-green-600 hover:bg-green-700', disabled: false };
+      return { text: 'Wijzigingen Opslaan', icon: <FloppyDisk size={20} />, className: 'bg-green-600 hover:bg-green-700', disabled: false };
     }
-    return { text: 'Opgeslagen', icon: <CheckCircle size={20} className="mr-2" />, className: 'bg-zinc-600', disabled: true };
+    return { text: 'Opgeslagen', icon: <CheckCircle size={20} />, className: 'bg-zinc-600', disabled: true };
   };
 
   const saveButtonState = getSaveButtonState();
@@ -297,17 +297,22 @@ function AdminDashboard() {
       <header className="sticky top-0 z-20 bg-zinc-800/80 backdrop-blur-sm border-b border-zinc-700">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <button onClick={() => setActiveTab('dashboard')} className="text-lg sm:text-xl font-bold hover:text-green-500 transition-colors">
-              Content Management
+            <button onClick={() => setActiveTab('dashboard')} className="text-lg sm:text-xl font-bold hover:text-green-500 transition-colors truncate pr-2">
+              CMS
             </button>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
                <a href="/" target="_blank" rel="noopener noreferrer" title="Bekijk live site" className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-700/50 rounded-md hover:bg-zinc-700 hover:text-white transition-colors">
                 <ArrowSquareOut size={20} className="mr-2"/>
                 Bekijk Site
               </a>
-              <button onClick={handleSave} disabled={saveButtonState.disabled} className={`inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500 disabled:cursor-not-allowed transition-colors ${saveButtonState.className}`}>
-                {saveButtonState.icon}
-                {saveButtonState.text}
+              <button 
+                onClick={handleSave} 
+                disabled={saveButtonState.disabled} 
+                className={`inline-flex items-center px-3 sm:px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500 disabled:cursor-not-allowed transition-colors ${saveButtonState.className}`}
+                title={saveButtonState.text}
+              >
+                <span className="mr-2">{saveButtonState.icon}</span>
+                <span className="hidden sm:inline">{saveButtonState.text}</span>
               </button>
               {userRole !== 'Editor' && <AdminDropdownMenu adminTabs={visibleAdminTabs} setActiveTab={setActiveTab} isAdminTabActive={isAdminTabActive} />}
               <button onClick={logout} title="Uitloggen" className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors">
