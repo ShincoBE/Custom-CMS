@@ -107,7 +107,7 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
             
             <div className="mb-8 p-4 border border-zinc-700 rounded-lg bg-zinc-800/50">
                 <h3 className="text-lg font-semibold mb-3 text-white">Nieuwe Gebruiker Toevoegen</h3>
-                <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                <form onSubmit={handleCreateUser} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                     <AdminInput name="username" label="Gebruikersnaam" value={newUser.username} onChange={handleNewUserChange} required autoComplete="off" />
                     <AdminInput name="password" label="Wachtwoord" type="password" value={newUser.password} onChange={handleNewUserChange} required autoComplete="new-password" />
                     <div>

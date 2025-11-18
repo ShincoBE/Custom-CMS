@@ -41,7 +41,7 @@ const BlogTab = ({ blogPosts, setEditingPost, handleDeletePost }: BlogTabProps) 
         <ul className="divide-y divide-zinc-700">
           {blogPosts.length > 0 ? blogPosts.map(post => (
             <li key={post._id} className="p-3 bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex flex-col md:flex-row md:items-center gap-4">
                 <div className="flex items-center flex-grow">
                     {post.mainImage?.url ? (
                         <LazyImage src={post.mainImage.url} alt={post.mainImage.alt || ''} className="w-16 h-12 object-cover rounded-md flex-shrink-0" />
@@ -53,7 +53,7 @@ const BlogTab = ({ blogPosts, setEditingPost, handleDeletePost }: BlogTabProps) 
                     <p className="text-sm text-zinc-400 truncate">{post.excerpt}</p>
                   </div>
                 </div>
-                <div className="flex-shrink-0 flex items-center space-x-3 self-end sm:self-auto">
+                <div className="flex-shrink-0 flex items-center space-x-3 self-end md:self-auto">
                   {post.published ? (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-300"><CheckCircle size={14} className="mr-1" /> Gepubliceerd</span>
                   ) : (

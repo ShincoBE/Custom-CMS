@@ -301,7 +301,7 @@ function AdminDashboard() {
               CMS
             </button>
             <div className="flex items-center space-x-2 sm:space-x-4">
-               <a href="/" target="_blank" rel="noopener noreferrer" title="Bekijk live site" className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-700/50 rounded-md hover:bg-zinc-700 hover:text-white transition-colors">
+               <a href="/" target="_blank" rel="noopener noreferrer" title="Bekijk live site" className="hidden md:inline-flex items-center px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-700/50 rounded-md hover:bg-zinc-700 hover:text-white transition-colors">
                 <ArrowSquareOut size={20} className="mr-2"/>
                 Bekijk Site
               </a>
@@ -311,8 +311,8 @@ function AdminDashboard() {
                 className={`inline-flex items-center px-3 sm:px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500 disabled:cursor-not-allowed transition-colors ${saveButtonState.className}`}
                 title={saveButtonState.text}
               >
-                <span className="mr-2">{saveButtonState.icon}</span>
-                <span className="hidden sm:inline">{saveButtonState.text}</span>
+                {saveButtonState.icon}
+                <span className="hidden sm:inline ml-2">{saveButtonState.text}</span>
               </button>
               {userRole !== 'Editor' && <AdminDropdownMenu adminTabs={visibleAdminTabs} setActiveTab={setActiveTab} isAdminTabActive={isAdminTabActive} />}
               <button onClick={logout} title="Uitloggen" className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors">

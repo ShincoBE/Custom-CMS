@@ -79,16 +79,18 @@ const GalleryTab = ({ content, gallery, handleContentChange, setGallery, setEdit
         e.preventDefault();
         if (draggedId === null || draggedId === dropId) return;
 
-        const list = [...gallery];
-        const draggedIndex = list.findIndex(item => item._id === draggedId);
-        const dropIndex = list.findIndex(item => item._id === dropId);
+        // Use the original, unfiltered 'gallery' array for reordering to prevent issues when a filter is active.
+        const fullGallery = [...gallery];
+        const draggedItemIndex = fullGallery.findIndex(item => item._id === draggedId);
+        const dropTargetIndex = fullGallery.findIndex(item => item._id === dropId);
         
-        if (draggedIndex === -1 || dropIndex === -1) return;
+        // Ensure both items are found in the original list before proceeding.
+        if (draggedItemIndex === -1 || dropTargetIndex === -1) return;
 
-        const [draggedItem] = list.splice(draggedIndex, 1);
-        list.splice(dropIndex, 0, draggedItem);
+        const [draggedItem] = fullGallery.splice(draggedItemIndex, 1);
+        fullGallery.splice(dropTargetIndex, 0, draggedItem);
         
-        setGallery(list);
+        setGallery(fullGallery);
     };
     
     const handleDragEnd = () => {
@@ -121,7 +123,7 @@ const GalleryTab = ({ content, gallery, handleContentChange, setGallery, setEdit
                     <span className="text-sm text-zinc-300">{selectedImages.size} afbeelding(en) geselecteerd</span>
                     <div className="relative">
                         <button onClick={() => setIsBulkMenuOpen(!isBulkMenuOpen)} className="flex items-center px-3 py-1 bg-zinc-600 rounded-md hover:bg-zinc-500">
-                           <DotsThree size={20} /> <span className="ml-2">Acties</span>
+                           <DotsThree size={20} /> <span className="ml-2 hidden sm:inline">Acties</span>
                         </button>
                         {isBulkMenuOpen && (
                             <div className="absolute right-0 top-full mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-md shadow-lg z-10">
@@ -134,7 +136,7 @@ const GalleryTab = ({ content, gallery, handleContentChange, setGallery, setEdit
                 </div>
             )}
 
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 <div className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-zinc-600 rounded-lg text-zinc-400">
                     <input type="checkbox" checked={selectedImages.size > 0 && selectedImages.size === filteredGallery.length} onChange={handleSelectAll} className="h-4 w-4 rounded bg-zinc-700 border-zinc-500 text-green-600 focus:ring-green-500" />
                     <label className="text-xs mt-2">Selecteer alles</label>

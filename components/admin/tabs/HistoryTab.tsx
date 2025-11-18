@@ -78,14 +78,14 @@ const HistoryTab = ({ showNotification, showConfirmation, onRestore }: HistoryTa
                             : 'Ongeldige Datum';
 
                         return (
-                            <li key={timestamp} className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-800/50 ${isValidDate ? 'hover:bg-zinc-700/50' : ''}`}>
+                            <li key={timestamp} className={`flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-zinc-800/50 ${isValidDate ? 'hover:bg-zinc-700/50' : ''}`}>
                                 <span className={`text-zinc-200 ${!isValidDate ? 'text-red-400' : ''}`}>
                                     Versie van <time dateTime={timestamp}>{displayDate}</time>
                                 </span>
                                 <button
                                     onClick={() => handleRestore(timestamp)}
                                     disabled={!!isRestoring || !isValidDate}
-                                    className="w-full sm:w-auto inline-flex items-center justify-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full md:w-auto inline-flex items-center justify-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isRestoring === timestamp ? <Spinner size={16} className="animate-spin mr-2" /> : <ClockCounterClockwise size={16} className="mr-2"/>}
                                     {isRestoring === timestamp ? 'Herstellen...' : 'Herstel'}
