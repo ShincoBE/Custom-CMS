@@ -246,7 +246,7 @@ const DailyVisitsChart = ({ data, width }: { data: { date: string, visits: numbe
             
             {tooltip && (
                 <div 
-                    className="absolute pointer-events-none bg-zinc-900/90 backdrop-blur-sm border border-zinc-600 text-white text-xs rounded-md p-2 shadow-xl z-10 whitespace-nowrap transition-all duration-75 ease-out"
+                    className="absolute pointer-events-none bg-zinc-900/90 backdrop-blur-sm border border-zinc-600 text-white text-xs rounded-md p-2 shadow-xl z-50 whitespace-nowrap transition-all duration-75 ease-out"
                     style={{ 
                         left: tooltip.x, 
                         top: tooltip.y,
@@ -360,7 +360,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                          </div>
                     </div>
                     {viewMode === 'chart' ? (
-                         <div ref={chartContainerRef} className="bg-zinc-900/50 rounded-lg p-2 sm:p-4 border border-zinc-700 w-full overflow-hidden">
+                         <div ref={chartContainerRef} className="bg-zinc-900/50 rounded-lg p-2 sm:p-4 border border-zinc-700 w-full">
                             {data.daily && containerWidth > 0 && (
                                 <DailyVisitsChart data={data.daily} width={containerWidth} />
                             )}
