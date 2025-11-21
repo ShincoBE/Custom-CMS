@@ -108,8 +108,8 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
             <div className="mb-8 p-4 border border-zinc-700 rounded-lg bg-zinc-800/50">
                 <h3 className="text-lg font-semibold mb-3 text-white">Nieuwe Gebruiker Toevoegen</h3>
                 <form onSubmit={handleCreateUser} className="flex flex-col gap-4 lg:grid lg:grid-cols-4 lg:items-end">
-                    <AdminInput name="username" label="Gebruikersnaam" value={newUser.username} onChange={handleNewUserChange} required autoComplete="off" />
-                    <AdminInput name="password" label="Wachtwoord" type="password" value={newUser.password} onChange={handleNewUserChange} required autoComplete="new-password" />
+                    <AdminInput name="username" label="Gebruikersnaam" value={newUser.username} onChange={handleNewUserChange} required autoComplete="off" className="mb-6 lg:mb-0" />
+                    <AdminInput name="password" label="Wachtwoord" type="password" value={newUser.password} onChange={handleNewUserChange} required autoComplete="new-password" className="mb-6 lg:mb-0" />
                     <div className="mb-6 lg:mb-0">
                         <label htmlFor="role" className="block text-sm font-medium text-zinc-300 mb-1">Rol</label>
                         <select id="role" name="role" value={newUser.role} onChange={handleNewUserChange} className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500 h-[42px]">

@@ -15,6 +15,7 @@ interface InputWithCounterProps {
     showStyler?: boolean;
     maxLength?: number;
     optimalRange?: [number, number];
+    className?: string;
 }
 
 const InputWithCounter = ({ 
@@ -29,7 +30,8 @@ const InputWithCounter = ({
     autoComplete = 'off', 
     showStyler = false,
     maxLength,
-    optimalRange
+    optimalRange,
+    className = "mb-6"
 }: InputWithCounterProps) => {
     const inputRef = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
     
@@ -60,7 +62,7 @@ const InputWithCounter = ({
     };
 
     return (
-        <div className="mb-6">
+        <div className={className}>
             <div className="flex items-center space-x-2 mb-1">
                 <label htmlFor={name} className="block text-sm font-medium text-zinc-300">
                   {label} {required && <span className="text-red-400">*</span>}
