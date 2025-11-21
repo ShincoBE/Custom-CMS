@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Spinner, PaperPlaneTilt, Link as LinkIcon } from 'phosphor-react';
+import { Spinner, PaperPlaneTilt, Link as LinkIcon, Trash } from 'phosphor-react';
 import AdminInput from '../ui/AdminInput';
 import ToggleSwitch from '../ui/ToggleSwitch';
 
@@ -11,6 +11,9 @@ interface SettingsTabProps {
 
 const SettingsTab = ({ settings, handleSettingsChange, showNotification }: SettingsTabProps) => {
     const [isTesting, setIsTesting] = useState(false);
+    const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const [resetConfirmationText, setResetConfirmationText] = useState('');
+    const [isResetting, setIsResetting] = useState(false);
 
     const handleTestEmail = async () => {
         setIsTesting(true);
@@ -31,6 +34,25 @@ const SettingsTab = ({ settings, handleSettingsChange, showNotification }: Setti
             showNotification('error', error.message);
         } finally {
             setIsTesting(false);
+        }
+    };
+    
+    const handleResetAnalytics = async () => {
+        setIsResetting(true);
+        try {
+            const res = await fetch('/api/analytics/reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            showNotification('success', data.message);
+            setShowResetConfirm(false);
+            setResetConfirmationText('');
+        } catch (error: any) {
+            showNotification('error', error.message);
+        } finally {
+            setIsResetting(false);
         }
     };
 
@@ -110,6 +132,55 @@ const SettingsTab = ({ settings, handleSettingsChange, showNotification }: Setti
                     {isTesting ? <Spinner size={20} className="animate-spin mr-2" /> : <PaperPlaneTilt size={20} className="mr-2" />}
                     {isTesting ? 'Versturen...' : 'Test E-mail Versturen'}
                 </button>
+            </div>
+            
+            <div className="mt-8 p-4 border border-red-900/50 rounded-lg bg-red-950/20">
+                <h3 className="text-lg font-semibold mb-3 text-red-400">Gevarenzone</h3>
+                <p className="text-sm text-zinc-400 mb-4">
+                    Acties in deze zone kunnen niet ongedaan worden gemaakt. Wees voorzichtig.
+                </p>
+                
+                {!showResetConfirm ? (
+                    <button
+                        type="button"
+                        onClick={() => setShowResetConfirm(true)}
+                        className="inline-flex items-center px-4 py-2 border border-red-600/50 text-sm font-medium rounded-md text-red-400 hover:bg-red-950/50 hover:text-red-300 transition-colors"
+                    >
+                        <Trash size={18} className="mr-2" /> Reset Alle Statistieken
+                    </button>
+                ) : (
+                    <div className="bg-zinc-900/80 p-4 rounded-md border border-red-900/30">
+                         <p className="text-sm text-zinc-300 mb-3">
+                            Weet u het zeker? Dit zal <strong>alle</strong> verzamelde bezoekersstatistieken permanent verwijderen. 
+                            Typ <span className="font-mono text-red-400 font-bold">Verwijder</span> hieronder om te bevestigen.
+                         </p>
+                         <input
+                            type="text"
+                            value={resetConfirmationText}
+                            onChange={(e) => setResetConfirmationText(e.target.value)}
+                            placeholder="Typ 'Verwijder'"
+                            className="w-full bg-zinc-800 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-red-500 focus:border-red-500 mb-3"
+                         />
+                         <div className="flex space-x-3">
+                             <button
+                                type="button"
+                                onClick={() => { setShowResetConfirm(false); setResetConfirmationText(''); }}
+                                className="px-3 py-2 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600"
+                             >
+                                Annuleren
+                             </button>
+                             <button
+                                type="button"
+                                onClick={handleResetAnalytics}
+                                disabled={resetConfirmationText !== 'Verwijder' || isResetting}
+                                className="px-3 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
+                             >
+                                {isResetting && <Spinner size={16} className="animate-spin mr-2" />}
+                                Definitief Verwijderen
+                             </button>
+                         </div>
+                    </div>
+                )}
             </div>
         </>
     );

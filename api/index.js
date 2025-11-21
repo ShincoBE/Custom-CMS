@@ -499,6 +499,19 @@ async function handleTestEmail(req, res) {
   }
 }
 
+async function handleResetAnalytics(req, res) {
+  try {
+    await authorizeRequest(req, ['SuperAdmin', 'Admin']);
+    const keys = await kv.keys('analytics*');
+    if (keys.length > 0) {
+      await kv.del(...keys);
+    }
+    return res.status(200).json({ success: true, message: 'Analytics data succesvol verwijderd.' });
+  } catch (error) {
+    return res.status(error.message === 'Access denied.' ? 403 : 500).json({ error: error.message });
+  }
+}
+
 async function handleSitemap(req, res) {
   try {
     const [pageContent, blogPosts] = await Promise.all([
@@ -784,6 +797,8 @@ module.exports = async (req, res) => {
   if (path === '/api/revert-content' && req.method === 'POST') return handleRevertContent(req, res);
   if (path === '/api/test-email' && req.method === 'POST') return handleTestEmail(req, res);
   if (path === '/api/analytics' && req.method === 'GET') return handleGetAnalytics(req, res);
+  if (path === '/api/analytics/reset' && req.method === 'POST') return handleResetAnalytics(req, res);
+
   
   // MEDIA ROUTES
   if (path === '/api/media' && req.method === 'GET') return handleListMedia(req, res);
