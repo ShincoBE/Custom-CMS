@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChartBar, Spinner, Users, Link as LinkIcon, Globe, DeviceMobile, HandPointing, MapPin, ArrowClockwise, Table, ChartLine } from 'phosphor-react';
 import type { AnalyticsData } from '../../../types';
 
-// --- START: Formatting Helpers ---
 const formatPath = (path: string) => {
     if (path === '/') return 'Homepagina';
     if (path.startsWith('/diensten/')) return `Dienst: ${path.substring(9)}`;
@@ -25,11 +24,6 @@ const formatEvent = (name: string, detail: string) => {
     };
     return eventMap[detail] || `${name}: ${detail}`;
 };
-// --- END: Formatting Helpers ---
-
-interface AnalyticsTabProps {
-    showNotification: (type: 'success' | 'error', message: string) => void;
-}
 
 const StatCard = ({ title, value, icon }: { title: string, value: string | number, icon: React.ReactNode }) => (
     <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700">
@@ -86,7 +80,6 @@ const DataTable = ({ title, icon, data, columns }: { title: string, icon: React.
     <div>
         <h3 className="text-lg font-semibold mb-3 text-white flex items-center">{icon}{title}</h3>
         <div className="bg-zinc-800/50 rounded-lg border border-zinc-700">
-            {/* Mobile Card View */}
             <ul className="divide-y divide-zinc-700/50 sm:hidden">
                 {data.map((item, index) => (
                     <li key={index} className="p-3">
@@ -101,7 +94,6 @@ const DataTable = ({ title, icon, data, columns }: { title: string, icon: React.
                     </li>
                 ))}
             </ul>
-             {/* Desktop Table View */}
             <table className="hidden sm:table w-full text-sm">
                 <thead>
                     <tr className="text-left text-zinc-400 font-semibold">
@@ -124,31 +116,177 @@ const DataTable = ({ title, icon, data, columns }: { title: string, icon: React.
     </div>
 );
 
+const DailyVisitsChart = ({ data, width }: { data: { date: string, visits: number, uniques: number }[], width: number }) => {
+    const svgRef = useRef<SVGSVGElement>(null);
+    const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
+
+    if (!data || data.length < 1) {
+        return <div className="flex items-center justify-center h-64 text-zinc-400">Niet genoeg data voor een grafiek.</div>;
+    }
+
+    const height = 300;
+    const padding = { top: 20, right: 20, bottom: 30, left: 40 };
+    const chartWidth = Math.max(0, width - padding.left - padding.right);
+    const chartHeight = Math.max(0, height - padding.top - padding.bottom);
+    const dataPoints = data.length;
+
+    // Adjust max visits to prevent division by zero and add headroom
+    const maxVisits = Math.max(...data.map(d => d.visits), 5) * 1.1;
+    
+    const xScale = (index: number) => padding.left + index * (chartWidth / dataPoints);
+    const yScale = (value: number) => height - padding.bottom - (value / maxVisits) * chartHeight;
+    
+    // Dynamically calculate bar width to fit the container
+    const barWidth = Math.max(2, (chartWidth / dataPoints) * 0.6);
+
+    const uniquePoints = data.map((d, i) => `${xScale(i) + (chartWidth / dataPoints / 2)},${yScale(d.uniques)}`).join(' ');
+
+    const yAxisTicks = [0.25, 0.5, 0.75, 1];
+
+    const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+        const svg = svgRef.current;
+        if (!svg) return;
+        
+        const rect = svg.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        
+        // Find closest index based on mouse X relative to chart area
+        const index = Math.floor(((x - padding.left) / chartWidth) * dataPoints);
+
+        if (index >= 0 && index < data.length) {
+            const pointData = data[index];
+            const dateObj = new Date(pointData.date);
+            const formattedDate = dateObj.toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' });
+            
+            const content = `
+                <div class="font-semibold mb-1 text-center border-b border-zinc-700 pb-1">${formattedDate}</div>
+                <div class="flex justify-between gap-4 text-sm"><span>Bezoeken:</span> <strong class="text-green-400">${pointData.visits}</strong></div>
+                <div class="flex justify-between gap-4 text-sm"><span>Uniek:</span> <strong class="text-green-400">${pointData.uniques}</strong></div>
+            `;
+            
+            // Position tooltip centered on bar
+            let tooltipX = xScale(index) + (chartWidth / dataPoints / 2);
+            const tooltipY = Math.min(yScale(pointData.visits), yScale(pointData.uniques)) - 10;
+
+            setTooltip({ x: tooltipX, y: tooltipY, content });
+        }
+    };
+
+    const handleMouseLeave = () => {
+        setTooltip(null);
+    };
+
+    return (
+        <div className="relative w-full h-[300px] select-none">
+            <svg
+                ref={svgRef}
+                width={width}
+                height={height}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                className="block"
+            >
+                {/* Grid Lines */}
+                {yAxisTicks.map(tick => {
+                    const val = Math.round(maxVisits * tick);
+                    const y = yScale(val);
+                    return (
+                        <g key={tick}>
+                             <line x1={padding.left} y1={y} x2={width - padding.right} y2={y} stroke="#3f3f46" strokeWidth="1" strokeDasharray="4" />
+                             <text x={padding.left - 8} y={y + 4} textAnchor="end" fill="#71717a" fontSize="10">{val}</text>
+                        </g>
+                    )
+                })}
+                <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} stroke="#52525b" strokeWidth="1" />
+                <text x={padding.left - 8} y={height - padding.bottom + 4} textAnchor="end" fill="#71717a" fontSize="10">0</text>
+
+                {/* Bars */}
+                {data.map((d, i) => (
+                    <rect
+                        key={`bar-${i}`}
+                        x={xScale(i) + ((chartWidth / dataPoints - barWidth) / 2)}
+                        y={yScale(d.visits)}
+                        width={barWidth}
+                        height={Math.max(0, height - padding.bottom - yScale(d.visits))}
+                        fill="#15803d"
+                        className="hover:opacity-80 transition-opacity duration-200"
+                    />
+                ))}
+
+                {/* Line for Uniques */}
+                 <polyline
+                    fill="none"
+                    stroke="#4ade80"
+                    strokeWidth="2"
+                    points={uniquePoints}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="pointer-events-none"
+                />
+
+                {/* X-Axis Labels - Filtered to prevent overlapping */}
+                {data.map((d, i) => {
+                    const dateObj = new Date(d.date);
+                    const formattedDate = dateObj.toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' });
+                    
+                    // Calculate step to ensure labels don't overlap (assuming ~40px per label)
+                    const labelWidth = 40;
+                    const maxLabels = Math.floor(chartWidth / labelWidth); 
+                    const step = Math.ceil(dataPoints / maxLabels);
+                    
+                    if (i % step !== 0) return null;
+
+                    return (
+                        <text key={i} x={xScale(i) + (chartWidth / dataPoints / 2)} y={height - padding.bottom + 20} textAnchor="middle" fill="#a1a1aa" fontSize="10">
+                            {formattedDate}
+                        </text>
+                    )
+                })}
+            </svg>
+            
+            {tooltip && (
+                <div 
+                    className="absolute pointer-events-none bg-zinc-900/90 backdrop-blur-sm border border-zinc-600 text-white text-xs rounded-md p-2 shadow-xl z-10 whitespace-nowrap transition-all duration-75 ease-out"
+                    style={{ 
+                        left: tooltip.x, 
+                        top: tooltip.y,
+                        transform: 'translate(-50%, -100%)' 
+                    }}
+                >
+                    <div dangerouslySetInnerHTML={{ __html: tooltip.content }} />
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-2 h-2 bg-zinc-900/90 border-r border-b border-zinc-600 transform rotate-45"></div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+interface AnalyticsTabProps {
+    showNotification: (type: 'success' | 'error', message: string) => void;
+}
 
 const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
     const [data, setData] = useState<AnalyticsData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [days, setDays] = useState(30);
     const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
+    
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
 
+    // Use ResizeObserver to keep chart width synced with container width
     useEffect(() => {
         const observer = new ResizeObserver(entries => {
             if (entries[0]) {
+                // Use contentRect to get width without padding/border
                 setContainerWidth(entries[0].contentRect.width);
             }
         });
-        const currentRef = chartContainerRef.current;
-        if (currentRef) {
-            observer.observe(currentRef);
+        if (chartContainerRef.current) {
+            observer.observe(chartContainerRef.current);
         }
-        return () => {
-            if (currentRef) {
-                observer.unobserve(currentRef);
-            }
-        };
-    }, []);
+        return () => observer.disconnect();
+    }, [viewMode]);
 
     const fetchAnalytics = useCallback(async (period: number) => {
         setIsLoading(true);
@@ -170,166 +308,6 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
     useEffect(() => {
         fetchAnalytics(days);
     }, [days, fetchAnalytics]);
-    
-    const DailyVisitsChart = ({ data, period }: { data: { date: string, visits: number, uniques: number }[], period: number }) => {
-        const svgRef = useRef<SVGSVGElement>(null);
-        const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
-
-        if (!data || data.length < 1) {
-            return <div className="flex items-center justify-center h-64 text-zinc-400">Niet genoeg data voor een grafiek.</div>;
-        }
-
-        // Ensure we have a width even if ResizeObserver fails or initial render is hidden
-        const fallbackWidth = 600;
-        const effectiveWidth = containerWidth > 0 ? containerWidth : fallbackWidth;
-
-        const width = period >= 90 ? Math.max(effectiveWidth, data.length * 20) : effectiveWidth;
-        const height = 256;
-        const padding = { top: 20, right: 20, bottom: 30, left: 50 };
-        const chartWidth = width - padding.left - padding.right;
-        const chartHeight = height - padding.top - padding.bottom;
-        const dataPoints = data.length;
-
-        const maxVisits = Math.max(...data.map(d => d.visits), 1);
-        
-        const xScale = (index: number) => padding.left + index * (chartWidth / dataPoints);
-        const yScale = (value: number) => height - padding.bottom - (value / maxVisits) * chartHeight;
-        const barWidth = Math.max(1, (chartWidth / dataPoints) * 0.6);
-
-        const uniquePoints = data.map((d, i) => `${xScale(i) + (chartWidth / dataPoints / 2)},${yScale(d.uniques)}`).join(' ');
-
-        const isWeekly = period > 60;
-        const yAxisTicks = [1/4, 2/4, 3/4];
-
-        const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
-            const svg = svgRef.current;
-            if (!svg) return;
-            
-            const rect = svg.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            
-            const index = Math.floor(((x - padding.left) / chartWidth) * dataPoints);
-
-            if (index >= 0 && index < data.length) {
-                const pointData = data[index];
-                const dateObj = new Date(pointData.date);
-                const formattedDate = dateObj.toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' });
-                const tooltipTitle = isWeekly ? `Week van ${formattedDate}` : formattedDate;
-
-                const content = `
-                    <div class="font-semibold">${tooltipTitle}</div>
-                    <strong>${pointData.visits}</strong> ${pointData.visits === 1 ? 'bezoek' : 'bezoeken'}<br/>
-                    <strong>${pointData.uniques}</strong> ${pointData.uniques === 1 ? 'unieke bezoeker' : 'unieke bezoekers'}
-                `;
-                
-                const tooltipX = xScale(index) + barWidth / 2;
-                const tooltipY = Math.min(yScale(pointData.visits), yScale(pointData.uniques));
-
-                setTooltip({ x: tooltipX, y: tooltipY, content });
-            }
-        };
-
-        const handleMouseLeave = () => {
-            setTooltip(null);
-        };
-
-        let tooltipJsx = null;
-        if (tooltip) {
-            const tooltipWidth = 140;
-            const tooltipHeight = 60;
-            const tooltipOffset = 20;
-
-            let tooltipX = tooltip.x + tooltipOffset;
-            if (tooltipX + tooltipWidth > width - padding.right) {
-                tooltipX = tooltip.x - tooltipWidth - tooltipOffset;
-            }
-            if (tooltipX < padding.left) {
-                tooltipX = padding.left;
-            }
-
-            let tooltipY = tooltip.y - (tooltipHeight / 2);
-            if (tooltipY < padding.top) {
-                tooltipY = padding.top;
-            }
-            if (tooltipY + tooltipHeight > height - padding.bottom) {
-                tooltipY = height - padding.bottom - tooltipHeight;
-            }
-
-            tooltipJsx = (
-                <g pointerEvents="none">
-                    <line x1={tooltip.x} y1={padding.top} x2={tooltip.x} y2={height - padding.bottom} stroke="#a1a1aa" strokeWidth="1" strokeDasharray="4" />
-                    <foreignObject x={tooltipX} y={tooltipY} width={tooltipWidth} height={tooltipHeight}>
-                         <div
-                            className="px-2 py-1 text-xs text-white bg-zinc-900/80 backdrop-blur-sm rounded-md border border-zinc-700 shadow-lg text-center"
-                            dangerouslySetInnerHTML={{ __html: tooltip.content }}
-                        />
-                    </foreignObject>
-                </g>
-            );
-        }
-
-        return (
-            <svg
-                ref={svgRef}
-                width={width}
-                height={height}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-            >
-                {/* Y-axis grid lines and labels */}
-                {yAxisTicks.map(tick => {
-                    const y = yScale(maxVisits * tick);
-                    const value = Math.round(maxVisits * tick);
-                    return (
-                        <g key={tick} className="text-zinc-500 text-xs">
-                            <line x1={padding.left} y1={y} x2={width - padding.right} y2={y} stroke="currentColor" strokeWidth="0.5" strokeDasharray="2" />
-                            <text x={padding.left - 8} y={y + 4} textAnchor="end" fill="currentColor">{value}</text>
-                        </g>
-                    )
-                })}
-                
-                {/* Y-axis top and bottom labels */}
-                <text x={padding.left - 8} y={padding.top + 5} textAnchor="end" fill="#a1a1aa" fontSize="12">{Math.ceil(maxVisits)}</text>
-                <text x={padding.left - 8} y={height - padding.bottom + 4} textAnchor="end" fill="#a1a1aa" fontSize="12">0</text>
-                
-                {/* Bars for Total Visits */}
-                {data.map((d, i) => (
-                    <rect
-                        key={`bar-${d.date}`}
-                        x={xScale(i) + ((chartWidth / dataPoints - barWidth) / 2)}
-                        y={yScale(d.visits)}
-                        width={barWidth}
-                        height={height - padding.bottom - yScale(d.visits)}
-                        fill="#15803d"
-                        className="opacity-50"
-                    />
-                ))}
-
-                {/* Line for Unique Visitors */}
-                <polyline
-                    fill="none"
-                    stroke="#4ade80"
-                    strokeWidth="2"
-                    points={uniquePoints}
-                />
-                
-                {/* X-axis labels */}
-                {data.map((d, i) => {
-                     const dateObj = new Date(d.date);
-                     const formattedDate = dateObj.toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' });
-                     const labelFrequency = Math.ceil(data.length / (width / 70));
-                     if (i % labelFrequency !== 0 && i !== data.length - 1) return null;
-                     return (
-                        <text key={d.date} x={xScale(i) + (chartWidth / dataPoints / 2)} y={height - padding.bottom + 15} textAnchor="middle" fill="#a1a1aa" fontSize="12">
-                            {formattedDate}
-                        </text>
-                     )
-                })}
-
-                {tooltipJsx}
-            </svg>
-        );
-    };
 
     const renderContent = () => {
         if (isLoading) {
@@ -380,9 +358,9 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                          </div>
                     </div>
                     {viewMode === 'chart' ? (
-                         <div ref={chartContainerRef} className="overflow-x-auto relative bg-zinc-900/50 rounded-lg p-2 border border-zinc-700">
-                            {data.daily && (
-                                <DailyVisitsChart data={data.daily} period={days} />
+                         <div ref={chartContainerRef} className="bg-zinc-900/50 rounded-lg p-2 sm:p-4 border border-zinc-700 w-full overflow-hidden">
+                            {data.daily && containerWidth > 0 && (
+                                <DailyVisitsChart data={data.daily} width={containerWidth} />
                             )}
                         </div>
                     ) : (
