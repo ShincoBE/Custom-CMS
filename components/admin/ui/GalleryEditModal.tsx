@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { GalleryImage } from '../../../types';
-import { UploadSimple, Spinner } from 'phosphor-react';
+import { UploadSimple, Spinner, Image } from 'phosphor-react';
 import InputWithCounter from './InputWithCounter';
 import ToggleSwitch from './ToggleSwitch.tsx';
+import MediaLibraryModal from './MediaLibraryModal'; // New import
 
 interface GalleryEditModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface GalleryEditModalProps {
 const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: GalleryEditModalProps) => {
   const [editedImage, setEditedImage] = useState(image);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -47,6 +49,10 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: Gal
     }
   };
 
+  const handleLibrarySelect = (url: string) => {
+      setEditedImage(prev => ({ ...prev, image: { ...prev.image, url } }));
+  };
+
   const handleSave = () => {
     onSave(editedImage);
   };
@@ -69,11 +75,17 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: Gal
                             Upload een afbeelding
                         </div>
                     )}
+                    
                     <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="w-full mt-2 inline-flex items-center justify-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50">
                         {isUploading ? <Spinner size={16} className="animate-spin mr-2" /> : <UploadSimple size={16} className="mr-2" />}
                         {isUploading ? 'Uploaden...' : (editedImage.image.url ? 'Wijzigen' : 'Uploaden')}
                     </button>
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/gif, image/webp, image/svg+xml" />
+
+                    <button type="button" onClick={() => setIsLibraryOpen(true)} className="w-full mt-2 inline-flex items-center justify-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600">
+                        <Image size={16} className="mr-2" />
+                        Bibliotheek
+                    </button>
                 </div>
                 <div className="w-full sm:w-2/3">
                   <ToggleSwitch 
@@ -113,6 +125,12 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: Gal
           </button>
         </footer>
       </div>
+      
+      <MediaLibraryModal 
+        isOpen={isLibraryOpen} 
+        onClose={() => setIsLibraryOpen(false)} 
+        onSelect={handleLibrarySelect} 
+      />
     </div>
   );
 };

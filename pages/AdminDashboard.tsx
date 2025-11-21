@@ -19,6 +19,7 @@ import UserManagementTab from '../components/admin/tabs/UserManagementTab';
 import HistoryTab from '../components/admin/tabs/HistoryTab';
 import AnalyticsTab from '../components/admin/tabs/AnalyticsTab';
 import HelpTab from '../components/admin/tabs/HelpTab';
+import MediaLibraryTab from '../components/admin/tabs/MediaLibraryTab'; // New Import
 
 
 // Import UI components
@@ -71,6 +72,7 @@ function AdminDashboard() {
     { id: 'galerij-cta', label: 'Galerij CTA', roles: ['SuperAdmin', 'Admin', 'Editor'] },
     { id: 'galerij', label: 'Galerij', roles: ['SuperAdmin', 'Admin', 'Editor'] },
     { id: 'contact', label: 'Contact', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'media', label: 'Media', roles: ['SuperAdmin', 'Admin', 'Editor'] }, // Added Media Tab
   ], []);
   
   const adminTabs = useMemo(() => [
@@ -162,6 +164,11 @@ function AdminDashboard() {
       }
       const blob = await response.json();
       handleContentChange(path, blob.url);
+  };
+
+  // New handler for media library selection
+  const handleImageSelect = (url: string, path: string) => {
+      handleContentChange(path, url);
   };
   
   const handleModalImageUpload = async (file: File) => {
@@ -256,20 +263,21 @@ function AdminDashboard() {
     const currentTabInfo = allTabs.find(tab => tab.id === activeTab);
     if (!currentTabInfo || (userRole && !currentTabInfo.roles.includes(userRole))) {
       setActiveTab('dashboard'); // Fallback to dashboard if access is denied
-      return <DashboardTab content={content} user={user} settings={settings} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
+      return <DashboardTab content={content} user={user} settings={settings} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} handleImageSelect={handleImageSelect} />;
     }
 
     switch(activeTab) {
-      case 'dashboard': return <DashboardTab content={content} user={user} settings={settings} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
+      case 'dashboard': return <DashboardTab content={content} user={user} settings={settings} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} handleImageSelect={handleImageSelect} />;
       case 'navigatie': return <NavigationTab content={content} handleContentChange={handleContentChange} />;
-      case 'hero': return <HeroTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
-      case 'diensten': return <ServicesTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} handleModalImageUpload={handleModalImageUpload} />;
-      case 'voor-na': return <BeforeAfterTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} />;
+      case 'hero': return <HeroTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} handleImageSelect={handleImageSelect} />;
+      case 'diensten': return <ServicesTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} handleImageSelect={handleImageSelect} handleModalImageUpload={handleModalImageUpload} />;
+      case 'voor-na': return <BeforeAfterTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} handleImageSelect={handleImageSelect} />;
       case 'reviews': return <TestimonialsTab content={content} handleContentChange={handleContentChange} />;
       case 'blog': return <BlogTab blogPosts={blogPosts} setEditingPost={setEditingPost} handleDeletePost={handleDeletePost} />;
       case 'galerij-cta': return <CtaGalleryTab content={content} handleContentChange={handleContentChange} />;
       case 'galerij': return <GalleryTab content={content} gallery={gallery} handleContentChange={handleContentChange} setGallery={setGallery} setEditingImageIndex={setEditingImageIndex} />;
       case 'contact': return <ContactTab content={content} handleContentChange={handleContentChange} handleModalImageUpload={handleModalImageUpload} />;
+      case 'media': return <MediaLibraryTab />; // New Tab Render
       case 'instellingen': return <SettingsTab settings={settings} handleSettingsChange={handleSettingsChange} showNotification={showNotification} />;
       case 'gebruikers': return <UserManagementTab showNotification={showNotification} showConfirmation={showConfirmation} />;
       case 'geschiedenis': return <HistoryTab showNotification={showNotification} showConfirmation={showConfirmation} onRestore={loadContent} />;
@@ -377,7 +385,13 @@ function AdminDashboard() {
       </main>
       
       {editingImageIndex !== null && gallery[editingImageIndex] && (
-        <GalleryEditModal isOpen={editingImageIndex !== null} onClose={handleCloseImageModal} image={gallery[editingImageIndex]} onSave={(updatedImage) => { setGallery(g => g.map((item, i) => (i === editingImageIndex ? updatedImage : item))); setEditingImageIndex(null); }} onImageUpload={handleModalImageUpload} />
+        <GalleryEditModal 
+          isOpen={editingImageIndex !== null} 
+          onClose={handleCloseImageModal} 
+          image={gallery[editingImageIndex]} 
+          onSave={(updatedImage) => { setGallery(g => g.map((item, i) => (i === editingImageIndex ? updatedImage : item))); setEditingImageIndex(null); }} 
+          onImageUpload={handleModalImageUpload} 
+        />
       )}
       {editingPost && (
         <BlogEditModal isOpen={!!editingPost} onClose={() => setEditingPost(null)} post={editingPost} onSave={handleSavePost} onImageUpload={handleModalImageUpload} />

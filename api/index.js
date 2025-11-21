@@ -1,7 +1,7 @@
 // Vercel Serverless Function - API Router
 // This single file consolidates all API logic to stay within the Vercel Hobby plan limits.
 const { createClient } = require('@vercel/kv');
-const { put } = require('@vercel/blob');
+const { put, list, del } = require('@vercel/blob');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookie = require('cookie');
@@ -82,7 +82,7 @@ const DEFAULT_CONTENT = {
         published: true,
         hasPage: true,
         slug: 'tuinaanleg-en-herinrichting',
-        pageContent: `<p>Uw tuin is een leeg canvas vol mogelijkheden. Met onze expertise in tuinaanleg en herinrichting transformeren we uw buitenruimte tot de droomtuin die u altijd al wilde. Of u nu start vanaf nul of uw bestaande tuin een complete make-over wilt geven, wij begeleiden u van het eerste idee tot de finale realisatie. We luisteren naar uw wensen en vertalen deze naar een functioneel en esthetisch ontwerp dat past bij uw levensstijl.</p><p><br></p><p>Het proces start met een grondige analyse van de ruimte en een persoonlijk gesprek. We bespreken de gewenste sfeer, functies (zoals een terras, speelruimte of moestuin) en uw voorkeur voor beplanting en materialen. Op basis hiervan werken we een gedetailleerd plan uit, inclusief de indeling van paden, terrassen, borders en eventuele structuren zoals een pergola of tuinhuis.</p><p><br></p><img src="https://i.postimg.cc/k47vYvBw/garden-design-sample.jpg" alt="Een net aangelegde tuin met nieuwe bestrating, een houten vlonder en jonge beplanting." style="max-width: 100%; height: auto; border-radius: 8px;"><p><br></p><p>De aanlegfase wordt met de grootste zorg en precisie uitgevoerd. Dit omvat alle grondwerken, de aanleg van bestrating en terrassen, en de constructie van eventuele bouwelementen. Vervolgens brengen we de tuin tot leven met een doordacht beplantingsplan, waarbij we planten selecteren die niet alleen mooi zijn, maar ook geschikt voor de bodem en de lichtinval in uw tuin. We creëren een harmonieus geheel dat door de seizoenen heen boeiend blijft.</p><p>Een professioneel aangelegde tuin verhoogt niet alleen het plezier dat u uit uw woning haalt, maar ook de marktwaarde ervan. Het is een investering in levenskwaliteit en duurzame schoonheid. Laat ons uw partner zijn in het creëren van een unieke buitenruimte waar u jarenlang van zult genieten.</p>`
+        pageContent: `<p>Uw tuin is een leeg canvas vol mogelijkheden. Met onze expertise in tuinaanleg en herinrichting transformeren we uw buitenruimte tot de droomtuin die u altijd al wilde. Of u nu start vanaf nul of uw bestaande tuin een complete make-over wilt geven, wij begeleiden u van het eerste idee tot de finale realisatie. We luisteren naar uw wensen en vertalen deze naar een functioneel en esthetisch ontwerp dat past bij uw levensstijl.</p><p><br></p><p>Het proces start met een grondige analyse van de ruimte en een persoonlijk gesprek. We bespreken de gewenste sfeer, functies (zoals een terras, speelruimte of moestuin) en uw voorkeur voor beplanting en materialen. Op basis hiervan werken we een gedetailleerd plan uit, inclusief de indeling van paden, terrassen, borders en eventuele structuren zoals een pergola of tuinhuis.</p><p><br></p><img src="https://i.postimg.cc/k47vYvBw/garden-design-sample.jpg" alt="Een net aangelegde tuin met nieuwe bestrating, een houten vlonder en jonge beplanting." style="max-width: 100%; height: auto; border-radius: 8px;"><p><br></p><p>De aanlegfase wordt met de grootste zorg en precisie uitgevoerd. Dit omvat alle grondwerken, de aanleg van bestrating en terrassen, en de constructie van eventuele bouwelementen. Vervolgens brengen we de tuin tot leven met een doordacht beplantingsplan, waarbij we planten selecteren die niet alleen mooi zijn, maar ook geschikt voor de bodem en de lichtinval in uw tuin. We creëren een harmonieus geheel dat door de seizoenen heen boeiend blijft.</p><p>Een professioneel aangelegde tuin verhoogt niet alleen het plezier dat u uit uw woning haalt, maar ook de marktwaarde ervan. Het is een investering in levenskwaliteit en duurzame schoonheid. Laat ons de zorg dragen voor uw groene oase, zodat u er zorgeloos van kunt genieten.</p>`
       },
       {
         _key: 'service_3',
@@ -721,6 +721,30 @@ async function handleGetAnalytics(req, res) {
 }
 // --- END: ANALYTICS HANDLERS ---
 
+// --- START: MEDIA HANDLERS ---
+async function handleListMedia(req, res) {
+  try {
+    await authorizeRequest(req, ['SuperAdmin', 'Admin', 'Editor']);
+    const { blobs } = await list({ limit: 500 }); // List up to 500 files
+    return res.status(200).json({ media: blobs });
+  } catch (error) {
+    return res.status(error.message === 'Access denied.' ? 403 : 500).json({ error: error.message });
+  }
+}
+
+async function handleDeleteMedia(req, res) {
+  try {
+    await authorizeRequest(req, ['SuperAdmin', 'Admin']);
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: 'URL is required.' });
+    await del(url);
+    return res.status(200).json({ success: true });
+  } catch (error) {
+     return res.status(error.message === 'Access denied.' ? 403 : 500).json({ error: error.message });
+  }
+}
+// --- END: MEDIA HANDLERS ---
+
 
 // --- MAIN ROUTER ---
 module.exports = async (req, res) => {
@@ -760,6 +784,10 @@ module.exports = async (req, res) => {
   if (path === '/api/revert-content' && req.method === 'POST') return handleRevertContent(req, res);
   if (path === '/api/test-email' && req.method === 'POST') return handleTestEmail(req, res);
   if (path === '/api/analytics' && req.method === 'GET') return handleGetAnalytics(req, res);
+  
+  // MEDIA ROUTES
+  if (path === '/api/media' && req.method === 'GET') return handleListMedia(req, res);
+  if (path === '/api/media/delete' && req.method === 'POST') return handleDeleteMedia(req, res);
 
 
   return res.status(404).json({ error: 'Not Found' });

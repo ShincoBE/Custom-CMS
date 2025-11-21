@@ -150,6 +150,12 @@ export interface AnalyticsData {
   events: { name: string; detail: string; count: number }[];
 }
 
+export interface MediaItem {
+    url: string;
+    pathname: string;
+    size: number;
+    uploadedAt: string;
+}
 
 // Site-wide settings
 export interface SiteSettings {

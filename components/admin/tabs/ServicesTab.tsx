@@ -11,10 +11,11 @@ interface ServicesTabProps {
     content: PageContent;
     handleContentChange: (path: string, value: any) => void;
     handleImageUpload: (file: File, path: string) => Promise<void>;
+    handleImageSelect: (url: string, path: string) => void; // New prop
     handleModalImageUpload: (file: File) => Promise<string>;
 }
 
-const ServicesTab = ({ content, handleContentChange, handleImageUpload, handleModalImageUpload }: ServicesTabProps) => {
+const ServicesTab = ({ content, handleContentChange, handleImageUpload, handleImageSelect, handleModalImageUpload }: ServicesTabProps) => {
     const [openedService, setOpenedService] = useState<number | null>(null);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
@@ -139,7 +140,16 @@ const ServicesTab = ({ content, handleContentChange, handleImageUpload, handleMo
                                     />
                                     <InputWithCounter name={`service-title-${originalIndex}`} label="Dienst Titel" value={service.title} onChange={e => handleContentChange(`servicesList.${originalIndex}.title`, e.target.value)} required showStyler />
                                     <InputWithCounter as="textarea" name={`service-desc-${originalIndex}`} label="Dienst Omschrijving" help="Korte omschrijving van de dienst, getoond op de dienstenkaart." value={service.description} onChange={e => handleContentChange(`servicesList.${originalIndex}.description`, e.target.value)} required showStyler />
-                                    <ImageUpload name={`service-icon-${originalIndex}`} label="Icoon" help="Een klein icoon voor deze dienst." currentUrl={service.customIcon?.url} alt={service.customIcon?.alt} onAltChange={e => handleContentChange(`servicesList.${originalIndex}.customIcon.alt`, e.target.value)} onImageChange={file => handleImageUpload(file, `servicesList.${originalIndex}.customIcon.url`)} />
+                                    <ImageUpload 
+                                        name={`service-icon-${originalIndex}`} 
+                                        label="Icoon" 
+                                        help="Een klein icoon voor deze dienst." 
+                                        currentUrl={service.customIcon?.url} 
+                                        alt={service.customIcon?.alt} 
+                                        onAltChange={e => handleContentChange(`servicesList.${originalIndex}.customIcon.alt`, e.target.value)} 
+                                        onImageChange={file => handleImageUpload(file, `servicesList.${originalIndex}.customIcon.url`)} 
+                                        onUrlChange={url => handleImageSelect(url, `servicesList.${originalIndex}.customIcon.url`)}
+                                    />
                                     
                                     <div className="mt-4 pt-4 border-t border-zinc-600">
                                         <ToggleSwitch
