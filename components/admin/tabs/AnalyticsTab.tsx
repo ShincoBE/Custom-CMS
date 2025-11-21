@@ -276,17 +276,19 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
 
     // Use ResizeObserver to keep chart width synced with container width
     useEffect(() => {
+        if (!chartContainerRef.current) return;
+
         const observer = new ResizeObserver(entries => {
             if (entries[0]) {
                 // Use contentRect to get width without padding/border
                 setContainerWidth(entries[0].contentRect.width);
             }
         });
-        if (chartContainerRef.current) {
-            observer.observe(chartContainerRef.current);
-        }
+        
+        observer.observe(chartContainerRef.current);
+        
         return () => observer.disconnect();
-    }, [viewMode]);
+    }, [viewMode, isLoading]);
 
     const fetchAnalytics = useCallback(async (period: number) => {
         setIsLoading(true);
