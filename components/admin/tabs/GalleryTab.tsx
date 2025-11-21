@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { PageContent, GalleryImage } from '../../../types';
-import { Plus, Pencil, Trash, MagnifyingGlass, CheckCircle, Prohibit, DotsThree } from 'phosphor-react';
+import { Plus, Pencil, Trash, MagnifyingGlass, CheckCircle, Prohibit, DotsThree, CaretLeft, CaretRight } from 'phosphor-react';
 import InputWithCounter from '../ui/InputWithCounter';
 
 interface GalleryTabProps {
@@ -97,6 +97,19 @@ const GalleryTab = ({ content, gallery, handleContentChange, setGallery, setEdit
         setDraggedId(null);
         setDropTargetId(null);
     };
+
+    const moveImage = (id: string, direction: -1 | 1) => {
+        const fullGallery = [...gallery];
+        const index = fullGallery.findIndex(item => item._id === id);
+        if (index === -1) return;
+        
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= fullGallery.length) return;
+
+        const [item] = fullGallery.splice(index, 1);
+        fullGallery.splice(newIndex, 0, item);
+        setGallery(fullGallery);
+    };
     
     return (
         <>
@@ -141,7 +154,7 @@ const GalleryTab = ({ content, gallery, handleContentChange, setGallery, setEdit
                     <input type="checkbox" checked={selectedImages.size > 0 && selectedImages.size === filteredGallery.length} onChange={handleSelectAll} className="h-4 w-4 rounded bg-zinc-700 border-zinc-500 text-green-600 focus:ring-green-500" />
                     <label className="text-xs mt-2">Selecteer alles</label>
                 </div>
-                {filteredGallery.map((img) => {
+                {filteredGallery.map((img, index) => {
                     return (
                         <div
                             key={img._id}
@@ -179,8 +192,15 @@ const GalleryTab = ({ content, gallery, handleContentChange, setGallery, setEdit
                                 <input type="checkbox" checked={selectedImages.has(img._id)} onChange={() => handleToggleSelection(img._id)} className="h-4 w-4 rounded bg-zinc-900/50 border-zinc-500 text-green-600 focus:ring-green-500"/>
                             </div>
                             <div className="absolute bottom-1 right-1 z-10" title={img.published ? 'Gepubliceerd' : 'Concept'}>
-                            {img.published ? <CheckCircle size={16} className="text-green-400 bg-black/50 rounded-full" /> : <Prohibit size={16} className="text-yellow-400 bg-black/50 rounded-full" />}
+                                {img.published ? <CheckCircle size={16} className="text-green-400 bg-black/50 rounded-full" /> : <Prohibit size={16} className="text-yellow-400 bg-black/50 rounded-full" />}
                             </div>
+                            {/* Mobile / Touch reorder controls */}
+                            {!searchTerm && (
+                                <div className="absolute bottom-1 left-1 z-20 flex space-x-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                    <button onClick={(e) => { e.stopPropagation(); moveImage(img._id, -1); }} className="p-1 bg-zinc-800/80 rounded text-white hover:bg-green-600 disabled:opacity-30" disabled={filteredGallery.indexOf(img) === 0}><CaretLeft /></button>
+                                    <button onClick={(e) => { e.stopPropagation(); moveImage(img._id, 1); }} className="p-1 bg-zinc-800/80 rounded text-white hover:bg-green-600 disabled:opacity-30" disabled={filteredGallery.indexOf(img) === filteredGallery.length - 1}><CaretRight /></button>
+                                </div>
+                            )}
                         </div>
                     )
                 })}

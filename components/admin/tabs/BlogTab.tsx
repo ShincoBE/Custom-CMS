@@ -40,27 +40,29 @@ const BlogTab = ({ blogPosts, setEditingPost, handleDeletePost }: BlogTabProps) 
       <div className="border border-zinc-700 rounded-lg overflow-hidden">
         <ul className="divide-y divide-zinc-700">
           {blogPosts.length > 0 ? blogPosts.map(post => (
-            <li key={post._id} className="p-3 bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors">
-              <div className="flex flex-col md:flex-row md:items-center gap-4">
-                <div className="flex items-center flex-grow">
+            <li key={post._id} className="p-4 bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex items-center flex-grow min-w-0">
                     {post.mainImage?.url ? (
                         <LazyImage src={post.mainImage.url} alt={post.mainImage.alt || ''} className="w-16 h-12 object-cover rounded-md flex-shrink-0" />
                     ) : (
                         <div className="w-16 h-12 bg-zinc-700 rounded-md flex items-center justify-center text-zinc-400 flex-shrink-0"><ImageIcon /></div>
                     )}
-                  <div className="ml-4 flex-grow truncate">
+                  <div className="ml-4 flex-grow min-w-0">
                     <p className="font-medium text-white truncate">{post.title}</p>
                     <p className="text-sm text-zinc-400 truncate">{post.excerpt}</p>
                   </div>
                 </div>
-                <div className="flex-shrink-0 flex items-center space-x-3 self-end md:self-auto">
+                <div className="flex items-center justify-between sm:justify-end space-x-3 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-700">
                   {post.published ? (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-300"><CheckCircle size={14} className="mr-1" /> Gepubliceerd</span>
                   ) : (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-900 text-yellow-300"><Prohibit size={14} className="mr-1" /> Concept</span>
                   )}
-                  <button onClick={() => setEditingPost(post)} className="p-1 text-zinc-400 hover:text-green-400"><Pencil size={20} /></button>
-                  <button onClick={() => handleDeletePost(post._id)} className="p-1 text-zinc-400 hover:text-red-400"><Trash size={20} /></button>
+                  <div className="flex items-center space-x-1">
+                      <button onClick={() => setEditingPost(post)} className="p-2 text-zinc-400 hover:text-green-400 rounded hover:bg-zinc-700"><Pencil size={20} /></button>
+                      <button onClick={() => handleDeletePost(post._id)} className="p-2 text-zinc-400 hover:text-red-400 rounded hover:bg-zinc-700"><Trash size={20} /></button>
+                  </div>
                 </div>
               </div>
             </li>

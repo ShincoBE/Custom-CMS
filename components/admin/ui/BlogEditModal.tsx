@@ -45,10 +45,11 @@ const BlogEditModal = ({ isOpen, onClose, post, onSave, onImageUpload }: BlogEdi
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="bg-zinc-800 w-full h-full sm:rounded-lg sm:shadow-2xl sm:max-w-4xl sm:h-[90vh] flex flex-col sm:border sm:border-zinc-700 animate-slide-up" onClick={e => e.stopPropagation()}>
-        <header className="p-4 border-b border-zinc-700 flex-shrink-0">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose} role="dialog" aria-modal="true">
+      <div className="bg-zinc-800 w-full h-[100dvh] sm:h-[90vh] sm:max-w-4xl sm:rounded-lg sm:shadow-2xl sm:border sm:border-zinc-700 flex flex-col animate-slide-up" onClick={e => e.stopPropagation()}>
+        <header className="p-4 border-b border-zinc-700 flex-shrink-0 flex justify-between items-center">
           <h3 className="text-xl font-bold text-white">Blogpost Bewerken</h3>
+          <button onClick={onClose} className="sm:hidden text-zinc-400 hover:text-white text-2xl">&times;</button>
         </header>
         <div className="p-6 flex-grow overflow-y-auto">
           <ToggleSwitch
@@ -85,7 +86,7 @@ const BlogEditModal = ({ isOpen, onClose, post, onSave, onImageUpload }: BlogEdi
             <RichTextEditor value={editedPost.content} onChange={val => handleFieldChange('content', val)} onImageUpload={onImageUpload} />
           </div>
         </div>
-        <footer className="p-4 border-t border-zinc-700 flex justify-end space-x-3 flex-shrink-0">
+        <footer className="p-4 border-t border-zinc-700 flex justify-end space-x-3 flex-shrink-0 bg-zinc-800 sm:rounded-b-lg">
           <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-700 rounded-md hover:bg-zinc-600">
             Annuleren
           </button>

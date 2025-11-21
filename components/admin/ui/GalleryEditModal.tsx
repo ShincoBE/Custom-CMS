@@ -52,10 +52,11 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: Gal
   };
   
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="gallery-modal-title">
-      <div className="bg-zinc-800 w-full h-full sm:h-auto sm:max-w-2xl sm:rounded-lg sm:shadow-2xl sm:border sm:border-zinc-700 flex flex-col animate-slide-up" onClick={e => e.stopPropagation()}>
-        <header className="p-4 border-b border-zinc-700 flex-shrink-0">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="gallery-modal-title">
+      <div className="bg-zinc-800 w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-lg sm:shadow-2xl sm:border sm:border-zinc-700 flex flex-col animate-slide-up" onClick={e => e.stopPropagation()}>
+        <header className="p-4 border-b border-zinc-700 flex-shrink-0 flex justify-between items-center">
           <h3 id="gallery-modal-title" className="text-xl font-bold text-white">Galerij Afbeelding Bewerken</h3>
+          <button onClick={onClose} className="sm:hidden text-zinc-400 hover:text-white text-2xl">&times;</button>
         </header>
         
         <main className="p-4 sm:p-6 flex-grow overflow-y-auto">
@@ -103,7 +104,7 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: Gal
             </div>
         </main>
 
-        <footer className="p-4 border-t border-zinc-700 flex justify-end space-x-3 flex-shrink-0">
+        <footer className="p-4 border-t border-zinc-700 flex justify-end space-x-3 flex-shrink-0 bg-zinc-800 sm:rounded-b-lg">
           <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-700 rounded-md hover:bg-zinc-600">
             Annuleren
           </button>

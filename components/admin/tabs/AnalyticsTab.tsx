@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ChartBar, Spinner, Users, Link as LinkIcon, Globe, DeviceMobile, HandPointing, MapPin, ArrowClockwise } from 'phosphor-react';
+import { ChartBar, Spinner, Users, Link as LinkIcon, Globe, DeviceMobile, HandPointing, MapPin, ArrowClockwise, Table, ChartLine } from 'phosphor-react';
 import type { AnalyticsData } from '../../../types';
 
 // --- START: Formatting Helpers ---
@@ -129,6 +129,7 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
     const [data, setData] = useState<AnalyticsData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [days, setDays] = useState(30);
+    const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
 
@@ -178,7 +179,11 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
             return <div className="flex items-center justify-center h-64 text-zinc-400">Niet genoeg data voor een grafiek.</div>;
         }
 
-        const width = period >= 90 ? Math.max(containerWidth, data.length * 20) : containerWidth;
+        // Ensure we have a width even if ResizeObserver fails or initial render is hidden
+        const fallbackWidth = 600;
+        const effectiveWidth = containerWidth > 0 ? containerWidth : fallbackWidth;
+
+        const width = period >= 90 ? Math.max(effectiveWidth, data.length * 20) : effectiveWidth;
         const height = 256;
         const padding = { top: 20, right: 20, bottom: 30, left: 50 };
         const chartWidth = width - padding.left - padding.right;
@@ -355,12 +360,55 @@ const AnalyticsTab = ({ showNotification }: AnalyticsTabProps) => {
                     <StatCard title="Top Verwijzer" value={formatReferrer(data.topReferrer)} icon={<LinkIcon size={24} className="text-green-500 mr-3" />} />
                 </div>
                 <div>
-                    <h3 className="text-lg font-semibold mb-3 text-white">Bezoeken Per Dag</h3>
-                    <div ref={chartContainerRef} className="overflow-x-auto relative bg-zinc-900/50 rounded-lg p-2">
-                       {containerWidth > 0 && data.daily && (
-                            <DailyVisitsChart data={data.daily} period={days} />
-                       )}
+                    <div className="flex justify-between items-center mb-3">
+                         <h3 className="text-lg font-semibold text-white">Bezoeken Per Dag</h3>
+                         <div className="bg-zinc-700 rounded-md p-1 flex">
+                             <button 
+                                onClick={() => setViewMode('chart')}
+                                className={`p-1.5 rounded ${viewMode === 'chart' ? 'bg-zinc-600 text-white shadow' : 'text-zinc-400 hover:text-zinc-200'}`}
+                                title="Grafiekweergave"
+                             >
+                                 <ChartLine size={18} />
+                             </button>
+                             <button 
+                                onClick={() => setViewMode('table')}
+                                className={`p-1.5 rounded ${viewMode === 'table' ? 'bg-zinc-600 text-white shadow' : 'text-zinc-400 hover:text-zinc-200'}`}
+                                title="Tabelweergave"
+                             >
+                                 <Table size={18} />
+                             </button>
+                         </div>
                     </div>
+                    {viewMode === 'chart' ? (
+                         <div ref={chartContainerRef} className="overflow-x-auto relative bg-zinc-900/50 rounded-lg p-2 border border-zinc-700">
+                            {data.daily && (
+                                <DailyVisitsChart data={data.daily} period={days} />
+                            )}
+                        </div>
+                    ) : (
+                        <div className="bg-zinc-900/50 rounded-lg border border-zinc-700 overflow-hidden max-h-[300px] overflow-y-auto">
+                             <table className="w-full text-sm">
+                                <thead className="bg-zinc-800 sticky top-0">
+                                    <tr className="text-left text-zinc-400 font-semibold">
+                                        <th className="p-3">Datum</th>
+                                        <th className="p-3 text-right">Bezoeken</th>
+                                        <th className="p-3 text-right">Uniek</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-zinc-700/50">
+                                    {data.daily?.slice().reverse().map((day) => (
+                                        <tr key={day.date}>
+                                            <td className="p-3 text-zinc-300">
+                                                {new Date(day.date).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })}
+                                            </td>
+                                            <td className="p-3 text-right font-bold text-white">{day.visits}</td>
+                                            <td className="p-3 text-right text-zinc-300">{day.uniques}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                             </table>
+                        </div>
+                    )}
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-1">

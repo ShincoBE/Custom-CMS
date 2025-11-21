@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import type { PageContent, GalleryImage, SiteSettings, BlogPost, Testimonial } from '../types';
+import type { PageContent, GalleryImage, SiteSettings, BlogPost } from '../types';
 import { Spinner, CheckCircle, SignOut, FloppyDisk, ArrowSquareOut } from 'phosphor-react';
 
 // Import tabs
@@ -301,10 +301,16 @@ function AdminDashboard() {
               CMS
             </button>
             <div className="flex items-center space-x-2 sm:space-x-4">
+               {/* Desktop View Site Button */}
                <a href="/" target="_blank" rel="noopener noreferrer" title="Bekijk live site" className="hidden md:inline-flex items-center px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-700/50 rounded-md hover:bg-zinc-700 hover:text-white transition-colors">
                 <ArrowSquareOut size={20} className="mr-2"/>
                 Bekijk Site
               </a>
+              {/* Mobile View Site Button (Icon Only) */}
+              <a href="/" target="_blank" rel="noopener noreferrer" title="Bekijk live site" className="md:hidden p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors">
+                <ArrowSquareOut size={20} />
+              </a>
+
               <button 
                 onClick={handleSave} 
                 disabled={saveButtonState.disabled} 

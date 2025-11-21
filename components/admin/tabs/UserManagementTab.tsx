@@ -107,19 +107,21 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
             
             <div className="mb-8 p-4 border border-zinc-700 rounded-lg bg-zinc-800/50">
                 <h3 className="text-lg font-semibold mb-3 text-white">Nieuwe Gebruiker Toevoegen</h3>
-                <form onSubmit={handleCreateUser} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                <form onSubmit={handleCreateUser} className="flex flex-col gap-4 lg:grid lg:grid-cols-4 lg:items-end">
                     <AdminInput name="username" label="Gebruikersnaam" value={newUser.username} onChange={handleNewUserChange} required autoComplete="off" />
                     <AdminInput name="password" label="Wachtwoord" type="password" value={newUser.password} onChange={handleNewUserChange} required autoComplete="new-password" />
-                    <div>
+                    <div className="mb-6 lg:mb-0">
                         <label htmlFor="role" className="block text-sm font-medium text-zinc-300 mb-1">Rol</label>
                         <select id="role" name="role" value={newUser.role} onChange={handleNewUserChange} className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500 h-[42px]">
                             <option value="Editor">Editor</option>
                             <option value="Admin">Admin</option>
                         </select>
                     </div>
-                    <button type="submit" disabled={isSubmitting} className="w-full lg:w-auto self-end inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-zinc-600 h-[42px]">
-                       {isSubmitting ? <Spinner size={20} className="animate-spin" /> : 'Aanmaken'}
-                    </button>
+                    <div className="mb-6 lg:mb-0">
+                        <button type="submit" disabled={isSubmitting} className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-zinc-600 h-[42px]">
+                           {isSubmitting ? <Spinner size={20} className="animate-spin" /> : 'Aanmaken'}
+                        </button>
+                    </div>
                 </form>
             </div>
 
@@ -129,26 +131,26 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
                     <div className="border border-zinc-700 rounded-lg overflow-hidden">
                         <ul className="divide-y divide-zinc-700">
                             {users.map(user => (
-                                <li key={user.username} className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between p-3 bg-zinc-800/50">
+                                <li key={user.username} className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-zinc-800/50">
                                     <div className="flex flex-col">
                                         <span className="text-zinc-200 font-medium">{user.username}</span>
                                         <span className="text-xs text-zinc-400">{user.role}</span>
                                     </div>
                                     {user.username === currentUser?.username ? (
-                                        <span className="text-xs text-zinc-400 italic self-center sm:self-auto">Dit bent u</span>
+                                        <span className="text-xs text-zinc-400 italic self-start sm:self-auto">Dit bent u</span>
                                     ) : (
-                                      <div className="flex items-center space-x-2 self-end sm:self-auto">
+                                      <div className="flex items-center space-x-3 self-end sm:self-auto">
                                         <select 
                                             value={user.role} 
                                             onChange={(e) => handleRoleChange(user.username, e.target.value as UserRole)}
-                                            className="bg-zinc-700 border-zinc-600 rounded-md px-2 py-1 text-xs"
+                                            className="bg-zinc-700 border-zinc-600 rounded-md px-2 py-1 text-xs text-zinc-300"
                                             disabled={user.role === 'SuperAdmin'}
                                         >
                                             <option value="Editor">Editor</option>
                                             <option value="Admin">Admin</option>
                                             {user.role === 'SuperAdmin' && <option value="SuperAdmin">SuperAdmin</option>}
                                         </select>
-                                        <button onClick={() => handleDeleteUser(user.username)} className="text-zinc-400 hover:text-red-400" aria-label={`Verwijder ${user.username}`}>
+                                        <button onClick={() => handleDeleteUser(user.username)} className="p-1 text-zinc-400 hover:text-red-400" aria-label={`Verwijder ${user.username}`}>
                                             <Trash size={20} />
                                         </button>
                                       </div>
