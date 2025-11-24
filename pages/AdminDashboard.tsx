@@ -79,7 +79,7 @@ function AdminDashboard() {
     { id: 'statistieken', label: 'Statistieken', roles: ['SuperAdmin', 'Admin'] },
     { id: 'instellingen', label: 'Instellingen', roles: ['SuperAdmin', 'Admin'] },
     { id: 'gebruikers', label: 'Gebruikers', roles: ['SuperAdmin'] },
-    { id: 'geschiedenis', label: 'Geschiedenis', roles: ['SuperAdmin'] },
+    { id: 'geschiedenis', label: 'Geschiedenis', roles: ['SuperAdmin', 'Admin'] },
     { id: 'help', label: 'Help', roles: ['SuperAdmin', 'Admin', 'Editor'] },
   ], []);
   

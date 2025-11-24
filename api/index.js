@@ -1,3 +1,4 @@
+
 // Vercel Serverless Function - API Router
 // This single file consolidates all API logic to stay within the Vercel Hobby plan limits.
 const { createClient } = require('@vercel/kv');
@@ -463,7 +464,7 @@ async function handleUpdateUserRole(req, res) {
 
 async function handleGetHistory(req, res) {
   try {
-    await authorizeRequest(req, ['SuperAdmin']);
+    await authorizeRequest(req, ['SuperAdmin', 'Admin']);
     const historyKeys = await kv.lrange('content_history', 0, -1);
     return res.status(200).json({ history: historyKeys });
   } catch (error) {
@@ -473,7 +474,7 @@ async function handleGetHistory(req, res) {
 
 async function handleRevertContent(req, res) {
   try {
-    await authorizeRequest(req, ['SuperAdmin']);
+    await authorizeRequest(req, ['SuperAdmin', 'Admin']);
     const { timestamp } = req.body;
     if (!timestamp) return res.status(400).json({ error: 'Timestamp is verplicht.' });
     const historicalContent = await kv.get(`history:${timestamp}`);
