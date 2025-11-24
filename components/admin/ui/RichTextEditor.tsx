@@ -10,7 +10,7 @@ interface RichTextEditorProps {
   onImageUpload: (file: File) => Promise<string>;
 }
 
-const EditorButton = ({ children, onClick, title, disabled = false, isActive = false }: { children: React.ReactNode; onClick: () => void; title: string; disabled?: boolean; isActive?: boolean; }) => (
+const EditorButton: React.FC<{ children: React.ReactNode; onClick: () => void; title: string; disabled?: boolean; isActive?: boolean; }> = ({ children, onClick, title, disabled = false, isActive = false }) => (
     <button
         type="button"
         onClick={onClick}
@@ -40,6 +40,13 @@ const RichTextEditor = ({ value, onChange, onImageUpload }: RichTextEditorProps)
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file && onImageUpload) {
+            // Check file size (4.5MB limit)
+            if (file.size > 4.5 * 1024 * 1024) {
+                alert('Bestand is te groot. Maximaal 4.5MB toegestaan.');
+                if(fileInputRef.current) fileInputRef.current.value = '';
+                return;
+            }
+
             try {
                 const url = await onImageUpload(file);
                 editorRef.current?.focus();

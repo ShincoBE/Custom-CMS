@@ -17,7 +17,7 @@ const Rating = ({ rating }: { rating: number }) => (
   </div>
 );
 
-const TestimonialCard = ({ testimonial }: { testimonial: Testimonial }) => (
+const TestimonialCard: React.FC<{ testimonial: Testimonial }> = ({ testimonial }) => (
     <div className="flex-shrink-0 w-full sm:w-1/2 lg:w-1/3 p-4">
         <div className="h-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 p-8 rounded-2xl shadow-lg flex flex-col text-center">
             <Rating rating={testimonial.rating} />

@@ -22,7 +22,7 @@ const SkeletonLoader = () => (
     </div>
 );
 
-const ServiceCard = ({ service, index }: { service: Service; index: number }) => {
+const ServiceCard: React.FC<{ service: Service; index: number }> = ({ service, index }) => {
     const iconUrl = service.customIcon?.url || null;
     const title = service.title || 'Onbekende Dienst';
     const description = service.description || 'Geen beschrijving beschikbaar.';
@@ -82,7 +82,7 @@ function Services({ content, status }: ServicesProps) {
             >
                 <SectionHeader
                     title={content?.servicesTitle || (isLoading ? '' : "Onze Diensten")}
-                    subtitle={content?.servicesSubtitle || (isLoading ? '' : "Wij bieden een breed scala aan diensten om uw tuin in topconditie te houden.")}
+                    subtitle={content?.servicesSubtitle || (isLoading ? '' : "Wij bieden een breed scala aan diensten om uw tuin en woning in topconditie te houden.")}
                 />
                 <ErrorBoundary>
                     <div className="mt-12">

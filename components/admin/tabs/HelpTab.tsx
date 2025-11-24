@@ -40,7 +40,7 @@ const faqData = [
     }
 ];
 
-const AccordionItem = ({ question, answer }: { question: string, answer: string }) => {
+const AccordionItem: React.FC<{ question: string, answer: string }> = ({ question, answer }) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <div className="border-b border-zinc-700 last:border-0">

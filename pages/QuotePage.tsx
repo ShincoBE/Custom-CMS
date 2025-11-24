@@ -70,8 +70,8 @@ const QuotePage = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        setErrors(prev => ({ ...prev, image: 'Bestand is te groot (max 5MB).' }));
+      if (file.size > 4.5 * 1024 * 1024) { // 4.5MB limit for Vercel Serverless
+        setErrors(prev => ({ ...prev, image: 'Bestand is te groot (max 4.5MB).' }));
         return;
       }
       setImageFile(file);
@@ -227,7 +227,7 @@ const QuotePage = () => {
                         <div className="text-center">
                             <UploadSimple size={24} className="mx-auto text-zinc-400" />
                             <p className="mt-2 text-sm text-zinc-400"><span className="font-semibold text-green-500">Klik om te uploaden</span> of sleep een bestand</p>
-                            <p className="text-xs text-zinc-500">PNG, JPG, WEBP (MAX. 5MB)</p>
+                            <p className="text-xs text-zinc-500">PNG, JPG, WEBP (MAX. 4.5MB)</p>
                         </div>
                      </div>
                 ): (

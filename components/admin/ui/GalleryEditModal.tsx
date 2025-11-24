@@ -37,12 +37,19 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: Gal
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Check file size (4.5MB limit)
+      if (file.size > 4.5 * 1024 * 1024) {
+          alert('Bestand is te groot. Maximaal 4.5MB toegestaan.');
+          return;
+      }
+
       setIsUploading(true);
       try {
         const newUrl = await onImageUpload(file);
         setEditedImage(prev => ({ ...prev, image: { ...prev.image, url: newUrl } }));
       } catch (error) {
         console.error("Upload failed", error);
+        alert('Upload mislukt. Probeer het opnieuw.');
       } finally {
         setIsUploading(false);
       }

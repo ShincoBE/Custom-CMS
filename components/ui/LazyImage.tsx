@@ -4,6 +4,7 @@ interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
   isBackground?: boolean;
+  className?: string;
 }
 
 const LazyImage = ({ src, alt, className, isBackground = false, ...props }: LazyImageProps) => {

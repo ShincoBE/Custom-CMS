@@ -1,7 +1,7 @@
 import React from 'react';
 import type { PageContent } from '../types';
 
-const SocialLink = ({ href, tooltip, children }: { href: string, tooltip: string, children: React.ReactNode }) => (
+const SocialLink: React.FC<{ href: string, tooltip: string, children: React.ReactNode }> = ({ href, tooltip, children }) => (
   <div className="relative group">
     <a href={href} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-green-500 transition-colors duration-300">
       <span className="sr-only">{tooltip}</span>

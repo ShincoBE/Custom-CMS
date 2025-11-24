@@ -8,7 +8,7 @@ interface BlogCardProps {
   post: BlogPost;
 }
 
-const BlogCard = ({ post }: BlogCardProps) => {
+const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
   return (
     <Link to={`/blog/${post.slug}`} className="group block bg-zinc-800/50 rounded-lg overflow-hidden shadow-lg hover:shadow-green-500/10 transition-shadow duration-300">
       <div className="relative overflow-hidden">

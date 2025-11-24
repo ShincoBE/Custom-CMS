@@ -25,6 +25,12 @@ const ImageUpload = ({ label, help, currentUrl, alt, onAltChange, onImageChange,
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            // Check file size (4.5MB limit)
+            if (file.size > 4.5 * 1024 * 1024) {
+                setUploadError('Bestand is te groot. Maximaal 4.5MB toegestaan.');
+                return;
+            }
+
             setIsUploading(true);
             setUploadError(null);
             try {
