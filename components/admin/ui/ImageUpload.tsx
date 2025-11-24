@@ -1,8 +1,10 @@
+
 import React, { useState, useRef } from 'react';
 import { UploadSimple, Spinner, Image } from 'phosphor-react';
 import HelpTooltip from './HelpTooltip';
 import InputWithCounter from './InputWithCounter';
 import MediaLibraryModal from './MediaLibraryModal';
+import { compressImageIfNeeded, MAX_FILE_SIZE } from '../../../utils/imageUtils';
 
 interface ImageUploadProps {
     label: string;
@@ -25,20 +27,28 @@ const ImageUpload = ({ label, help, currentUrl, alt, onAltChange, onImageChange,
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Check file size (4.5MB limit)
-            if (file.size > 4.5 * 1024 * 1024) {
-                setUploadError('Bestand is te groot. Maximaal 4.5MB toegestaan.');
-                return;
-            }
-
             setIsUploading(true);
             setUploadError(null);
+
             try {
-                await onImageChange(file);
-            } catch (error) {
-                setUploadError('Upload mislukt. Probeer het opnieuw.');
+                // Compress if needed
+                const fileToUpload = await compressImageIfNeeded(file);
+                
+                // Final size check
+                if (fileToUpload.size > MAX_FILE_SIZE) {
+                     setUploadError('Bestand is zelfs na compressie te groot (max 4.5MB).');
+                     setIsUploading(false);
+                     return;
+                }
+
+                await onImageChange(fileToUpload);
+            } catch (error: any) {
+                console.error(error);
+                setUploadError(error.message || 'Upload mislukt. Probeer het opnieuw.');
             } finally {
                 setIsUploading(false);
+                // Reset input
+                if (fileInputRef.current) fileInputRef.current.value = '';
             }
         }
     };
@@ -69,7 +79,7 @@ const ImageUpload = ({ label, help, currentUrl, alt, onAltChange, onImageChange,
                     <div className="flex flex-wrap gap-2 mb-2">
                         <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="inline-flex items-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50">
                             {isUploading ? <Spinner size={16} className="animate-spin mr-2" /> : <UploadSimple size={16} className="mr-2" />}
-                            {isUploading ? 'Uploaden...' : 'Upload Nieuw'}
+                            {isUploading ? 'Verwerken...' : 'Upload Nieuw'}
                         </button>
                         {onUrlChange && (
                             <button type="button" onClick={() => setIsLibraryOpen(true)} className="inline-flex items-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600">

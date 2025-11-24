@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Spinner, Trash, UploadSimple, MagnifyingGlass, Copy, Check, Image as ImageIcon } from 'phosphor-react';
 import type { MediaItem } from '../../../types';
+import { compressImageIfNeeded, MAX_FILE_SIZE } from '../../../utils/imageUtils';
 
 const MediaLibraryTab = () => {
     const [media, setMedia] = useState<MediaItem[]>([]);
@@ -9,6 +11,7 @@ const MediaLibraryTab = () => {
     const [deletingUrl, setDeletingUrl] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const fetchMedia = useCallback(async () => {
         setIsLoading(true);
@@ -32,18 +35,20 @@ const MediaLibraryTab = () => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Check file size (4.5MB limit)
-        if (file.size > 4.5 * 1024 * 1024) {
-            alert('Bestand is te groot. Maximaal 4.5MB toegestaan.');
-            return;
-        }
-
         setIsUploading(true);
         try {
+            const fileToUpload = await compressImageIfNeeded(file);
+
+            if (fileToUpload.size > MAX_FILE_SIZE) {
+                alert('Bestand is te groot. Maximaal 4.5MB toegestaan.');
+                setIsUploading(false);
+                return;
+            }
+
             const response = await fetch('/api/upload', {
                 method: 'POST',
-                headers: { 'x-vercel-filename': file.name },
-                body: file,
+                headers: { 'x-vercel-filename': fileToUpload.name },
+                body: fileToUpload,
             });
             if (!response.ok) throw new Error('Upload failed');
             await fetchMedia();
@@ -52,6 +57,7 @@ const MediaLibraryTab = () => {
             alert('Upload mislukt.');
         } finally {
             setIsUploading(false);
+            if(fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
@@ -93,8 +99,8 @@ const MediaLibraryTab = () => {
                 </h2>
                  <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors">
                     {isUploading ? <Spinner size={20} className="animate-spin mr-2" /> : <UploadSimple size={20} className="mr-2" />}
-                    {isUploading ? 'Uploaden...' : 'Nieuwe Afbeelding'}
-                    <input type="file" className="hidden" accept="image/*" onChange={handleUpload} disabled={isUploading} />
+                    {isUploading ? 'Verwerken...' : 'Nieuwe Afbeelding'}
+                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleUpload} disabled={isUploading} />
                 </label>
             </div>
 

@@ -1,8 +1,10 @@
+
 import React, { useState, useRef } from 'react';
 import {
   TextBolder, TextItalic, TextUnderline,
-  ListBullets, ListNumbers, Image as ImageIcon, Code
+  ListBullets, ListNumbers, Image as ImageIcon, Code, Spinner
 } from 'phosphor-react';
+import { compressImageIfNeeded, MAX_FILE_SIZE } from '../../../utils/imageUtils';
 
 interface RichTextEditorProps {
   value: string;
@@ -25,6 +27,7 @@ const EditorButton: React.FC<{ children: React.ReactNode; onClick: () => void; t
 
 const RichTextEditor = ({ value, onChange, onImageUpload }: RichTextEditorProps) => {
     const [view, setView] = useState<'visual' | 'html'>('visual');
+    const [isUploading, setIsUploading] = useState(false);
     const editorRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,15 +43,17 @@ const RichTextEditor = ({ value, onChange, onImageUpload }: RichTextEditorProps)
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file && onImageUpload) {
-            // Check file size (4.5MB limit)
-            if (file.size > 4.5 * 1024 * 1024) {
-                alert('Bestand is te groot. Maximaal 4.5MB toegestaan.');
-                if(fileInputRef.current) fileInputRef.current.value = '';
-                return;
-            }
-
+            setIsUploading(true);
             try {
-                const url = await onImageUpload(file);
+                const fileToUpload = await compressImageIfNeeded(file);
+
+                if (fileToUpload.size > MAX_FILE_SIZE) {
+                     alert('Bestand is zelfs na compressie te groot. Maximaal 4.5MB toegestaan.');
+                     setIsUploading(false);
+                     return;
+                }
+
+                const url = await onImageUpload(fileToUpload);
                 editorRef.current?.focus();
                 const imgTag = `<img src="${url}" alt="" style="max-width: 100%; height: auto; border-radius: 8px;" />`;
                 handleCommand('insertHTML', imgTag);
@@ -56,6 +61,7 @@ const RichTextEditor = ({ value, onChange, onImageUpload }: RichTextEditorProps)
                 console.error('Image upload failed in RTE', error);
                 alert('Afbeelding uploaden mislukt.');
             } finally {
+                setIsUploading(false);
                 if(fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
@@ -92,8 +98,8 @@ const RichTextEditor = ({ value, onChange, onImageUpload }: RichTextEditorProps)
                         <ListNumbers size={20} weight="bold" />
                     </EditorButton>
                     <div className="h-5 w-px bg-zinc-600 mx-1"></div>
-                    <EditorButton onClick={handleImageUploadClick} title="Insert Image" disabled={isHtmlView}>
-                        <ImageIcon size={20} weight="bold" />
+                    <EditorButton onClick={handleImageUploadClick} title="Insert Image" disabled={isHtmlView || isUploading}>
+                        {isUploading ? <Spinner size={20} className="animate-spin" /> : <ImageIcon size={20} weight="bold" />}
                     </EditorButton>
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/gif, image/webp, image/svg+xml" />
                 </div>

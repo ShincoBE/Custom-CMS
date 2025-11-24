@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { GalleryImage } from '../../../types';
 import { UploadSimple, Spinner, Image } from 'phosphor-react';
 import InputWithCounter from './InputWithCounter';
 import ToggleSwitch from './ToggleSwitch.tsx';
-import MediaLibraryModal from './MediaLibraryModal'; // New import
+import MediaLibraryModal from './MediaLibraryModal';
+import { compressImageIfNeeded, MAX_FILE_SIZE } from '../../../utils/imageUtils';
 
 interface GalleryEditModalProps {
   isOpen: boolean;
@@ -37,21 +39,24 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: Gal
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check file size (4.5MB limit)
-      if (file.size > 4.5 * 1024 * 1024) {
-          alert('Bestand is te groot. Maximaal 4.5MB toegestaan.');
-          return;
-      }
-
       setIsUploading(true);
       try {
-        const newUrl = await onImageUpload(file);
+        const fileToUpload = await compressImageIfNeeded(file);
+        
+        if (fileToUpload.size > MAX_FILE_SIZE) {
+            alert('Bestand is zelfs na compressie te groot. Maximaal 4.5MB toegestaan.');
+            setIsUploading(false);
+            return;
+        }
+
+        const newUrl = await onImageUpload(fileToUpload);
         setEditedImage(prev => ({ ...prev, image: { ...prev.image, url: newUrl } }));
       } catch (error) {
         console.error("Upload failed", error);
         alert('Upload mislukt. Probeer het opnieuw.');
       } finally {
         setIsUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
       }
     }
   };
@@ -85,7 +90,7 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: Gal
                     
                     <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="w-full mt-2 inline-flex items-center justify-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50">
                         {isUploading ? <Spinner size={16} className="animate-spin mr-2" /> : <UploadSimple size={16} className="mr-2" />}
-                        {isUploading ? 'Uploaden...' : (editedImage.image.url ? 'Wijzigen' : 'Uploaden')}
+                        {isUploading ? 'Verwerken...' : (editedImage.image.url ? 'Wijzigen' : 'Uploaden')}
                     </button>
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/gif, image/webp, image/svg+xml" />
 

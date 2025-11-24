@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageContent, Service, SiteSettings } from '@/types';
 import { Spinner, ArrowLeft, ArrowRight, UploadSimple, ClipboardText, CheckCircle, Trash, Check } from 'phosphor-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { compressImageIfNeeded, MAX_FILE_SIZE } from '@/utils/imageUtils';
 
 const QUOTE_API_ENDPOINT = '/api/quote';
 const CONTENT_API_ENDPOINT = '/api/content';
@@ -18,6 +20,7 @@ const QuotePage = () => {
   const [contactInfo, setContactInfo] = useState({ name: '', email: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [pageContent, setPageContent] = useState<PageContent | null>(null);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -67,16 +70,28 @@ const QuotePage = () => {
 
   const prevStep = () => setStep(s => s - 1);
   
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 4.5 * 1024 * 1024) { // 4.5MB limit for Vercel Serverless
-        setErrors(prev => ({ ...prev, image: 'Bestand is te groot (max 4.5MB).' }));
-        return;
-      }
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+      setIsProcessingImage(true);
       setErrors(prev => ({ ...prev, image: '' }));
+      
+      try {
+          const processedFile = await compressImageIfNeeded(file);
+          
+          if (processedFile.size > MAX_FILE_SIZE) {
+            setErrors(prev => ({ ...prev, image: 'Bestand is te groot (max 4.5MB).' }));
+            return;
+          }
+
+          setImageFile(processedFile);
+          setImagePreview(URL.createObjectURL(processedFile));
+      } catch (error) {
+          console.error(error);
+          setErrors(prev => ({ ...prev, image: 'Fout bij verwerken afbeelding.' }));
+      } finally {
+          setIsProcessingImage(false);
+      }
     }
   };
   
@@ -215,7 +230,7 @@ const QuotePage = () => {
             
             <div className="mt-6">
                 <label className="block text-sm font-medium text-zinc-300 mb-2">Voeg een foto toe (optioneel)</label>
-                {!imagePreview ? (
+                {!imagePreview && !isProcessingImage ? (
                      <div 
                         onClick={() => fileInputRef.current?.click()}
                         onDragEnter={handleDragEnter}
@@ -230,9 +245,14 @@ const QuotePage = () => {
                             <p className="text-xs text-zinc-500">PNG, JPG, WEBP (MAX. 4.5MB)</p>
                         </div>
                      </div>
-                ): (
+                ) : isProcessingImage ? (
+                    <div className="flex justify-center items-center w-full h-32 bg-zinc-800 rounded-md border border-zinc-700">
+                         <Spinner size={32} className="animate-spin text-green-500" />
+                         <span className="ml-3 text-zinc-300">Afbeelding verwerken...</span>
+                    </div>
+                ) : (
                     <div className="relative w-40 h-40">
-                         <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-md"/>
+                         <img src={imagePreview!} alt="Preview" className="w-full h-full object-cover rounded-md"/>
                          <button onClick={removeImage} className="absolute -top-2 -right-2 p-1.5 text-white bg-red-600 rounded-full shadow-lg hover:bg-red-700 transition-colors" aria-label="Verwijder afbeelding">
                             <Trash size={16} />
                          </button>

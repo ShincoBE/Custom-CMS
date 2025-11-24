@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { Spinner, Trash, UploadSimple, X, Check } from 'phosphor-react';
 import type { MediaItem } from '../../../types';
+import { compressImageIfNeeded, MAX_FILE_SIZE } from '../../../utils/imageUtils';
 
 interface MediaLibraryModalProps {
     isOpen: boolean;
@@ -13,6 +15,7 @@ const MediaLibraryModal = ({ isOpen, onClose, onSelect }: MediaLibraryModalProps
     const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const fetchMedia = async () => {
         setIsLoading(true);
@@ -38,19 +41,22 @@ const MediaLibraryModal = ({ isOpen, onClose, onSelect }: MediaLibraryModalProps
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Check file size (4.5MB limit)
-        if (file.size > 4.5 * 1024 * 1024) {
-            setError('Bestand is te groot. Maximaal 4.5MB toegestaan.');
-            return;
-        }
-
         setIsUploading(true);
         setError(null);
+        
         try {
+            const fileToUpload = await compressImageIfNeeded(file);
+
+            if (fileToUpload.size > MAX_FILE_SIZE) {
+                setError('Bestand is te groot. Maximaal 4.5MB toegestaan.');
+                setIsUploading(false);
+                return;
+            }
+
             const response = await fetch('/api/upload', {
                 method: 'POST',
-                headers: { 'x-vercel-filename': file.name },
-                body: file,
+                headers: { 'x-vercel-filename': fileToUpload.name },
+                body: fileToUpload,
             });
             if (!response.ok) throw new Error('Upload failed');
             await fetchMedia(); // Refresh list
@@ -59,6 +65,7 @@ const MediaLibraryModal = ({ isOpen, onClose, onSelect }: MediaLibraryModalProps
             setError('Upload mislukt.');
         } finally {
             setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
@@ -111,8 +118,8 @@ const MediaLibraryModal = ({ isOpen, onClose, onSelect }: MediaLibraryModalProps
                     <div>
                          <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-zinc-700 hover:bg-zinc-600 transition-colors">
                             {isUploading ? <Spinner size={18} className="animate-spin mr-2" /> : <UploadSimple size={18} className="mr-2" />}
-                            {isUploading ? 'Uploaden...' : 'Nieuw Uploaden'}
-                            <input type="file" className="hidden" accept="image/*" onChange={handleUpload} disabled={isUploading} />
+                            {isUploading ? 'Verwerken...' : 'Nieuw Uploaden'}
+                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleUpload} disabled={isUploading} />
                         </label>
                     </div>
                 </footer>
