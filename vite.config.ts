@@ -5,6 +5,7 @@ import { fileURLToPath, URL } from 'url';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/',
   resolve: {
     alias: {
       // Fix: Replaced the previous alias with a more robust, standard method for ESM.

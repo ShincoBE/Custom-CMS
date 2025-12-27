@@ -4,6 +4,17 @@
       "maxDuration": 10
     }
   },
+  "headers": [
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/sitemap.xml",
@@ -14,7 +25,7 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/:path((?!api/|.*\\.).*)",
+      "source": "/((?!api/|assets/|favicon.svg|favicon.ico|manifest.json|robots.txt).*)",
       "destination": "/index.html"
     }
   ]
