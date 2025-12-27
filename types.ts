@@ -166,6 +166,7 @@ export interface SiteSettings {
     analyticsUrl?: string;
     showTestimonials?: boolean;
     showBlog?: boolean;
+    enablePublicReviews?: boolean;
 }
 
 // Activity Log Type

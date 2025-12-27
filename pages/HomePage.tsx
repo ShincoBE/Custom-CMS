@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import type { PageContent, GalleryImage, Service, SiteSettings, Testimonial, BlogPost } from '@/types';
@@ -17,8 +18,6 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import MaintenancePage from '@/pages/MaintenancePage';
 import CookieConsent from '@/components/CookieConsent';
 import Testimonials from '@/components/Testimonials';
-import BlogCard from '@/components/BlogCard';
-import SectionHeader from '@/components/SectionHeader';
 import StructuredData from '@/components/StructuredData';
 
 type Status = 'loading' | 'success' | 'error';
@@ -139,8 +138,8 @@ function HomePage() {
           <Hero content={pageContent} status={status} />
           <Services content={pageContent} status={status} />
           <BeforeAfter content={pageContent} status={status} />
-          {settings?.showTestimonials && pageContent?.testimonials && pageContent.testimonials.length > 0 && (
-            <Testimonials content={pageContent} />
+          {settings?.showTestimonials && (
+            <Testimonials content={pageContent} settings={settings} />
           )}
           <CtaGallery onOpenGallery={handleOpenGallery} content={pageContent} />
           <Contact content={pageContent} />

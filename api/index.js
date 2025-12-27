@@ -73,7 +73,7 @@ const DEFAULT_CONTENT = {
         published: true,
         hasPage: true,
         slug: 'professioneel-tuinonderhoud',
-        pageContent: `<p>Een prachtige tuin is een bron van vreugde, maar vereist constante zorg en aandacht. Professioneel tuinonderhoud gaat verder dan enkel het gras maaien; het is een totaalaanpak die zorgt voor gezonde planten, een strak gazon en een verzorgde uitstraling door alle seizoenen heen. Bij Andries Service+ begrijpen we dat elke tuin uniek is en bieden we onderhoudsplannen op maat die perfect aansluiten bij uw wensen en de noden van uw tuin.</p><p><br></p><p>Onze onderhoudsdiensten zijn uitgebreid en seizoensgebonden. In het voorjaar bereiden we uw tuin voor op het groeiseizoen met verticuteren, bemesten en de eerste snoeiwerkzaamheden. Gedurende de zomer focussen we op gazononderhoud, onkruidbestrijding en het in vorm houden van hagen en heesters. In het najaar maken we alles winterklaar, zodat uw tuin de koude maanden goed doorkomt en klaar is voor een nieuwe lente.</p><p><br></p><img src="https://i.postimg.cc/T3j2C7K8/garden-maintenance-sample.jpg" alt="Een prachtig onderhouden tuin met bloeiende borders en een groen gazon" style="max-width: 100%; height: auto; border-radius: 8px;"><p><br></p><p>Wij nemen het zware werk uit handen, zodat u meer tijd heeft om te genieten. Ons team beschikt over de kennis en het professionele gereedschap om elke klus efficiënt en vakkundig uit te voeren. Van het correct snoeien van fruitbomen tot het verzorgen van delicate rozenstruiken, wij garanderen een aanpak die de gezondheid en schoonheid van uw beplanting bevordert.</p><p>Door te kiezen voor ons professioneel onderhoud, investeert u in de waarde en uitstraling van uw woning. Een goed onderhouden tuin is een verlengstuk van uw leefruimte, een plek voor ontspanning en plezier. Laat ons de zorg dragen voor uw groene oase, zodat u er zorgeloos van kunt genieten.</p>`
+        pageContent: `<p>Een prachtige tuin is een bron van vreugde, maar vereist constante zorg en aandacht. Professioneel tuinonderhoud gaat verder dan enkel het gras maaien; het is een totaalaanpak die zorgt voor gezonde planten, een strak gazon en een verzorgde uitstraling door alle seizoenen heen. Bij Andries Service+ begrijpen we dat elke tuin uniek is en bieden we onderhoudsplannen op maat die perfect aansluiten bij uw wensen en de noden van uw tuin.</p><p><br></p><p>Onze onderhoudsdiensten zijn uitgebreid en seizoensgebonden. In het voorjaar bereiden we uw tuin voor op het groeiseizoen met verticuteren, bemesten en de eerste snoeiwerkzaamheden. Gedurende de zomer focussen we op gazononderhoud, onkruidbestrijding en het in vorm houden van hagen en heesters. In het najaar maken we alles winterklaar, zodat u uw tuin de koude maanden goed doorkomt en klaar is voor een nieuwe lente.</p><p><br></p><img src="https://i.postimg.cc/T3j2C7K8/garden-maintenance-sample.jpg" alt="Een prachtig onderhouden tuin met bloeiende borders en een groen gazon" style="max-width: 100%; height: auto; border-radius: 8px;"><p><br></p><p>Wij nemen het zware werk uit handen, zodat u meer tijd heeft om te genieten. Ons team beschikt over de kennis en het professionele gereedschap om elke klus efficiënt en vakkundig uit te voeren. Van het correct snoeien van fruitbomen tot het verzorgen van delicate rozenstruiken, wij garanderen een aanpak die de gezondheid en schoonheid van uw beplanting bevordert.</p><p>Door te kiezen voor ons professioneel onderhoud, investeert u in de waarde en uitstraling van uw woning. Een goed onderhouden tuin is een verlengstuk van uw leefruimte, een plek voor ontspanning en plezier. Laat ons de zorg dragen voor uw groene oase, zodat u er zorgeloos van kunt genieten.</p>`
       },
       {
         _key: 'service_2',
@@ -260,6 +260,69 @@ async function handleQuote(req, res) {
   }
 }
 
+async function handleReview(req, res) {
+  const { name, rating, message } = req.body;
+  
+  if (!name || !rating || !message) {
+      return res.status(400).json({ error: 'Alle velden zijn verplicht.' });
+  }
+
+  try {
+      const [settings, pageContent] = await Promise.all([
+          kv.get('settings'),
+          kv.get('pageContent').then(pc => pc || DEFAULT_CONTENT.pageContent)
+      ]);
+      
+      // Save new testimonial as unpublished
+      const newTestimonial = {
+          _key: `review_${Date.now()}`,
+          name: name,
+          quote: message,
+          rating: Number(rating),
+          published: false // Must be approved by admin
+      };
+      
+      // Append to list. Default to empty array if none exist.
+      if (!pageContent.testimonials) pageContent.testimonials = [];
+      pageContent.testimonials.push(newTestimonial);
+      
+      // Save content back to KV
+      await kv.set('pageContent', pageContent);
+
+      // Send email notification to Admin
+      const emailUser = settings?.emailUser || process.env.EMAIL_USER;
+      const emailPass = settings?.emailPass || process.env.EMAIL_PASS;
+      const emailTo = settings?.emailTo || process.env.EMAIL_TO;
+      
+      if (emailUser && emailPass && emailTo) {
+           const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: emailUser, pass: emailPass } });
+           const sanitizeForFromField = (str) => (str || '').replace(/<[^>]*>?/gm, '').replace(/[^a-zA-Z0-9 .+\-]/g, '').trim();
+           const fromName = sanitizeForFromField(pageContent.companyName) || 'Website Review';
+
+           await transporter.sendMail({
+                from: `"${fromName}" <${emailUser}>`,
+                to: emailTo,
+                subject: `Nieuwe Review van ${name}`,
+                html: `
+                    <p>Er is een nieuwe review ingediend via de website:</p>
+                    <hr/>
+                    <p><strong>Naam:</strong> ${name}</p>
+                    <p><strong>Score:</strong> ${rating} / 5</p>
+                    <p><strong>Bericht:</strong></p>
+                    <p><i>"${message}"</i></p>
+                    <hr/>
+                    <p>Ga naar het <a href="${process.env.VERCEL_URL || 'http://localhost:3000'}/admin">admin dashboard</a> om deze review te publiceren.</p>
+                `
+           });
+      }
+
+      return res.status(200).json({ success: true });
+  } catch (error) {
+      console.error("Error submitting review:", error);
+      return res.status(500).json({ error: "Interne serverfout bij het opslaan van de review." });
+  }
+}
+
 async function handleGetContent(req, res) {
   try {
     let [pageContent, galleryImages, blogPosts, settings] = await Promise.all([ kv.get('pageContent'), kv.get('galleryImages'), kv.get('blogPosts'), kv.get('settings') ]);
@@ -305,6 +368,7 @@ async function handleGetContent(req, res) {
     if (!settings) settings = {};
     if (typeof settings.showTestimonials === 'undefined') settings.showTestimonials = true;
     if (typeof settings.showBlog === 'undefined') settings.showBlog = true;
+    if (typeof settings.enablePublicReviews === 'undefined') settings.enablePublicReviews = false;
     
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
     return res.status(200).json({ pageContent, galleryImages, blogPosts, settings });
@@ -781,6 +845,7 @@ module.exports = async (req, res) => {
 
   // PUBLIC ROUTES
   if (path === '/api/quote' && req.method === 'POST') return handleQuote(req, res);
+  if (path === '/api/review' && req.method === 'POST') return handleReview(req, res); // New Review Endpoint
   if (path === '/api/content' && req.method === 'GET') return handleGetContent(req, res);
   if (path === '/api/event' && req.method === 'POST') return handleTrack(req, res);
   if (path === '/api/login' && req.method === 'POST') return handleLogin(req, res);

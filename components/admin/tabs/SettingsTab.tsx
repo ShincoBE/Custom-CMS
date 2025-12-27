@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Spinner, PaperPlaneTilt, Link as LinkIcon, Trash } from 'phosphor-react';
 import AdminInput from '../ui/AdminInput';
@@ -67,6 +68,12 @@ const SettingsTab = ({ settings, handleSettingsChange, showNotification }: Setti
                         help="Zet aan om de testimonial slider op de homepagina te tonen."
                         enabled={!!settings?.showTestimonials}
                         onChange={(val) => handleSettingsChange('showTestimonials', val)}
+                    />
+                    <ToggleSwitch
+                        label="Publieke reviews toestaan"
+                        help="Als dit aan staat, verschijnt er een knop 'Schrijf een review' op de website waarmee klanten zelf een beoordeling kunnen insturen. U moet deze eerst goedkeuren."
+                        enabled={!!settings?.enablePublicReviews}
+                        onChange={(val) => handleSettingsChange('enablePublicReviews', val)}
                     />
                     <ToggleSwitch
                         label="Toon 'Blog / Projecten' sectie"

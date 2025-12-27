@@ -1,8 +1,10 @@
-import React, { useRef } from 'react';
-import type { PageContent, Testimonial } from '../types';
+
+import React, { useRef, useState } from 'react';
+import type { PageContent, Testimonial, SiteSettings } from '../types';
 import SectionHeader from './SectionHeader';
 import { useOnScreen } from '../hooks/useOnScreen';
-import { Star } from 'phosphor-react';
+import { Star, PencilSimple } from 'phosphor-react';
+import ReviewModal from './ReviewModal';
 
 const Rating = ({ rating }: { rating: number }) => (
   <div className="flex justify-center space-x-1">
@@ -28,14 +30,18 @@ const TestimonialCard: React.FC<{ testimonial: Testimonial }> = ({ testimonial }
 );
 
 
-const Testimonials = ({ content }: { content: PageContent }) => {
+const Testimonials = ({ content, settings }: { content: PageContent, settings?: SiteSettings | null }) => {
     const sectionRef = useRef<HTMLDivElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const isVisible = useOnScreen(sectionRef, { threshold: 0.1 });
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     
     const testimonials = content.testimonials || [];
+    const hasTestimonials = testimonials.length > 0;
+    const allowReviews = settings?.enablePublicReviews;
 
-    if (!testimonials || testimonials.length === 0) return null;
+    // Don't render if there are no testimonials AND review submission is disabled.
+    if (!hasTestimonials && !allowReviews) return null;
 
     return (
         <section
@@ -49,18 +55,41 @@ const Testimonials = ({ content }: { content: PageContent }) => {
                     subtitle={content.testimonialsSubtitle || "Onze grootste trots is de tevredenheid van onze klanten."}
                 />
 
-                <div className="relative">
-                    <div 
-                        ref={scrollContainerRef}
-                        className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth hide-scrollbar -m-4 p-4"
-                        style={{ scrollbarWidth: 'none' }}
-                    >
-                        {testimonials.map((testimonial) => (
-                           <TestimonialCard key={testimonial._key} testimonial={testimonial} />
-                        ))}
+                {hasTestimonials ? (
+                    <div className="relative">
+                        <div 
+                            ref={scrollContainerRef}
+                            className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth hide-scrollbar -m-4 p-4"
+                            style={{ scrollbarWidth: 'none' }}
+                        >
+                            {testimonials.map((testimonial) => (
+                            <TestimonialCard key={testimonial._key} testimonial={testimonial} />
+                            ))}
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="text-center text-zinc-500 py-10 italic">
+                        Nog geen reviews. Wees de eerste om een review te schrijven!
+                    </div>
+                )}
+
+                {allowReviews && (
+                    <div className="mt-12 text-center">
+                        <button
+                            onClick={() => setIsReviewModalOpen(true)}
+                            className="inline-flex items-center px-6 py-3 border border-zinc-600 rounded-full text-zinc-300 hover:text-white hover:bg-zinc-800 hover:border-zinc-500 transition-colors duration-300"
+                        >
+                            <PencilSimple size={20} className="mr-2" />
+                            Schrijf een review
+                        </button>
+                    </div>
+                )}
             </div>
+            
+            <ReviewModal 
+                isOpen={isReviewModalOpen} 
+                onClose={() => setIsReviewModalOpen(false)} 
+            />
         </section>
     );
 };
