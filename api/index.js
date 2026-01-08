@@ -142,7 +142,8 @@ const DEFAULT_CONTENT = {
     quoteAdminEmailBody: `
       <p>Er is een nieuwe offerteaanvraag binnengekomen via de website.</p>
       <p><strong>Naam:</strong> {name}<br>
-      <strong>Email:</strong> <a href="mailto:{email}">{email}</a></p>
+      <strong>Email:</strong> <a href="mailto:{email}">{email}</a><br>
+      <strong>Tel:</strong> {phone}</p>
       <hr>
       <p><strong>Gekozen Diensten:</strong></p>
       <p>{services}</p>
@@ -183,9 +184,9 @@ const DEFAULT_CONTENT = {
 // --- START: API HANDLERS ---
 
 async function handleQuote(req, res) {
-  const { name, email, services, details, imageUrl } = req.body;
+  const { name, email, phone, services, details, imageUrl } = req.body;
   
-  if (!name || !email || !services || services.length === 0 || !details) {
+  if (!name || !email || !phone || !services || services.length === 0 || !details) {
     return res.status(400).json({ error: 'Alle velden zijn verplicht.' });
   }
 
@@ -211,6 +212,7 @@ async function handleQuote(req, res) {
     const placeholders = {
         '{name}': name,
         '{email}': email,
+        '{phone}': phone,
         '{services}': servicesList,
         '{details}': formattedDetails,
         '{imageUrl}': imageHtml,

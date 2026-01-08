@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { PageContent } from '../../../types';
 import InputWithCounter from '../ui/InputWithCounter';
@@ -80,6 +81,7 @@ const ContactTab = ({ content, handleContentChange, handleModalImageUpload }: Co
                             <ul className="list-disc list-inside space-y-1 text-zinc-400">
                                 <li><code>{'{name}'}</code> - De naam van de klant.</li>
                                 <li><code>{'{email}'}</code> - Het e-mailadres van de klant.</li>
+                                <li><code>{'{phone}'}</code> - Het telefoonnummer van de klant.</li>
                                 <li><code>{'{services}'}</code> - Een lijst van de geselecteerde diensten.</li>
                                 <li><code>{'{details}'}</code> - De projectomschrijving.</li>
                                 <li><code>{'{imageUrl}'}</code> - De geüploade afbeelding (als HTML). Wordt leeg gelaten indien geen afbeelding.</li>

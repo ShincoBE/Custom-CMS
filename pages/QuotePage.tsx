@@ -17,7 +17,7 @@ const QuotePage = () => {
   const [details, setDetails] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [contactInfo, setContactInfo] = useState({ name: '', email: '' });
+  const [contactInfo, setContactInfo] = useState({ name: '', email: '', phone: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
@@ -56,6 +56,9 @@ const QuotePage = () => {
       if (!contactInfo.name.trim()) newErrors.name = 'Naam is verplicht.';
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactInfo.email)) {
         newErrors.email = 'Voer een geldig emailadres in.';
+      }
+      if (!contactInfo.phone.trim()) {
+        newErrors.phone = 'Telefoonnummer is verplicht.';
       }
     }
     setErrors(newErrors);
@@ -292,6 +295,18 @@ const QuotePage = () => {
                       className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500"
                   />
                   {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+                </div>
+                <div>
+                  <label htmlFor="phone" className="sr-only">Telefoonnummer</label>
+                  <input
+                      id="phone"
+                      type="tel"
+                      value={contactInfo.phone}
+                      onChange={e => setContactInfo({ ...contactInfo, phone: e.target.value })}
+                      placeholder="Uw telefoonnummer"
+                      className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-green-500 focus:border-green-500"
+                  />
+                  {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
                 </div>
             </div>
           </div>
