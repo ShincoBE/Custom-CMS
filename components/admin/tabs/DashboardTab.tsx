@@ -1,8 +1,8 @@
 import React from 'react';
-import type { PageContent, User } from '../../../types';
+import type { PageContent, User, BlogPost } from '../../../types';
 import InputWithCounter from '../ui/InputWithCounter';
 import ImageUpload from '../ui/ImageUpload';
-import { ChartLine, ArrowSquareOut } from 'phosphor-react';
+import { ChartLine, ArrowSquareOut, Lightning, Plus, Pencil, Image as ImageIcon } from 'phosphor-react';
 
 interface DashboardTabProps {
     content: PageContent;
@@ -11,9 +11,28 @@ interface DashboardTabProps {
     handleContentChange: (path: string, value: any) => void;
     handleImageUpload: (file: File, path: string) => Promise<void>;
     handleImageSelect: (url: string, path: string) => void; // New prop
+    setActiveTab?: (tab: string) => void;
+    setEditingPost?: (post: BlogPost | null) => void;
 }
 
-const DashboardTab = ({ content, user, settings, handleContentChange, handleImageUpload, handleImageSelect }: DashboardTabProps) => {
+const DashboardTab = ({ content, user, settings, handleContentChange, handleImageUpload, handleImageSelect, setActiveTab, setEditingPost }: DashboardTabProps) => {
+
+    const handleCreateNewPost = () => {
+        if (setActiveTab) setActiveTab('blog');
+        if (setEditingPost) {
+            const newPost: BlogPost = {
+              _id: `new-${Date.now()}`,
+              title: 'Nieuwe Blogpost',
+              slug: 'nieuwe-blogpost',
+              excerpt: '',
+              content: '',
+              published: false,
+              publishedAt: new Date().toISOString()
+            };
+            setEditingPost(newPost);
+        }
+    };
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
@@ -46,6 +65,45 @@ const DashboardTab = ({ content, user, settings, handleContentChange, handleImag
             </div>
             
             <div className="lg:col-span-1 space-y-6">
+                {/* Quick Actions Widget */}
+                {setActiveTab && (
+                    <div className="bg-zinc-900/80 border border-zinc-700/80 rounded-lg p-5 shadow-lg">
+                        <div className="flex items-center mb-4 border-b border-zinc-700/50 pb-3">
+                            <Lightning size={24} className="text-yellow-500 mr-3 weight-fill" />
+                            <h3 className="text-lg font-semibold text-white">Snelacties</h3>
+                        </div>
+                        <div className="space-y-3">
+                            <button 
+                                onClick={handleCreateNewPost}
+                                className="w-full flex items-center justify-between p-3 bg-zinc-800 hover:bg-zinc-700 text-left rounded-md transition-colors border border-zinc-700 hover:border-zinc-500"
+                            >
+                                <span className="flex items-center text-zinc-200">
+                                    <Plus size={18} className="mr-3 text-green-400" />
+                                    Nieuwe Blogpost
+                                </span>
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('hero')}
+                                className="w-full flex items-center justify-between p-3 bg-zinc-800 hover:bg-zinc-700 text-left rounded-md transition-colors border border-zinc-700 hover:border-zinc-500"
+                            >
+                                <span className="flex items-center text-zinc-200">
+                                    <Pencil size={18} className="mr-3 text-blue-400" />
+                                    Bewerk Hero Sectie
+                                </span>
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('media')}
+                                className="w-full flex items-center justify-between p-3 bg-zinc-800 hover:bg-zinc-700 text-left rounded-md transition-colors border border-zinc-700 hover:border-zinc-500"
+                            >
+                                <span className="flex items-center text-zinc-200">
+                                    <ImageIcon size={18} className="mr-3 text-purple-400" />
+                                    Media Bibliotheek
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Vercel Analytics Widget */}
                 {settings?.analyticsUrl && (
                     <div className="bg-zinc-900/50 border border-zinc-700 rounded-lg p-4">

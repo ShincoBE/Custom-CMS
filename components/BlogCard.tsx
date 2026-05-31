@@ -10,7 +10,12 @@ interface BlogCardProps {
 
 const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
   return (
-    <Link to={`/blog/${post.slug}`} className="group block bg-zinc-800/50 rounded-lg overflow-hidden shadow-lg hover:shadow-green-500/10 transition-shadow duration-300">
+    <Link to={`/blog/${post.slug}`} className="group block bg-zinc-800/50 rounded-lg overflow-hidden shadow-lg hover:shadow-green-500/10 transition-shadow duration-300 relative">
+      {!post.published && (
+          <div className="absolute top-2 right-2 z-10 bg-yellow-500 text-yellow-950 text-xs font-bold px-2 py-1 rounded">
+              CONCEPT
+          </div>
+      )}
       <div className="relative overflow-hidden">
         {post.mainImage ? (
           <LazyImage
