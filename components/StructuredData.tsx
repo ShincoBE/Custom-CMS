@@ -2,94 +2,95 @@ import React from 'react';
 import { PageContent, Service, BlogPost } from '@/types';
 
 interface StructuredDataProps {
-  pageContent: PageContent | null;
+  pageContent?: PageContent | null;
   service?: Service | null;
   blogPost?: BlogPost | null;
+  faqs?: { question: string; answer: string }[];
 }
 
-const StructuredData = ({ pageContent, service, blogPost }: StructuredDataProps) => {
+const StructuredData = ({ pageContent, service, blogPost, faqs }: StructuredDataProps) => {
   try {
-    if (!pageContent) return null;
-
-    const {
-      companyName,
-      logo,
-      contactAddress,
-      contactEmail,
-      contactPhone,
-      servicesList,
-      facebookUrl
-    } = pageContent;
-
     const websiteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.andriesserviceplus.be';
 
-    // Safely parse address to prevent crashes if format is unexpected
     let addressSchema;
-    if (contactAddress) {
-      const lines = contactAddress.split('\n');
-      const street = lines[0];
-      const cityLine = lines[1] || ''; // Use empty string as fallback
-      const cityParts = cityLine.trim().split(' ');
-      const postalCode = cityParts[0];
-      const addressLocality = cityParts.slice(1).join(' ');
+    let localBusinessSchema: any = null;
 
-      if (street && postalCode && addressLocality) {
-        addressSchema = {
-          '@type': 'PostalAddress',
-          streetAddress: street,
-          addressLocality: addressLocality,
-          postalCode: postalCode,
-          addressCountry: 'BE',
-        };
+    if (pageContent) {
+      const {
+        companyName,
+        logo,
+        contactAddress,
+        contactEmail,
+        contactPhone,
+        servicesList,
+        facebookUrl
+      } = pageContent;
+
+      if (contactAddress) {
+        const lines = contactAddress.split('\n');
+        const street = lines[0];
+        const cityLine = lines[1] || ''; // Use empty string as fallback
+        const cityParts = cityLine.trim().split(' ');
+        const postalCode = cityParts[0];
+        const addressLocality = cityParts.slice(1).join(' ');
+
+        if (street && postalCode && addressLocality) {
+          addressSchema = {
+            '@type': 'PostalAddress',
+            streetAddress: street,
+            addressLocality: addressLocality,
+            postalCode: postalCode,
+            addressCountry: 'BE',
+          };
+        }
       }
+
+      // Base Schema for Local Business
+      localBusinessSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'LocalBusiness',
+        name: companyName,
+        image: logo?.url,
+        '@id': websiteUrl,
+        url: websiteUrl,
+        telephone: contactPhone,
+        email: contactEmail,
+        address: addressSchema,
+        sameAs: facebookUrl ? [facebookUrl] : undefined,
+        priceRange: '€€',
+        openingHoursSpecification: [
+            {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+              "opens": "08:00",
+              "closes": "18:00"
+            },
+            {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": "Saturday",
+              "opens": "09:00",
+              "closes": "13:00"
+            }
+        ],
+         // Defensive check for servicesList
+        hasOffer: Array.isArray(servicesList) ? servicesList
+          .filter(s => s && s.published) // check if 's' is not null/undefined
+          .map(s => ({
+            '@type': 'Offer',
+            itemOffered: {
+              '@type': 'Service',
+              name: s.title,
+              description: s.description,
+              url: s.hasPage && s.slug ? `${websiteUrl}/diensten/${s.slug}` : undefined,
+            },
+          })) : undefined,
+      };
     }
-
-
-    // Base Schema for Local Business
-    const localBusinessSchema = {
-      '@context': 'https://schema.org',
-      '@type': 'LocalBusiness',
-      name: companyName,
-      image: logo?.url,
-      '@id': websiteUrl,
-      url: websiteUrl,
-      telephone: contactPhone,
-      email: contactEmail,
-      address: addressSchema,
-      sameAs: facebookUrl ? [facebookUrl] : undefined,
-      priceRange: '€€',
-      openingHoursSpecification: [
-          {
-            "@type": "OpeningHoursSpecification",
-            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            "opens": "08:00",
-            "closes": "18:00"
-          },
-          {
-            "@type": "OpeningHoursSpecification",
-            "dayOfWeek": "Saturday",
-            "opens": "09:00",
-            "closes": "13:00"
-          }
-      ],
-       // Defensive check for servicesList
-      hasOffer: Array.isArray(servicesList) ? servicesList
-        .filter(s => s && s.published) // check if 's' is not null/undefined
-        .map(s => ({
-          '@type': 'Offer',
-          itemOffered: {
-            '@type': 'Service',
-            name: s.title,
-            description: s.description,
-            url: s.hasPage && s.slug ? `${websiteUrl}/diensten/${s.slug}` : undefined,
-          },
-        })) : undefined,
-    };
 
     let pageSchema: any = null;
 
     // Schema for a specific service page
-    if (service) {
+    if (service && pageContent) {
       pageSchema = {
         '@context': 'https://schema.org',
         '@type': 'Service',
@@ -98,14 +99,14 @@ const StructuredData = ({ pageContent, service, blogPost }: StructuredDataProps)
         serviceType: service.title,
         provider: {
           '@type': 'LocalBusiness',
-          name: companyName,
+          name: pageContent.companyName,
         },
         image: service.customIcon?.url,
       };
     }
 
     // Schema for a specific blog post page
-    if (blogPost) {
+    if (blogPost && pageContent) {
       pageSchema = {
         '@context': 'https://schema.org',
         '@type': 'BlogPosting',
@@ -118,14 +119,14 @@ const StructuredData = ({ pageContent, service, blogPost }: StructuredDataProps)
         image: blogPost.mainImage?.url,
         author: {
           '@type': 'Organization',
-          name: companyName,
+          name: pageContent.companyName,
         },
         publisher: {
           '@type': 'Organization',
-          name: companyName,
+          name: pageContent.companyName,
           logo: {
             '@type': 'ImageObject',
-            url: logo?.url,
+            url: pageContent.logo?.url,
           },
         },
         datePublished: blogPost.publishedAt,
@@ -152,7 +153,23 @@ const StructuredData = ({ pageContent, service, blogPost }: StructuredDataProps)
         };
     }
 
-    const schemas = [localBusinessSchema, pageSchema, breadcrumbSchema].filter(Boolean);
+    let faqSchema = null;
+    if (faqs && faqs.length > 0) {
+      faqSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+      };
+    }
+
+    const schemas = [localBusinessSchema, pageSchema, breadcrumbSchema, faqSchema].filter(Boolean);
 
     if (schemas.length === 0) {
         return null;

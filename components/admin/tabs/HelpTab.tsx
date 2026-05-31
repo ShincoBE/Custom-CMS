@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Question, CaretDown, BookOpen, Lifebuoy } from 'phosphor-react';
+import StructuredData from '@/components/StructuredData';
 
 const faqData = [
     {
@@ -69,6 +70,7 @@ const AccordionItem: React.FC<{ question: string, answer: string }> = ({ questio
 const HelpTab = () => {
     return (
         <>
+            <StructuredData faqs={faqData} />
             <div className="mb-6">
                 <h2 className="text-2xl font-bold mb-2 text-zinc-100 flex items-center">
                     <Lifebuoy size={28} className="mr-3 text-green-500" />
