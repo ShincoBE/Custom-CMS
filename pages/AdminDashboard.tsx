@@ -1,175 +1,405 @@
-    import React, { useState, useEffect } from 'react';
-    import { useParams, Link } from 'react-router-dom';
-    import { PageContent, BlogPost, GalleryImage, SiteSettings } from '@/types';
-    import Header from '@/components/Header';
-    import Footer from '@/components/Footer';
-    import Gallery from '@/components/Gallery';
-    import { Spinner, Calendar } from 'phosphor-react';
-    import LazyImage from '@/components/ui/LazyImage';
-    import StructuredData from '@/components/StructuredData';
-    import { useAnalytics } from '@/hooks/useAnalytics';
-    import MaintenancePage from '@/pages/MaintenancePage';
-    import CookieConsent from '@/components/CookieConsent';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
+import type { PageContent, GalleryImage, SiteSettings, BlogPost } from '../types';
+import { Spinner, CheckCircle, SignOut, FloppyDisk, ArrowSquareOut } from 'phosphor-react';
 
-    type Status = 'loading' | 'success' | 'error' | 'notfound';
+// Import tabs
+import DashboardTab from '../components/admin/tabs/DashboardTab';
+import NavigationTab from '../components/admin/tabs/NavigationTab';
+import HeroTab from '../components/admin/tabs/HeroTab';
+import ServicesTab from '../components/admin/tabs/ServicesTab';
+import BeforeAfterTab from '../components/admin/tabs/BeforeAfterTab';
+import TestimonialsTab from '../components/admin/tabs/TestimonialsTab';
+import BlogTab from '../components/admin/tabs/BlogTab';
+import CtaGalleryTab from '../components/admin/tabs/CtaGalleryTab';
+import GalleryTab from '../components/admin/tabs/GalleryTab';
+import ContactTab from '../components/admin/tabs/ContactTab';
+import SettingsTab from '../components/admin/tabs/SettingsTab';
+import UserManagementTab from '../components/admin/tabs/UserManagementTab';
+import HistoryTab from '../components/admin/tabs/HistoryTab';
+import AnalyticsTab from '../components/admin/tabs/AnalyticsTab';
+import HelpTab from '../components/admin/tabs/HelpTab';
+import MediaLibraryTab from '../components/admin/tabs/MediaLibraryTab'; // New Import
 
-    const BlogPostPage = () => {
-        const { slug } = useParams();
-        const [status, setStatus] = useState<Status>('loading');
-        const [post, setPost] = useState<BlogPost | null>(null);
-        const [pageContent, setPageContent] = useState<PageContent | null>(null);
-        const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
-        const [settings, setSettings] = useState<SiteSettings | null>(null);
-        const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-        const [isAdmin, setIsAdmin] = useState(false);
 
-        useAnalytics();
+// Import UI components
+import GalleryEditModal from '../components/admin/ui/GalleryEditModal';
+import BlogEditModal from '../components/admin/ui/BlogEditModal';
+import NotificationPopup from '../components/admin/ui/NotificationPopup';
+import ConfirmationModal from '../components/admin/ui/ConfirmationModal';
+import AdminDropdownMenu from '../components/admin/ui/AdminDropdownMenu';
 
-        useEffect(() => {
-            const fetchContent = async () => {
-                try {
-                    const response = await fetch('/api/content');
-                    if (!response.ok) throw new Error('API error');
-                    const data = await response.json();
 
-                    const blogEnabled = data.settings?.showBlog;
-                    const userIsAdmin = await (async () => {
-                        try {
-                            const res = await fetch('/api/verify-auth');
-                            return res.ok;
-                        } catch { return false; }
-                    })();
+function AdminDashboard() {
+  const { user, logout } = useAuth();
+  const [content, setContent] = useState<PageContent | null>(null);
+  const [gallery, setGallery] = useState<GalleryImage[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [originalContent, setOriginalContent] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  
+  const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null);
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
 
-                    setIsAdmin(userIsAdmin);
-                    
-                    // Fetch all data first to avoid UI flicker
-                    setPageContent(data.pageContent);
-                    setGalleryImages(data.galleryImages?.filter((img: GalleryImage) => img.published) || []);
-                    setSettings(data.settings);
-                    
-                    // Then check for access and content existence
-                    if (!blogEnabled && !userIsAdmin) {
-                        setStatus('notfound');
-                        return;
-                    }
-                    
-                    const currentPost = data.blogPosts?.find((p: BlogPost) => p.slug === slug && (p.published || userIsAdmin));
-                    if (!currentPost) {
-                        setStatus('notfound');
-                        return;
-                    }
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+  
+  const showNotification = useCallback((type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 5000);
+  }, []);
 
-                    setPost(currentPost);
-                    setStatus('success');
-                } catch (error) {
-                    console.error("Failed to fetch blog post:", error);
-                    setStatus('error');
+  // --- START: Tab Definitions & Role-Based Access ---
+  const userRole = user?.role;
+
+  const contentTabs = useMemo(() => [
+    { id: 'dashboard', label: 'Dashboard', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'navigatie', label: 'Navigatie', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'hero', label: 'Hero & SEO', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'diensten', label: 'Diensten', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'voor-na', label: 'Voor & Na', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'reviews', label: 'Reviews', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'blog', label: 'Blog', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'galerij-cta', label: 'Galerij CTA', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'galerij', label: 'Galerij', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'contact', label: 'Contact', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+    { id: 'media', label: 'Media', roles: ['SuperAdmin', 'Admin', 'Editor'] }, // Added Media Tab
+  ], []);
+  
+  const adminTabs = useMemo(() => [
+    { id: 'statistieken', label: 'Statistieken', roles: ['SuperAdmin', 'Admin'] },
+    { id: 'instellingen', label: 'Instellingen', roles: ['SuperAdmin', 'Admin'] },
+    { id: 'gebruikers', label: 'Gebruikers', roles: ['SuperAdmin'] },
+    { id: 'geschiedenis', label: 'Geschiedenis', roles: ['SuperAdmin', 'Admin'] },
+    { id: 'help', label: 'Help', roles: ['SuperAdmin', 'Admin', 'Editor'] },
+  ], []);
+  
+  const visibleAdminTabs = useMemo(() => adminTabs.filter(tab => userRole && tab.roles.includes(userRole)), [adminTabs, userRole]);
+  const isAdminTabActive = useMemo(() => adminTabs.some(tab => tab.id === activeTab), [activeTab, adminTabs]);
+  // --- END: Tab Definitions ---
+  
+  const loadContent = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/content');
+      if (!response.ok) throw new Error('Kon content niet ophalen.');
+      const data = await response.json();
+      setContent(data.pageContent);
+      setGallery(data.galleryImages);
+      setBlogPosts(data.blogPosts);
+      setSettings(data.settings || {});
+      setOriginalContent(JSON.stringify({ 
+        pageContent: data.pageContent, 
+        galleryImages: data.galleryImages, 
+        blogPosts: data.blogPosts,
+        settings: data.settings || {} 
+      }));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadContent();
+  }, [loadContent]);
+
+  const hasChanges = useMemo(() => {
+    if (!content || !settings) return false;
+    return JSON.stringify({ pageContent: content, galleryImages: gallery, blogPosts, settings: settings }) !== originalContent;
+  }, [content, gallery, blogPosts, settings, originalContent]);
+  
+  const showConfirmation = (title: string, message: string, onConfirm: () => void) => {
+    setConfirmation({ isOpen: true, title, message, onConfirm });
+  };
+
+  const handleContentChange = useCallback((path: string, value: any) => {
+    setContent(prev => {
+        if (!prev) return null;
+        try {
+            const newContent = JSON.parse(JSON.stringify(prev));
+            const keys = path.split('.');
+            let current = newContent;
+            for (let i = 0; i < keys.length - 1; i++) {
+                if (current[keys[i]] === undefined || current[keys[i]] === null) {
+                  current[keys[i]] = {};
                 }
-            };
-            fetchContent();
-        }, [slug]);
-
-        const handleOpenGallery = () => setIsGalleryOpen(true);
-        const handleCloseGallery = () => setIsGalleryOpen(false);
-        
-        // --- START: Page State Rendering Logic ---
-        if (status === 'loading') {
-            return (
-                <div className="text-white font-sans antialiased flex flex-col min-h-screen bg-zinc-950">
-                    <Header onOpenGallery={handleOpenGallery} content={null} settings={null} status="loading" />
-                    <main className="flex-grow pt-16 flex justify-center items-center">
-                        <Spinner size={48} className="animate-spin text-green-500" />
-                    </main>
-                    <Footer content={null} />
-                </div>
-            );
-        }
-        
-        if (settings?.maintenanceMode && !isAdmin) return <MaintenancePage />;
-        
-        // --- END: Page State Rendering Logic ---
-        
-        const renderContent = () => {
-            switch (status) {
-                case 'error':
-                    return <div className="text-center text-red-400 p-8 min-h-[60vh] flex items-center justify-center">Kon de post niet laden. Probeer het later opnieuw.</div>;
-                case 'notfound':
-                    return (
-                        <div className="text-center p-8 min-h-[60vh] flex flex-col justify-center items-center">
-                            <h1 className="text-4xl font-bold mb-4">Pagina niet gevonden</h1>
-                            <p className="text-zinc-400 mb-6">Het project of artikel dat u zoekt bestaat niet of is niet langer beschikbaar.</p>
-                            <Link to="/blog" className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full transition-colors">
-                                Terug naar overzicht
-                            </Link>
-                        </div>
-                    );
-                case 'success':
-                    return post && (
-                        <article>
-                            {post.mainImage && (
-                                <header className="relative h-[50vh] max-h-[500px] overflow-hidden">
-                                    <LazyImage
-                                        src={post.mainImage.url}
-                                        alt={post.mainImage.alt || ''}
-                                        className="w-full h-full object-cover"
-                                        isBackground
-                                    />
-                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-                                            {!post.published && (
-                                                <div className="mx-auto table bg-yellow-500 text-yellow-950 text-xs font-bold px-2 py-1 mb-4 rounded tracking-wide">
-                                                    CONCEPT PREVIEW
-                                                </div>
-                                            )}
-                                            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white">{post.title}</h1>
-                                            <div className="mt-4 flex items-center justify-center space-x-2 text-zinc-300">
-                                                <Calendar size={16} />
-                                                <span>{new Date(post.publishedAt).toLocaleDateString('nl-BE', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </header>
-                            )}
-                            {!post.mainImage && (
-                                <header className="pt-24 pb-12 bg-zinc-900 border-b border-zinc-800">
-                                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-                                        {!post.published && (
-                                            <div className="mx-auto table bg-yellow-500 text-yellow-950 text-xs font-bold px-2 py-1 mb-4 rounded tracking-wide">
-                                                CONCEPT PREVIEW
-                                            </div>
-                                        )}
-                                        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">{post.title}</h1>
-                                        <div className="mt-4 flex items-center justify-center space-x-2 text-zinc-400">
-                                            <Calendar size={16} />
-                                            <span>{new Date(post.publishedAt).toLocaleDateString('nl-BE', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                                        </div>
-                                    </div>
-                                </header>
-                            )}
-                            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-                                <div
-                                    className="prose prose-invert prose-lg max-w-none text-zinc-300"
-                                    dangerouslySetInnerHTML={{ __html: post.content }}
-                                />
-                            </div>
-                        </article>
-                    );
+                current = current[keys[i]];
             }
+            current[keys[keys.length - 1]] = value;
+            return newContent;
+        } catch (error) {
+            console.error("Failed to update content state:", error);
+            showNotification('error', 'Kon de content niet aanpassen door een interne fout.');
+            return prev; // Return original state on error
         }
+    });
+  }, [showNotification]);
 
-        return (
-            <div className="text-white font-sans antialiased flex flex-col min-h-screen bg-zinc-950 bg-[radial-gradient(circle_at_top,_rgba(10,40,20,0.3),_transparent_40%)]">
-                <StructuredData pageContent={pageContent} blogPost={post} />
-                {/* Fix: The comparison `status === 'loading'` caused a TypeScript error because the 'loading' state is handled by an early return, making this code path unreachable when status is 'loading'. The expression has been simplified. */}
-                <Header onOpenGallery={handleOpenGallery} content={pageContent} settings={settings} status={status === 'success' ? 'success' : 'error'} />
-                <main className="flex-grow pt-16">
-                {renderContent()}
-                </main>
-                <Footer content={pageContent} />
-                {isGalleryOpen && <Gallery onClose={handleCloseGallery} content={pageContent} images={galleryImages} />}
-                <CookieConsent />
-            </div>
+  const handleSettingsChange = useCallback((key: string, value: any) => {
+      setSettings((prev: any) => ({
+          ...prev,
+          [key]: value,
+      }));
+  }, []);
+
+  const handleImageUpload = async (file: File, path: string) => {
+      const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'x-vercel-filename': file.name },
+          body: file,
+      });
+      if (!response.ok) {
+          throw new Error('Upload mislukt');
+      }
+      const blob = await response.json();
+      handleContentChange(path, blob.url);
+  };
+
+  // New handler for media library selection
+  const handleImageSelect = (url: string, path: string) => {
+      handleContentChange(path, url);
+  };
+  
+  const handleModalImageUpload = async (file: File) => {
+      const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'x-vercel-filename': file.name },
+          body: file,
+      });
+      if (!response.ok) throw new Error('Upload mislukt');
+      const blob = await response.json();
+      return blob.url;
+  };
+
+  const handleSave = async () => {
+      if (!content || !settings) return;
+      setIsSaving(true);
+      setError(null);
+      
+      if (!content.logo?.url || !content.heroImage?.url || !content.beforeImage?.url || !content.afterImage?.url) {
+          showNotification('error', "Zorg ervoor dat alle verplichte afbeeldingen (Logo, Hero, Voor & Na) zijn ingesteld.");
+          setIsSaving(false);
+          return;
+      }
+      
+      try {
+          const response = await fetch('/api/update-content', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                pageContent: content, 
+                galleryImages: gallery.filter(img => img.image.url), 
+                blogPosts, 
+                settings 
+              }),
+          });
+          if (!response.ok) {
+              const errData = await response.json();
+              throw new Error(errData.error || 'Opslaan mislukt.');
+          }
+          const data = await response.json();
+          const validGallery = gallery.filter(img => img.image.url);
+          setGallery(validGallery);
+          setOriginalContent(JSON.stringify({ pageContent: content, galleryImages: validGallery, blogPosts, settings }));
+          showNotification('success', data.message);
+      } catch (err: any) {
+          showNotification('error', err.message);
+      } finally {
+          setIsSaving(false);
+      }
+  };
+
+  const handleCloseImageModal = () => {
+      if (editingImageIndex !== null) {
+          const image = gallery[editingImageIndex];
+          if (image && image._id.startsWith('new-') && !image.image.url) {
+              setGallery(g => g.filter((_, i) => i !== editingImageIndex));
+          }
+      }
+      setEditingImageIndex(null);
+  };
+  
+  const handleSavePost = (postToSave: BlogPost) => {
+      setBlogPosts(prev => {
+          const index = prev.findIndex(p => p._id === postToSave._id);
+          if (index > -1) {
+              return prev.map((p, i) => i === index ? postToSave : p);
+          }
+          return [...prev, postToSave];
+      });
+      setEditingPost(null);
+  };
+  
+  const handleDeletePost = (postId: string) => {
+       showConfirmation(
+            'Blogpost Verwijderen',
+            `Weet u zeker dat u deze post wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`,
+            () => {
+                setBlogPosts(prev => prev.filter(p => p._id !== postId));
+                showNotification('success', 'Blogpost succesvol verwijderd.');
+            }
         );
-    };
+  };
 
-    export default BlogPostPage;
+
+  if (isLoading) return <div className="min-h-screen bg-zinc-900 text-white flex items-center justify-center"><Spinner size={32} className="animate-spin" /></div>;
+  if (error) return <div className="min-h-screen bg-zinc-900 text-white flex items-center justify-center text-red-400">{error}</div>;
+  if (!content || !settings) return null;
+
+  const renderTabContent = () => {
+    // Role-based check before rendering
+    const allTabs = [...contentTabs, ...adminTabs];
+    const currentTabInfo = allTabs.find(tab => tab.id === activeTab);
+    if (!currentTabInfo || (userRole && !currentTabInfo.roles.includes(userRole))) {
+      setActiveTab('dashboard'); // Fallback to dashboard if access is denied
+      return <DashboardTab content={content} user={user} settings={settings} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} handleImageSelect={handleImageSelect} />;
+    }
+
+    switch(activeTab) {
+      case 'dashboard': return <DashboardTab content={content} user={user} settings={settings} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} handleImageSelect={handleImageSelect} />;
+      case 'navigatie': return <NavigationTab content={content} handleContentChange={handleContentChange} />;
+      case 'hero': return <HeroTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} handleImageSelect={handleImageSelect} />;
+      case 'diensten': return <ServicesTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} handleImageSelect={handleImageSelect} handleModalImageUpload={handleModalImageUpload} />;
+      case 'voor-na': return <BeforeAfterTab content={content} handleContentChange={handleContentChange} handleImageUpload={handleImageUpload} handleImageSelect={handleImageSelect} />;
+      case 'reviews': return <TestimonialsTab content={content} handleContentChange={handleContentChange} />;
+      case 'blog': return <BlogTab blogPosts={blogPosts} setEditingPost={setEditingPost} handleDeletePost={handleDeletePost} />;
+      case 'galerij-cta': return <CtaGalleryTab content={content} handleContentChange={handleContentChange} />;
+      case 'galerij': return <GalleryTab content={content} gallery={gallery} handleContentChange={handleContentChange} setGallery={setGallery} setEditingImageIndex={setEditingImageIndex} />;
+      case 'contact': return <ContactTab content={content} handleContentChange={handleContentChange} handleModalImageUpload={handleModalImageUpload} />;
+      case 'media': return <MediaLibraryTab />; // New Tab Render
+      case 'instellingen': return <SettingsTab settings={settings} handleSettingsChange={handleSettingsChange} showNotification={showNotification} />;
+      case 'gebruikers': return <UserManagementTab showNotification={showNotification} showConfirmation={showConfirmation} />;
+      case 'geschiedenis': return <HistoryTab showNotification={showNotification} showConfirmation={showConfirmation} onRestore={loadContent} />;
+      case 'statistieken': return <AnalyticsTab showNotification={showNotification} />;
+      case 'help': return <HelpTab />;
+      default: return null;
+    }
+  }
+
+  const getSaveButtonState = () => {
+    if (isSaving) {
+      return { text: 'Opslaan...', icon: <Spinner size={20} className="animate-spin" />, className: 'bg-yellow-600', disabled: true };
+    }
+    if (hasChanges) {
+      return { text: 'Wijzigingen Opslaan', icon: <FloppyDisk size={20} />, className: 'bg-green-600 hover:bg-green-700', disabled: false };
+    }
+    return { text: 'Opgeslagen', icon: <CheckCircle size={20} />, className: 'bg-zinc-600', disabled: true };
+  };
+
+  const saveButtonState = getSaveButtonState();
+  const activeAdminTab = adminTabs.find(tab => tab.id === activeTab);
+
+  return (
+    <div className="min-h-screen bg-zinc-900 text-white">
+      <header className="sticky top-0 z-20 bg-zinc-800/80 backdrop-blur-sm border-b border-zinc-700">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <button onClick={() => setActiveTab('dashboard')} className="text-lg sm:text-xl font-bold hover:text-green-500 transition-colors truncate pr-2">
+              CMS
+            </button>
+            <div className="flex items-center space-x-2 sm:space-x-4">
+               {/* Desktop View Site Button */}
+               <a href="/" target="_blank" rel="noopener noreferrer" title="Bekijk live site" className="hidden md:inline-flex items-center px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-700/50 rounded-md hover:bg-zinc-700 hover:text-white transition-colors">
+                <ArrowSquareOut size={20} className="mr-2"/>
+                Bekijk Site
+              </a>
+              {/* Mobile View Site Button (Icon Only) */}
+              <a href="/" target="_blank" rel="noopener noreferrer" title="Bekijk live site" className="md:hidden p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors">
+                <ArrowSquareOut size={20} />
+              </a>
+
+              <button 
+                onClick={handleSave} 
+                disabled={saveButtonState.disabled} 
+                className={`inline-flex items-center px-3 sm:px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-green-500 disabled:cursor-not-allowed transition-colors ${saveButtonState.className}`}
+                title={saveButtonState.text}
+              >
+                {saveButtonState.icon}
+                <span className="hidden sm:inline ml-2">{saveButtonState.text}</span>
+              </button>
+              {userRole !== 'Editor' && <AdminDropdownMenu adminTabs={visibleAdminTabs} setActiveTab={setActiveTab} isAdminTabActive={isAdminTabActive} />}
+              <button onClick={logout} title="Uitloggen" className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors">
+                  <SignOut size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <main>
+        <div className="max-w-screen-2xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          {isAdminTabActive ? (
+            <h2 className="text-3xl font-bold mb-6 px-4 sm:px-0">{activeAdminTab?.label}</h2>
+          ) : (
+            <div className="border-b border-zinc-700 mb-6">
+                {/* Desktop Tabs */}
+                <nav className="hidden md:flex -mb-px space-x-6 overflow-x-auto" aria-label="Tabs">
+                    {contentTabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                                activeTab === tab.id
+                                    ? 'border-green-500 text-green-500'
+                                    : 'border-transparent text-zinc-400 hover:text-zinc-200 hover:border-zinc-500'
+                            }`}
+                            aria-current={activeTab === tab.id ? 'page' : undefined}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </nav>
+                 {/* Mobile Dropdown */}
+                <div className="md:hidden">
+                  <label htmlFor="tabs" className="sr-only">Selecteer een tab</label>
+                  <select
+                    id="tabs"
+                    name="tabs"
+                    className="block w-full rounded-md border-zinc-600 bg-zinc-700 py-2 pl-3 pr-10 text-base text-white focus:border-green-500 focus:outline-none focus:ring-green-500 sm:text-sm"
+                    onChange={(e) => setActiveTab(e.target.value)}
+                    value={activeTab}
+                  >
+                    {contentTabs.map((tab) => (
+                      <option key={tab.id} value={tab.id}>{tab.label}</option>
+                    ))}
+                  </select>
+                </div>
+            </div>
+          )}
+          <div className="bg-zinc-800/50 p-4 sm:p-6 rounded-lg border border-zinc-700">
+              {renderTabContent()}
+          </div>
+        </div>
+      </main>
+      
+      {editingImageIndex !== null && gallery[editingImageIndex] && (
+        <GalleryEditModal 
+          isOpen={editingImageIndex !== null} 
+          onClose={handleCloseImageModal} 
+          image={gallery[editingImageIndex]} 
+          onSave={(updatedImage) => { setGallery(g => g.map((item, i) => (i === editingImageIndex ? updatedImage : item))); setEditingImageIndex(null); }} 
+          onImageUpload={handleModalImageUpload} 
+        />
+      )}
+      {editingPost && (
+        <BlogEditModal isOpen={!!editingPost} onClose={() => setEditingPost(null)} post={editingPost} onSave={handleSavePost} onImageUpload={handleModalImageUpload} />
+      )}
+      <ConfirmationModal isOpen={confirmation.isOpen} onClose={() => setConfirmation(prev => ({ ...prev, isOpen: false }))} onConfirm={confirmation.onConfirm} title={confirmation.title} message={confirmation.message} />
+      <NotificationPopup notification={notification} />
+    </div>
+  );
+}
+
+export default AdminDashboard;

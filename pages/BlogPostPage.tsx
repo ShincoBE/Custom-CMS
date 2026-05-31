@@ -115,33 +115,12 @@
                                         isBackground
                                     />
                                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-                                            {!post.published && (
-                                                <div className="mx-auto table bg-yellow-500 text-yellow-950 text-xs font-bold px-2 py-1 mb-4 rounded tracking-wide">
-                                                    CONCEPT PREVIEW
-                                                </div>
-                                            )}
+                                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                                             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white">{post.title}</h1>
                                             <div className="mt-4 flex items-center justify-center space-x-2 text-zinc-300">
                                                 <Calendar size={16} />
                                                 <span>{new Date(post.publishedAt).toLocaleDateString('nl-BE', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                                             </div>
-                                        </div>
-                                    </div>
-                                </header>
-                            )}
-                            {!post.mainImage && (
-                                <header className="pt-24 pb-12 bg-zinc-900 border-b border-zinc-800">
-                                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-                                        {!post.published && (
-                                            <div className="mx-auto table bg-yellow-500 text-yellow-950 text-xs font-bold px-2 py-1 mb-4 rounded tracking-wide">
-                                                CONCEPT PREVIEW
-                                            </div>
-                                        )}
-                                        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">{post.title}</h1>
-                                        <div className="mt-4 flex items-center justify-center space-x-2 text-zinc-400">
-                                            <Calendar size={16} />
-                                            <span>{new Date(post.publishedAt).toLocaleDateString('nl-BE', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                                         </div>
                                     </div>
                                 </header>

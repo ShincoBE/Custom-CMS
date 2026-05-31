@@ -25,19 +25,15 @@ const BlogListPage = () => {
     useAnalytics();
 
     useEffect(() => {
-        const fetchAll = async () => {
+        const fetchContent = async () => {
             try {
-                const authRes = await fetch('/api/verify-auth').catch(() => ({ ok: false }));
-                const adminStatus = authRes.ok;
-                setIsAdmin(adminStatus);
-
                 const response = await fetch('/api/content');
                 if (!response.ok) throw new Error('API error');
                 const data = await response.json();
 
                 setPageContent(data.pageContent);
-                setBlogPosts(data.blogPosts?.filter((p: BlogPost) => p.published || adminStatus) || []);
-                setGalleryImages(data.galleryImages?.filter((img: GalleryImage) => img.published || adminStatus) || []);
+                setBlogPosts(data.blogPosts?.filter((p: BlogPost) => p.published) || []);
+                setGalleryImages(data.galleryImages?.filter((img: GalleryImage) => img.published) || []);
                 setSettings(data.settings);
                 setStatus('success');
             } catch (error) {
@@ -46,8 +42,14 @@ const BlogListPage = () => {
             }
         };
 
-        fetchAll();
-
+        const checkAuth = async () => {
+            try {
+                const res = await fetch('/api/verify-auth');
+                setIsAdmin(res.ok);
+            } catch { setIsAdmin(false); }
+        };
+        
+        Promise.all([fetchContent(), checkAuth()]);
 
     }, []);
 
