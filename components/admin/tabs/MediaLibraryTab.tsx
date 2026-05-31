@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Spinner, Trash, UploadSimple, MagnifyingGlass, Copy, Check, Image as ImageIcon } from 'phosphor-react';
+import imageCompression from 'browser-image-compression';
 import type { MediaItem } from '../../../types';
-import { compressImageIfNeeded, MAX_FILE_SIZE } from '../../../utils/imageUtils';
+import { MAX_FILE_SIZE } from '../../../utils/imageUtils';
 
 const MediaLibraryTab = () => {
     const [media, setMedia] = useState<MediaItem[]>([]);
@@ -37,7 +38,13 @@ const MediaLibraryTab = () => {
 
         setIsUploading(true);
         try {
-            const fileToUpload = await compressImageIfNeeded(file);
+            // Options for main image compression
+            const mainOptions = {
+                maxSizeMB: 1.5,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+            };
+            const fileToUpload = await imageCompression(file, mainOptions);
 
             if (fileToUpload.size > MAX_FILE_SIZE) {
                 alert('Bestand is te groot. Maximaal 4.5MB toegestaan.');
@@ -45,11 +52,48 @@ const MediaLibraryTab = () => {
                 return;
             }
 
+            // Generate blur-up placeholder
+            const blurOptions = {
+                maxSizeMB: 0.05,
+                maxWidthOrHeight: 50, // very small for blur-up
+                useWebWorker: true,
+            };
+            const blurFile = await imageCompression(file, blurOptions);
+            const fileNameParts = file.name.split('.');
+            const ext = fileNameParts.pop();
+            const baseName = fileNameParts.join('.');
+            const blurFileName = `${baseName}-blur.${ext}`;
+
+            // Generate responsive thumb (e.g. for galleries)
+            const thumbOptions = {
+                maxSizeMB: 0.2,
+                maxWidthOrHeight: 600,
+                useWebWorker: true,
+            };
+            const thumbFile = await imageCompression(file, thumbOptions);
+            const thumbFileName = `${baseName}-thumb.${ext}`;
+
+            // Upload blur placeholder
+            await fetch('/api/upload', {
+                method: 'POST',
+                headers: { 'x-vercel-filename': blurFileName },
+                body: blurFile,
+            });
+
+            // Upload responsive thumbnail
+            await fetch('/api/upload', {
+                method: 'POST',
+                headers: { 'x-vercel-filename': thumbFileName },
+                body: thumbFile,
+            });
+
+            // Upload main image
             const response = await fetch('/api/upload', {
                 method: 'POST',
-                headers: { 'x-vercel-filename': fileToUpload.name },
+                headers: { 'x-vercel-filename': file.name },
                 body: fileToUpload,
             });
+
             if (!response.ok) throw new Error('Upload failed');
             await fetchMedia();
         } catch (err) {
@@ -66,13 +110,23 @@ const MediaLibraryTab = () => {
 
         setDeletingUrl(url);
         try {
-            const response = await fetch('/api/media/delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url }),
-            });
-            if (!response.ok) throw new Error('Delete failed');
-            setMedia(prev => prev.filter(item => item.url !== url));
+            // Find related variants to delete if they exist
+            const basePath = url.replace(/\.[^/.]+$/, '');
+            const variantsToDelete = media.filter(item => 
+                item.url === url || 
+                item.url.startsWith(`${basePath}-blur`) || 
+                item.url.startsWith(`${basePath}-thumb`)
+            );
+
+            await Promise.all(variantsToDelete.map(variant => 
+                fetch('/api/media/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: variant.url }),
+                })
+            ));
+
+            setMedia(prev => prev.filter(item => !variantsToDelete.find(v => v.url === item.url)));
         } catch (err) {
             console.error(err);
             alert('Verwijderen mislukt.');
@@ -88,7 +142,9 @@ const MediaLibraryTab = () => {
     };
 
     const filteredMedia = media.filter(item => 
-        item.pathname.toLowerCase().includes(searchTerm.toLowerCase())
+        item.pathname.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !item.pathname.includes('-blur.') &&
+        !item.pathname.includes('-thumb.')
     );
 
     return (
