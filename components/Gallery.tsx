@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import type { GalleryImage, PageContent } from '../types';
 import SectionHeader from './SectionHeader';
 import LazyImage from './ui/LazyImage';
@@ -189,11 +190,31 @@ function Gallery({ onClose, content, images = [] }: GalleryProps) {
             className={`relative transition-all duration-300 ${isModalOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <LazyImage
-              src={filteredImages[selectedImageIndex].image.url}
-              alt={filteredImages[selectedImageIndex].image.alt || ''}
-              className="max-h-[80vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
-            />
+            <TransformWrapper key={selectedImageIndex} initialScale={1} minScale={0.5} maxScale={4} centerOnInit>
+              {({ zoomIn, zoomOut, resetTransform }) => (
+                <>
+                  <TransformComponent wrapperClass="max-h-[80vh] max-w-[90vw] rounded-lg shadow-2xl overflow-hidden cursor-grab active:cursor-grabbing">
+                    <LazyImage
+                      src={filteredImages[selectedImageIndex].image.url}
+                      alt={filteredImages[selectedImageIndex].image.alt || ''}
+                      className="max-h-[80vh] max-w-[90vw] object-contain pointer-events-none"
+                    />
+                  </TransformComponent>
+
+                  <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-[80] flex flex-col gap-2">
+                    <button onClick={() => zoomIn()} className="p-2 bg-black/50 rounded-full text-white hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 focus-visible:ring-green-500 transition-all" aria-label="Inzoomen">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
+                    </button>
+                    <button onClick={() => zoomOut()} className="p-2 bg-black/50 rounded-full text-white hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 focus-visible:ring-green-500 transition-all" aria-label="Uitzoomen">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" /></svg>
+                    </button>
+                    <button onClick={() => resetTransform()} className="p-2 bg-black/50 rounded-full text-white hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 focus-visible:ring-green-500 transition-all" aria-label="Reset zoom">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    </button>
+                  </div>
+                </>
+              )}
+            </TransformWrapper>
             
             <button
                 onClick={handleCloseModal}
