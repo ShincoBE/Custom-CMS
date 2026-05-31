@@ -657,7 +657,9 @@ async function handleTrack(req, res) {
         // Location data from Vercel headers
         const country = req.headers['x-vercel-ip-country'] || 'Unknown';
         const city = req.headers['x-vercel-ip-city'] || 'Unknown';
-        pipeline.hincrby(key, `loc:${country}:${city}`, 1);
+        if (country !== 'Unknown') {
+            pipeline.hincrby(key, `loc:${country}:${city}`, 1);
+        }
 
         // Device data from User-Agent
         const ua = req.headers['user-agent'] || '';
@@ -751,10 +753,14 @@ async function handleGetAnalytics(req, res) {
 
         const sortAndSlice = (obj, limit = 10) => Object.entries(obj).sort(([, a], [, b]) => b - a).slice(0, limit);
 
-        const topLocations = sortAndSlice(aggregated.locations, 10).map(([loc, visits]) => {
-            const [country, city] = loc.split(':');
-            return { country, city: decodeURIComponent(city), visits };
-        });
+        const topLocations = Object.entries(aggregated.locations)
+            .filter(([loc]) => !loc.startsWith('Unknown'))
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 10)
+            .map(([loc, visits]) => {
+                const [country, city] = loc.split(':');
+                return { country, city: decodeURIComponent(city), visits };
+            });
 
         const topCity = topLocations[0] ? `${decodeURIComponent(topLocations[0].city)}, ${topLocations[0].country}` : 'N/A';
         const topReferrer = sortAndSlice(aggregated.referrers, 1)[0]?.[0] || 'N/A';
