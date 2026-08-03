@@ -144,9 +144,10 @@ const QuotePage = () => {
     let imageUrl = '';
     if (imageFile) {
         try {
+            const safeName = encodeURIComponent((imageFile.name || 'quote-image.jpg').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9.-]/g, '_'));
             const uploadResponse = await fetch('/api/upload', {
                 method: 'POST',
-                headers: { 'x-vercel-filename': imageFile.name },
+                headers: { 'x-vercel-filename': safeName },
                 body: imageFile,
             });
             if (!uploadResponse.ok) throw new Error('Image upload failed');

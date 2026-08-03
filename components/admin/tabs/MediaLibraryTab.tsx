@@ -38,13 +38,20 @@ const MediaLibraryTab = () => {
 
         setIsUploading(true);
         try {
-            // Options for main image compression
-            const mainOptions = {
-                maxSizeMB: 1.5,
-                maxWidthOrHeight: 1920,
-                useWebWorker: true,
-            };
-            const fileToUpload = await imageCompression(file, mainOptions);
+            const rawName = file.name || 'upload.jpg';
+            const safeName = rawName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9.-]/g, '_');
+            const fileNameParts = safeName.split('.');
+            const ext = fileNameParts.length > 1 ? fileNameParts.pop() : 'jpg';
+            const baseName = fileNameParts.join('.');
+
+            // Main file compression with fallback
+            let fileToUpload = file;
+            try {
+                const mainOptions = { maxSizeMB: 1.5, maxWidthOrHeight: 1920, useWebWorker: true };
+                fileToUpload = await imageCompression(file, mainOptions);
+            } catch (cErr) {
+                console.warn('Main image compression failed on client:', cErr);
+            }
 
             if (fileToUpload.size > MAX_FILE_SIZE) {
                 alert('Bestand is te groot. Maximaal 4.5MB toegestaan.');
@@ -52,45 +59,38 @@ const MediaLibraryTab = () => {
                 return;
             }
 
-            // Generate blur-up placeholder
-            const blurOptions = {
-                maxSizeMB: 0.05,
-                maxWidthOrHeight: 50, // very small for blur-up
-                useWebWorker: true,
-            };
-            const blurFile = await imageCompression(file, blurOptions);
-            const fileNameParts = file.name.split('.');
-            const ext = fileNameParts.pop();
-            const baseName = fileNameParts.join('.');
-            const blurFileName = `${baseName}-blur.${ext}`;
+            // Generate & upload blur-up placeholder if possible
+            try {
+                const blurOptions = { maxSizeMB: 0.05, maxWidthOrHeight: 50, useWebWorker: true };
+                const blurFile = await imageCompression(file, blurOptions);
+                const blurFileName = `${baseName}-blur.${ext}`;
+                await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'x-vercel-filename': encodeURIComponent(blurFileName) },
+                    body: blurFile,
+                });
+            } catch (blurErr) {
+                console.warn('Blur image generation skipped:', blurErr);
+            }
 
-            // Generate responsive thumb (e.g. for galleries)
-            const thumbOptions = {
-                maxSizeMB: 0.2,
-                maxWidthOrHeight: 600,
-                useWebWorker: true,
-            };
-            const thumbFile = await imageCompression(file, thumbOptions);
-            const thumbFileName = `${baseName}-thumb.${ext}`;
-
-            // Upload blur placeholder
-            await fetch('/api/upload', {
-                method: 'POST',
-                headers: { 'x-vercel-filename': blurFileName },
-                body: blurFile,
-            });
-
-            // Upload responsive thumbnail
-            await fetch('/api/upload', {
-                method: 'POST',
-                headers: { 'x-vercel-filename': thumbFileName },
-                body: thumbFile,
-            });
+            // Generate & upload responsive thumbnail if possible
+            try {
+                const thumbOptions = { maxSizeMB: 0.2, maxWidthOrHeight: 600, useWebWorker: true };
+                const thumbFile = await imageCompression(file, thumbOptions);
+                const thumbFileName = `${baseName}-thumb.${ext}`;
+                await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'x-vercel-filename': encodeURIComponent(thumbFileName) },
+                    body: thumbFile,
+                });
+            } catch (thumbErr) {
+                console.warn('Thumb image generation skipped:', thumbErr);
+            }
 
             // Upload main image
             const response = await fetch('/api/upload', {
                 method: 'POST',
-                headers: { 'x-vercel-filename': file.name },
+                headers: { 'x-vercel-filename': encodeURIComponent(safeName) },
                 body: fileToUpload,
             });
 

@@ -154,9 +154,10 @@ function AdminDashboard() {
   }, []);
 
   const handleImageUpload = async (file: File, path: string) => {
+      const safeName = encodeURIComponent((file.name || 'upload.jpg').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9.-]/g, '_'));
       const response = await fetch('/api/upload', {
           method: 'POST',
-          headers: { 'x-vercel-filename': file.name },
+          headers: { 'x-vercel-filename': safeName },
           body: file,
       });
       if (!response.ok) {
@@ -172,9 +173,10 @@ function AdminDashboard() {
   };
   
   const handleModalImageUpload = async (file: File) => {
+      const safeName = encodeURIComponent((file.name || 'upload.jpg').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9.-]/g, '_'));
       const response = await fetch('/api/upload', {
           method: 'POST',
-          headers: { 'x-vercel-filename': file.name },
+          headers: { 'x-vercel-filename': safeName },
           body: file,
       });
       if (!response.ok) throw new Error('Upload mislukt');
