@@ -89,7 +89,7 @@ const ImageUpload = ({ label, help, currentUrl, alt, onAltChange, onImageChange,
                         )}
                     </div>
                     
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/gif, image/webp, image/svg+xml" />
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
                     
                     <div className="mt-2">
                       <InputWithCounter

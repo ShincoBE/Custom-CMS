@@ -417,35 +417,40 @@ async function handleUpload(req, res) {
             return res.status(400).json({ error: 'Het geüploade bestand is leeg.', code: 'EMPTY_FILE' });
         }
 
-        if (imageBuffer.length > 10 * 1024 * 1024) {
-            return res.status(413).json({ error: 'Het bestand is te groot (maximaal 10MB toegestaan).', code: 'FILE_TOO_LARGE' });
+        if (imageBuffer.length > 25 * 1024 * 1024) {
+            return res.status(413).json({ error: 'Het bestand is te groot (maximaal 25MB toegestaan).', code: 'FILE_TOO_LARGE' });
         }
 
-        // Process image with Sharp: resize and convert to webp for optimization.
-        let finalBuffer;
+        // Process image with Sharp: auto-rotate based on EXIF, resize, and convert to webp for optimization.
+        let finalBuffer = imageBuffer;
+        let finalContentType = 'image/jpeg';
+        const fileExtIndex = filename.lastIndexOf('.');
+        const baseName = fileExtIndex > 0 ? filename.slice(0, fileExtIndex) : filename;
+        let finalFilename = `${baseName}.webp`;
+
         try {
             finalBuffer = await sharp(imageBuffer)
+                .rotate() // Auto-rotate mobile photos based on EXIF orientation tag
                 .resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true })
                 .webp({ quality: 80 })
                 .toBuffer();
+            finalContentType = 'image/webp';
         } catch (sharpError) {
-            console.error("Sharp image processing error:", sharpError);
-            return res.status(400).json({
-                error: 'Het bestand is geen geldige of ondersteunde afbeelding (ondersteund: JPG, PNG, WebP, GIF, SVG).',
-                code: 'INVALID_IMAGE_FORMAT'
-            });
+            console.warn("Sharp image processing warning (using raw image fallback):", sharpError.message);
+            finalFilename = filename;
+            if (filename.endsWith('.png')) finalContentType = 'image/png';
+            else if (filename.endsWith('.gif')) finalContentType = 'image/gif';
+            else if (filename.endsWith('.webp')) finalContentType = 'image/webp';
+            else if (filename.endsWith('.svg')) finalContentType = 'image/svg+xml';
+            else finalContentType = 'image/jpeg';
         }
-
-        const fileExtIndex = filename.lastIndexOf('.');
-        const baseName = fileExtIndex > 0 ? filename.slice(0, fileExtIndex) : filename;
-        const finalFilename = `${baseName}.webp`;
 
         if (process.env.BLOB_READ_WRITE_TOKEN) {
             try {
                 const blob = await put(finalFilename, finalBuffer, {
                     access: 'public',
                     cacheControl: 'public, max-age=0, must-revalidate',
-                    contentType: 'image/webp'
+                    contentType: finalContentType
                 });
                 return res.status(200).json(blob);
             } catch (blobError) {
@@ -454,11 +459,11 @@ async function handleUpload(req, res) {
         }
 
         // Fallback: Convert to data URL if Vercel Blob is missing or unauthorized
-        const base64Data = `data:image/webp;base64,${finalBuffer.toString('base64')}`;
+        const base64Data = `data:${finalContentType};base64,${finalBuffer.toString('base64')}`;
         return res.status(200).json({
             url: base64Data,
             pathname: finalFilename,
-            contentType: 'image/webp'
+            contentType: finalContentType
         });
     } catch (error) {
         console.error("Upload error:", error);

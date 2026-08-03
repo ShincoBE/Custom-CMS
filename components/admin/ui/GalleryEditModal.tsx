@@ -92,7 +92,7 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: Gal
                         {isUploading ? <Spinner size={16} className="animate-spin mr-2" /> : <UploadSimple size={16} className="mr-2" />}
                         {isUploading ? 'Verwerken...' : (editedImage.image.url ? 'Wijzigen' : 'Uploaden')}
                     </button>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/gif, image/webp, image/svg+xml" />
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
 
                     <button type="button" onClick={() => setIsLibraryOpen(true)} className="w-full mt-2 inline-flex items-center justify-center px-3 py-1.5 border border-zinc-500 text-sm font-medium rounded-md text-zinc-300 bg-zinc-700 hover:bg-zinc-600">
                         <Image size={16} className="mr-2" />
