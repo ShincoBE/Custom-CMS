@@ -161,7 +161,8 @@ function AdminDashboard() {
           body: file,
       });
       if (!response.ok) {
-          throw new Error('Upload mislukt');
+          const errData = await response.json().catch(() => ({ error: `Upload mislukt (Status ${response.status})` }));
+          throw new Error(errData.error || `Upload mislukt (Status ${response.status})`);
       }
       const blob = await response.json();
       handleContentChange(path, blob.url);
@@ -179,7 +180,10 @@ function AdminDashboard() {
           headers: { 'x-vercel-filename': safeName },
           body: file,
       });
-      if (!response.ok) throw new Error('Upload mislukt');
+      if (!response.ok) {
+          const errData = await response.json().catch(() => ({ error: `Upload mislukt (Status ${response.status})` }));
+          throw new Error(errData.error || `Upload mislukt (Status ${response.status})`);
+      }
       const blob = await response.json();
       return blob.url;
   };

@@ -51,9 +51,9 @@ const GalleryEditModal = ({ isOpen, onClose, image, onSave, onImageUpload }: Gal
 
         const newUrl = await onImageUpload(fileToUpload);
         setEditedImage(prev => ({ ...prev, image: { ...prev.image, url: newUrl } }));
-      } catch (error) {
+      } catch (error: any) {
         console.error("Upload failed", error);
-        alert('Upload mislukt. Probeer het opnieuw.');
+        alert(error.message || 'Upload mislukt. Probeer het opnieuw.');
       } finally {
         setIsUploading(false);
         if (fileInputRef.current) fileInputRef.current.value = '';

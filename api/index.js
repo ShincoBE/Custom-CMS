@@ -413,12 +413,29 @@ async function handleUpload(req, res) {
 
         const imageBuffer = await streamToBuffer(req);
 
+        if (!imageBuffer || imageBuffer.length === 0) {
+            return res.status(400).json({ error: 'Het geüploade bestand is leeg.', code: 'EMPTY_FILE' });
+        }
+
+        if (imageBuffer.length > 10 * 1024 * 1024) {
+            return res.status(413).json({ error: 'Het bestand is te groot (maximaal 10MB toegestaan).', code: 'FILE_TOO_LARGE' });
+        }
+
         // Process image with Sharp: resize and convert to webp for optimization.
-        const finalBuffer = await sharp(imageBuffer)
-            .resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true })
-            .webp({ quality: 80 })
-            .toBuffer();
-        
+        let finalBuffer;
+        try {
+            finalBuffer = await sharp(imageBuffer)
+                .resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true })
+                .webp({ quality: 80 })
+                .toBuffer();
+        } catch (sharpError) {
+            console.error("Sharp image processing error:", sharpError);
+            return res.status(400).json({
+                error: 'Het bestand is geen geldige of ondersteunde afbeelding (ondersteund: JPG, PNG, WebP, GIF, SVG).',
+                code: 'INVALID_IMAGE_FORMAT'
+            });
+        }
+
         const fileExtIndex = filename.lastIndexOf('.');
         const baseName = fileExtIndex > 0 ? filename.slice(0, fileExtIndex) : filename;
         const finalFilename = `${baseName}.webp`;
@@ -445,7 +462,10 @@ async function handleUpload(req, res) {
         });
     } catch (error) {
         console.error("Upload error:", error);
-        return res.status(500).json({ error: 'Upload failed.' });
+        return res.status(500).json({
+            error: `Upload mislukt: ${error.message || 'Interne serverfout.'}`,
+            code: 'SERVER_UPLOAD_ERROR'
+        });
     }
 }
 

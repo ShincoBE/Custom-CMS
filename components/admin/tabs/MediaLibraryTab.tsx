@@ -94,11 +94,14 @@ const MediaLibraryTab = () => {
                 body: fileToUpload,
             });
 
-            if (!response.ok) throw new Error('Upload failed');
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({ error: `Upload mislukt (Status ${response.status})` }));
+                throw new Error(errData.error || `Upload mislukt (Status ${response.status})`);
+            }
             await fetchMedia();
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            alert('Upload mislukt.');
+            alert(err.message || 'Upload mislukt.');
         } finally {
             setIsUploading(false);
             if(fileInputRef.current) fileInputRef.current.value = '';

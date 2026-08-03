@@ -150,11 +150,14 @@ const QuotePage = () => {
                 headers: { 'x-vercel-filename': safeName },
                 body: imageFile,
             });
-            if (!uploadResponse.ok) throw new Error('Image upload failed');
+            if (!uploadResponse.ok) {
+                const errData = await uploadResponse.json().catch(() => ({ error: `Upload mislukt (Status ${uploadResponse.status})` }));
+                throw new Error(errData.error || `Upload mislukt (Status ${uploadResponse.status})`);
+            }
             const blob = await uploadResponse.json();
             imageUrl = blob.url;
-        } catch (error) {
-            setErrors({ submit: 'Kon afbeelding niet uploaden. Probeer het zonder, of probeer opnieuw.' });
+        } catch (error: any) {
+            setErrors({ submit: error.message || 'Kon afbeelding niet uploaden. Probeer het opnieuw.' });
             setIsLoading(false);
             return;
         }
