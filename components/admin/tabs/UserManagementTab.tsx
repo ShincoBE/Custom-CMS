@@ -1,20 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../../context/AuthContext';
-import { Users, Spinner, Trash } from 'phosphor-react';
+import { Users, Spinner, Trash, Key } from 'phosphor-react';
 import AdminInput from '../ui/AdminInput';
+import ResetPasswordModal from '../ui/ResetPasswordModal';
 import type { User, UserRole } from '../../../types';
 
 interface UserManagementTabProps {
     showNotification: (type: 'success' | 'error', message: string) => void;
     showConfirmation: (title: string, message: string, onConfirm: () => void) => void;
+    onOpenChangePassword?: () => void;
 }
 
-const UserManagementTab = ({ showNotification, showConfirmation }: UserManagementTabProps) => {
+const UserManagementTab = ({ showNotification, showConfirmation, onOpenChangePassword }: UserManagementTabProps) => {
     const { user: currentUser } = useAuth();
     const [users, setUsers] = useState<User[]>([]);
     const [isLoadingUsers, setIsLoadingUsers] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [newUser, setNewUser] = useState({ username: '', password: '', role: 'Editor' as UserRole });
+    const [resetTargetUser, setResetTargetUser] = useState<string | null>(null);
 
     const fetchUsers = useCallback(async () => {
         setIsLoadingUsers(true);
@@ -137,9 +140,30 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
                                         <span className="text-xs text-zinc-400">{user.role}</span>
                                     </div>
                                     {user.username === currentUser?.username ? (
-                                        <span className="text-xs text-zinc-400 italic self-start sm:self-auto">Dit bent u</span>
+                                        <div className="flex items-center space-x-3 self-start sm:self-auto">
+                                            <span className="text-xs text-zinc-400 italic">Dit bent u</span>
+                                            {onOpenChangePassword && (
+                                                <button
+                                                    type="button"
+                                                    onClick={onOpenChangePassword}
+                                                    className="inline-flex items-center text-xs font-medium text-green-400 hover:text-green-300 hover:underline px-2 py-1 rounded bg-zinc-700/50 hover:bg-zinc-700 transition-colors"
+                                                >
+                                                    <Key size={14} className="mr-1" />
+                                                    Wachtwoord wijzigen
+                                                </button>
+                                            )}
+                                        </div>
                                     ) : (
                                       <div className="flex items-center space-x-3 self-end sm:self-auto">
+                                        <button 
+                                            onClick={() => setResetTargetUser(user.username)}
+                                            className="inline-flex items-center text-xs font-medium text-zinc-300 hover:text-white px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600 border border-zinc-600 transition-colors"
+                                            title={`Wachtwoord opnieuw instellen voor ${user.username}`}
+                                            aria-label={`Wachtwoord instellen voor ${user.username}`}
+                                        >
+                                            <Key size={14} className="mr-1 text-yellow-400" />
+                                            Wachtwoord resetten
+                                        </button>
                                         <select 
                                             value={user.role} 
                                             onChange={(e) => handleRoleChange(user.username, e.target.value as UserRole)}
@@ -161,6 +185,15 @@ const UserManagementTab = ({ showNotification, showConfirmation }: UserManagemen
                     </div>
                  )}
             </div>
+
+            {resetTargetUser && (
+                <ResetPasswordModal
+                    isOpen={!!resetTargetUser}
+                    onClose={() => setResetTargetUser(null)}
+                    targetUsername={resetTargetUser}
+                    showNotification={showNotification}
+                />
+            )}
         </>
     );
 };

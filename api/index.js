@@ -572,6 +572,54 @@ async function handleUpdateUserRole(req, res) {
     }
   }
 
+async function handleChangePassword(req, res) {
+  try {
+    const currentUser = await authorizeRequest(req, ['SuperAdmin', 'Admin', 'Editor']);
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Huidig wachtwoord en nieuw wachtwoord zijn verplicht.' });
+    }
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
+      return res.status(400).json({ error: 'Het nieuwe wachtwoord moet minstens 8 tekens lang zijn.' });
+    }
+    const userInDb = await kv.get(`user:${currentUser.username}`);
+    if (!userInDb) {
+      return res.status(404).json({ error: 'Gebruiker niet gevonden.' });
+    }
+    const isMatch = await bcrypt.compare(currentPassword, userInDb.hashedPassword);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Het huidige wachtwoord is onjuist.' });
+    }
+    userInDb.hashedPassword = await bcrypt.hash(newPassword, 10);
+    await kv.set(`user:${currentUser.username}`, userInDb);
+    return res.status(200).json({ success: true, message: 'Uw wachtwoord is succesvol gewijzigd!' });
+  } catch (error) {
+    return res.status(error.message === 'Access denied.' ? 403 : 500).json({ error: error.message });
+  }
+}
+
+async function handleResetUserPassword(req, res) {
+  try {
+    await authorizeRequest(req, ['SuperAdmin']);
+    const { username, newPassword } = req.body;
+    if (!username || !newPassword) {
+      return res.status(400).json({ error: 'Gebruikersnaam en nieuw wachtwoord zijn verplicht.' });
+    }
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
+      return res.status(400).json({ error: 'Het nieuwe wachtwoord moet minstens 8 tekens lang zijn.' });
+    }
+    const userToUpdate = await kv.get(`user:${username}`);
+    if (!userToUpdate) {
+      return res.status(404).json({ error: `Gebruiker '${username}' niet gevonden.` });
+    }
+    userToUpdate.hashedPassword = await bcrypt.hash(newPassword, 10);
+    await kv.set(`user:${username}`, userToUpdate);
+    return res.status(200).json({ success: true, message: `Wachtwoord voor '${username}' succesvol bijgewerkt.` });
+  } catch (error) {
+    return res.status(error.message === 'Access denied.' ? 403 : 500).json({ error: error.message });
+  }
+}
+
 async function handleGetHistory(req, res) {
   try {
     await authorizeRequest(req, ['SuperAdmin', 'Admin']);
@@ -925,6 +973,8 @@ module.exports = async (req, res) => {
   if (path === '/api/users/create' && req.method === 'POST') return handleCreateUser(req, res);
   if (path === '/api/users/delete' && req.method === 'POST') return handleDeleteUser(req, res);
   if (path === '/api/users/update-role' && req.method === 'POST') return handleUpdateUserRole(req, res);
+  if (path === '/api/users/change-password' && req.method === 'POST') return handleChangePassword(req, res);
+  if (path === '/api/users/reset-password' && req.method === 'POST') return handleResetUserPassword(req, res);
   if (path === '/api/content-history' && req.method === 'GET') return handleGetHistory(req, res);
   if (path === '/api/revert-content' && req.method === 'POST') return handleRevertContent(req, res);
   if (path === '/api/test-email' && req.method === 'POST') return handleTestEmail(req, res);

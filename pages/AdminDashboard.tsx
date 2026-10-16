@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import type { PageContent, GalleryImage, SiteSettings, BlogPost } from '../types';
-import { Spinner, CheckCircle, SignOut, FloppyDisk, ArrowSquareOut } from 'phosphor-react';
+import { Spinner, CheckCircle, SignOut, FloppyDisk, ArrowSquareOut, Key } from 'phosphor-react';
 
 // Import tabs
 import DashboardTab from '../components/admin/tabs/DashboardTab';
@@ -28,6 +28,7 @@ import BlogEditModal from '../components/admin/ui/BlogEditModal';
 import NotificationPopup from '../components/admin/ui/NotificationPopup';
 import ConfirmationModal from '../components/admin/ui/ConfirmationModal';
 import AdminDropdownMenu from '../components/admin/ui/AdminDropdownMenu';
+import ChangePasswordModal from '../components/admin/ui/ChangePasswordModal';
 
 
 function AdminDashboard() {
@@ -45,6 +46,7 @@ function AdminDashboard() {
   
   const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const [confirmation, setConfirmation] = useState<{
     isOpen: boolean;
@@ -285,7 +287,7 @@ function AdminDashboard() {
       case 'contact': return <ContactTab content={content} handleContentChange={handleContentChange} handleModalImageUpload={handleModalImageUpload} />;
       case 'media': return <MediaLibraryTab />; // New Tab Render
       case 'instellingen': return <SettingsTab settings={settings} handleSettingsChange={handleSettingsChange} showNotification={showNotification} />;
-      case 'gebruikers': return <UserManagementTab showNotification={showNotification} showConfirmation={showConfirmation} />;
+      case 'gebruikers': return <UserManagementTab showNotification={showNotification} showConfirmation={showConfirmation} onOpenChangePassword={() => setIsChangePasswordOpen(true)} />;
       case 'geschiedenis': return <HistoryTab showNotification={showNotification} showConfirmation={showConfirmation} onRestore={loadContent} />;
       case 'statistieken': return <AnalyticsTab showNotification={showNotification} />;
       case 'help': return <HelpTab />;
@@ -333,6 +335,22 @@ function AdminDashboard() {
               >
                 {saveButtonState.icon}
                 <span className="hidden sm:inline ml-2">{saveButtonState.text}</span>
+              </button>
+              {/* User / Change Password Button */}
+              <button
+                type="button"
+                onClick={() => setIsChangePasswordOpen(true)}
+                title={`Ingelogd als ${user?.username || 'gebruiker'}. Klik om uw wachtwoord te wijzigen.`}
+                className="inline-flex items-center px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-zinc-300 bg-zinc-700/50 hover:bg-zinc-700 hover:text-white rounded-md transition-colors border border-zinc-600/70"
+              >
+                <Key size={18} className="text-green-400 sm:mr-1.5 flex-shrink-0" />
+                <span className="hidden sm:inline font-medium">{user?.username}</span>
+                <span className="sm:hidden font-medium ml-1">Wachtwoord</span>
+                {userRole && (
+                  <span className="hidden lg:inline ml-2 px-1.5 py-0.5 text-[10px] uppercase tracking-wider bg-zinc-800 text-zinc-300 rounded border border-zinc-600 font-semibold">
+                    {userRole}
+                  </span>
+                )}
               </button>
               {userRole !== 'Editor' && <AdminDropdownMenu adminTabs={visibleAdminTabs} setActiveTab={setActiveTab} isAdminTabActive={isAdminTabActive} />}
               <button onClick={logout} title="Uitloggen" className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-full transition-colors">
@@ -403,6 +421,12 @@ function AdminDashboard() {
         <BlogEditModal isOpen={!!editingPost} onClose={() => setEditingPost(null)} post={editingPost} onSave={handleSavePost} onImageUpload={handleModalImageUpload} />
       )}
       <ConfirmationModal isOpen={confirmation.isOpen} onClose={() => setConfirmation(prev => ({ ...prev, isOpen: false }))} onConfirm={confirmation.onConfirm} title={confirmation.title} message={confirmation.message} />
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+        username={user?.username}
+        showNotification={showNotification}
+      />
       <NotificationPopup notification={notification} />
     </div>
   );
